@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="learning.css">
+    <title>Personalized Learning Path</title>
+  </head>
+  <body>
+    <header>
+      <h1>Personalized Learning Path</h1>
+      <p>Select your grade and subjects to generate your learning path.</p>
+      <a href="MainScreen.html"><button>Back to Main</button></a>
+    </header>
+    <main>
+      <div class="input-section">
+        <label for="grade-select">Select your grade level:</label>
+        <select id="grade-select">
+          <option value="">Select Grade</option>
+          <option value="grade1">Grade 1</option>
+          <option value="grade2">Grade 2</option>
+          <option value="grade3">Grade 3</option>
+        </select>
+        <div>
+          <input type="checkbox" id="math" value="math"> <label for="math">Math</label>
+          <input type="checkbox" id="science" value="science"> <label for="science">Science</label>
+        </div>
+        <button id="generate-btn">Generate Learning Path</button>
+        <button id="pomodoro-btn">Start Pomodoro</button>
+      </div>
+      <div id="progress-bar">
+        <div id="progress-fill"></div>
+      </div>
+      <div id="progress-summary" style="display: none;"></div>
+      <div id="learning-path"></div>
+      <div id="leaderboard">
+        <h2>Weekly Leaderboard</h2>
+        <ul>
+          <li>Alice - 150 points</li>
+          <li>You - <span id="your-score">0</span> points</li>
+        </ul>
+      </div>
+      <button id="chat-btn">Chat</button>
+    </main>
+    <script src="LearningPathFakeData.js"></script>
+  </body>
+</html>

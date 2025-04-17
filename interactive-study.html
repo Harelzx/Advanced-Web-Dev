@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="interactive.css">
+  <title>Interactive Study Platform</title>
+</head>
+<body>
+  <header>
+    <h1>Interactive Study Platform</h1>
+    <a href="MainScreen.html"><button>Return to Main</button></a>
+    <p>Choose a subject to start studying!</p>
+  </header>
+  <main>
+    <div class="subjects">
+      <div class="subject-card" data-subject="math">
+        <i class="fas fa-calculator"></i>
+        <h2>Math</h2>
+        <button class="study-btn">Study Now</button>
+      </div>
+      <div class="subject-card" data-subject="science">
+        <i class="fas fa-flask"></i>
+        <h2>Science</h2>
+        <button class="study-btn">Study Now</button>
+      </div>
+      <div class="subject-card" data-subject="history">
+        <i class="fas fa-landmark"></i>
+        <h2>History</h2>
+        <button class="study-btn">Study Now</button>
+      </div>
+      <div class="subject-card" data-subject="english">
+        <i class="fas fa-book"></i>
+        <h2>English</h2>
+        <button class="study-btn">Study Now</button>
+      </div>
+    </div>
+  </main>
+  <div id="quiz-modal" class="hidden">
+    <div class="quiz-content">
+      <div id="difficulty-selection">
+        <h2>Select Difficulty Level</h2>
+        <button id="easy-btn">Easy</button>
+        <button id="medium-btn">Medium</button>
+        <button id="hard-btn">Hard</button>
+      </div>
+      <div id="quiz-section" class="hidden">
+        <h2 id="quiz-question"></h2>
+        <form id="quiz-form">
+          <label><input type="radio" name="option"> <span></span></label>
+          <label><input type="radio" name="option"> <span></span></label>
+          <label><input type="radio" name="option"> <span></span></label>
+        </form>
+        <div id="timer">Time left: 30 seconds</div>
+        <button id="submit-btn">Submit</button>
+        <p id="feedback"></p>
+        <button id="flashcard-mode-btn">View as Flashcards</button>
+      </div>
+      <div id="flashcard-section" class="hidden">
+        <h2 id="flashcard-question"></h2>
+        <button id="show-answer-btn">Show Answer</button>
+        <p id="flashcard-answer" class="hidden"></p>
+        <button id="next-flashcard-btn">Next</button>
+      </div>
+      <button id="close-btn">Close</button>
+    </div>
+  </div>
+  <script src="InteractiveFakedata.js"></script>
+</body>
+</html>

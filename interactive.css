@@ -1,0 +1,106 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    text-align: center;
+    padding: 20px;
+    background-color: #f0f0f0;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 2em;
+  }
+  header p {
+    margin: 5px 0 0;
+    color: #555;
+  }
+  .subjects {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+  }
+  @media (max-width: 600px) {
+    .subjects {
+      grid-template-columns: 1fr;
+    }
+  }
+  .subject-card {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    text-align: center;
+    background-color: #fff;
+    transition: transform 0.2s;
+  }
+  .subject-card:hover {
+    transform: scale(1.05);
+  }
+  .subjects .subject-card:nth-child(1) { background-color: #ffcccc; }
+  .subjects .subject-card:nth-child(2) { background-color: #ccffcc; }
+  .subjects .subject-card:nth-child(3) { background-color: #ccccff; }
+  .subjects .subject-card:nth-child(4) { background-color: #ffffcc; }
+  .subject-card i {
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+  .subject-card h2 {
+    margin: 10px 0;
+    font-size: 1.5em;
+  }
+  button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+  }
+  button:hover {
+    background-color: #45a049;
+  }
+  #quiz-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #quiz-modal.hidden {
+    display: none;
+  }
+  .quiz-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 500px;
+    text-align: center;
+  }
+  .quiz-content h2 {
+    margin-top: 0;
+  }
+  #quiz-form label {
+    display: block;
+    margin: 10px 0;
+    font-size: 1.1em;
+  }
+  #quiz-form input[type="radio"] {
+    margin-right: 10px;
+  }
+  #feedback {
+    font-weight: bold;
+    margin-top: 10px;
+    min-height: 1.5em;
+  }
+  #feedback.correct { color: green; }
+  #feedback.incorrect { color: red; }
+  #submit-btn, #close-btn { margin-top: 15px; }
+  .hidden { display: none; }
