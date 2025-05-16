@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import Badge from './components/Badge'
+
+const badges = [
+    { label: "Quiz Master", color: "bg-blue-500" },
+    { label: "Fast Learner", color: "bg-yellow-500" },
+    { label: "100% Attendance", color: "bg-purple-500" },
+];
 
 export default function Home() {
     return (
@@ -6,6 +13,11 @@ export default function Home() {
       <header>
         <h1>Student Study Platform</h1>
         <p>Choose your study mode</p>
+        <div className="mt-4">
+          {badges.map((badge, idx) => (
+            <Badge key={idx} label={badge.label} color={badge.color} />
+          ))}
+        </div>
       </header>
       <main>
         <div className="study-options">
