@@ -5,12 +5,12 @@ import BadgeCase from './components/BadgeCase'
 const earnedBadges = ["Math Master", "Daily Login"]; // Example of earned badges
 
 const badges = [
-  { label: "Math Master", color: "bg-green-500", icon: <FaCalculator /> },
-  { label: "Science Star", color: "bg-blue-500", icon: <FaFlask /> },
-  { label: "Daily Login", color: "bg-yellow-500", icon: <FaCalendarCheck /> },
-  { label: "Book Worm", color: "bg-purple-500", icon: <FaBook /> },
-  { label: "Champion", color: "bg-red-500", icon: <FaTrophy /> },
-  { label: "Puzzle Solver", color: "bg-pink-500", icon: <FaPuzzlePiece /> },
+  { label: "Math Master", icon: <FaCalculator /> },
+  { label: "Science Star", icon: <FaFlask /> },
+  { label: "Daily Login", icon: <FaCalendarCheck /> },
+  { label: "Book Worm", icon: <FaBook /> },
+  { label: "Champion", icon: <FaTrophy /> },
+  { label: "Puzzle Solver", icon: <FaPuzzlePiece /> },
 ];
 
 export default function Home() {
