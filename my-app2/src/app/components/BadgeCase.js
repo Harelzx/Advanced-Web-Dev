@@ -11,7 +11,7 @@ const allBadges = [
 
 export default function BadgeCase({ earnedBadges = [] }) {
   return (
-    <div className="flex justify-center">
+    <div className="badge-case-container flex justify-center">
       <div className="relative p-4 bg-gradient-to-br from-stone-300 to-stone-100 rounded-3xl border-8 border-stone-500 shadow-2xl min-w-[400px]">
         <div className="grid grid-cols-2 grid-rows-3 gap-8 p-6">
           {allBadges.map((badge) => {

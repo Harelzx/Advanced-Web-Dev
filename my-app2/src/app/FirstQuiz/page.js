@@ -4,7 +4,7 @@
 "use client";
 import { useState } from "react";
 import { getDocs, collection, getFirestore, query, where } from "firebase/firestore";
-import { app } from "../firebase"; // your firebase config
+//import { app } from "../firebase"; // your firebase config
 
 const questions = [
   { id: 1, q: "2 + 2 =", a: "4" },

@@ -36,12 +36,16 @@ export default function Home() {
               <button>Go to Personalized Learning Path</button>
             </Link>
           </div>
+          <div className="option-card">
+            <h2>First Quiz</h2>
+            <p>Start your first math quiz and test your skills!</p>
+            <Link href="/FirstQuiz">
+              <button>Go to First Quiz</button>
+            </Link>
+          </div>
           <section>
             <h2>Your Badge Case</h2>
             <BadgeCase earnedBadges={earnedBadges} />
-              <p className="mt-2 text-gray-600">
-                Log in to earn more badges and fill your case!
-              </p>
           </section>
         </div>
       </main>
