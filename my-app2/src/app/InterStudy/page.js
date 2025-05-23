@@ -10,7 +10,7 @@ export default function InterStudy() {
             <div>
                 <h1>Test</h1>
                 <p>We are a small team of developers.</p>
-                <Link href="/">Home</Link>
+                <Link href="/Main_Page">Home</Link>
             </div>
         </>
     );

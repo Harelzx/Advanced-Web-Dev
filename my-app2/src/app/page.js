@@ -1,54 +1,104 @@
-import { FaCalculator, FaFlask, FaCalendarCheck, FaBook, FaTrophy, FaPuzzlePiece, FaLock } from "react-icons/fa";
+'use client'
+import { useState, useEffect } from 'react';
+import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/app/firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import BadgeCase from './components/BadgeCase'
 
-const earnedBadges = ["Math Master", "Daily Login"]; // Example of earned badges
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [
+    signInWithEmailAndPassword,
+    user,
+    loading,
+    error
+  ] = useSignInWithEmailAndPassword(auth);
+  const router = useRouter();
+  const [roleError, setRoleError] = useState('');
 
-const badges = [
-  { label: "Math Master", icon: <FaCalculator /> },
-  { label: "Science Star", icon: <FaFlask /> },
-  { label: "Daily Login", icon: <FaCalendarCheck /> },
-  { label: "Book Worm", icon: <FaBook /> },
-  { label: "Champion", icon: <FaTrophy /> },
-  { label: "Puzzle Solver", icon: <FaPuzzlePiece /> },
-];
+  // After login, check user role and redirect accordingly
+  useEffect(() => {
+    const checkRoleAndRedirect = async () => {
+      if (user && user.user) {
+        try {
+          // Get user document from Firestore
+          const userDocRef = doc(db, 'users', user.user.uid);
+          const userDocSnap = await getDoc(userDocRef);
 
-export default function Home() {
-    return (
-    <div>
-      <header>
-        <h1>Student Study Platform</h1>
-        <p>Choose your study mode</p>
-      </header>
-      <main>
-        <div className="study-options">
-          <div className="option-card">
-            <h2>Interactive Study</h2>
-            <p>Study your subjects with interactive quizzes and activities.</p>
-            <Link href="/InterStudy">
-              <button>Go to Interactive Study</button>
-            </Link>
-          </div>
-          <div className="option-card">
-            <h2>Personalized Learning Path</h2>
-            <p>Get a customized learning path to address your knowledge gaps.</p>
-            <Link href="/PersonalizedPath">
-              <button>Go to Personalized Learning Path</button>
-            </Link>
-          </div>
-          <div className="option-card">
-            <h2>First Quiz</h2>
-            <p>Start your first math quiz and test your skills!</p>
-            <Link href="/FirstQuiz">
-              <button>Go to First Quiz</button>
-            </Link>
-          </div>
-          <section>
-            <h2>Your Badge Case</h2>
-            <BadgeCase earnedBadges={earnedBadges} />
-          </section>
-        </div>
-      </main>
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const role = userData.role;
+            sessionStorage.setItem('user', true);
+            setEmail('');
+            setPassword('');
+            if (role === 'teacher') {
+              router.push('/dashboard');
+            } else if (role === 'student') {
+              router.push('/Main_Page');
+            } else {
+              setRoleError('Unknown user role.');
+            }
+          } else {
+            setRoleError('User data not found.');
+          }
+        } catch (err) {
+          setRoleError('Error fetching user data.');
+          console.error(err);
+        }
+      }
+    };
+
+    checkRoleAndRedirect();
+  }, [user, router]);
+
+  // Handle login button click
+  const handleLogin = () => {
+    setRoleError('');
+    signInWithEmailAndPassword(email, password);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="bg-gray-800 p-10 rounded-lg shadow-xl w-96">
+        <h1 className="text-white text-2xl mb-5">Login</h1>
+        <input 
+          type="email" 
+          placeholder="Email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+        />
+        <button 
+          onClick={handleLogin}
+          className="w-full p-3 bg-indigo-600 rounded text-white hover:bg-indigo-500"
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+        {error && (
+          <p className="text-red-400 mt-2">Wrong credentials</p>
+        )}
+        {roleError && (
+          <p className="text-red-400 mt-2">{roleError}</p>
+        )}
+        <p className="text-white mt-3 text-sm">
+          Don't have an account?{' '}
+          <Link href="/sign-up" className="text-indigo-400 hover:text-indigo-300">
+            Sign Up
+          </Link>
+        </p>
+      </div>
     </div>
-    );
-}
+  );
+};
+
+export default Login;
