@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const SignUp = () => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student'); // New state for role
@@ -29,7 +30,12 @@ const SignUp = () => {
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: userCredential.user.email,
           role: role, // Use selected role
-          createdAt: new Date()
+          fullName: fullName,
+          createdAt: new Date(),
+          // Add role-specific fields
+          ...(role === 'parent' && { children: [] }),
+          ...(role === 'teacher' && { students: [] }),
+          ...(role === 'student' && { parentId: null, teacherId: null })
         });
       } catch (err) {
         console.error("Error adding user data: ", err);
@@ -43,6 +49,7 @@ const SignUp = () => {
       sessionStorage.setItem('user', true);
       setEmail('');
       setPassword('');
+      setFullName('');
       setRole('student');
       router.push('/login');
     }
@@ -59,6 +66,13 @@ const SignUp = () => {
           &#8592;
         </Link>
         <h1 className="text-white text-2xl mb-5 text-center">Sign Up</h1>
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+        />
         <input
           type="email"
           placeholder="Email"
@@ -80,6 +94,7 @@ const SignUp = () => {
         >
           <option value="student">Student</option>
           <option value="teacher">Teacher</option>
+          <option value="parent">Parent</option> 
         </select>
         <button
           onClick={handleSignUp}
