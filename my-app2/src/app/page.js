@@ -34,9 +34,11 @@ const Login = () => {
             setEmail('');
             setPassword('');
             if (role === 'teacher') {
-              router.push('/dashboard');
+              router.push('/dashboard/teacher'); 
             } else if (role === 'student') {
               router.push('/Main_Page');
+            }  else if (role === 'parent') {
+              router.push('/dashboard/parent'); 
             } else {
               setRoleError('Unknown user role.');
             }
