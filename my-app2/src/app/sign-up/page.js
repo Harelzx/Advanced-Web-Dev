@@ -51,7 +51,7 @@ const SignUp = () => {
       setPassword('');
       setFullName('');
       setRole('student');
-      router.push('/login');
+      router.push('/');
     }
     if (error) {
       console.error('Firebase error:', error.message);
