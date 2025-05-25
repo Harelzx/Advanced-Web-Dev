@@ -1,124 +1,282 @@
 'use client'
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import AddStudentModal from '../../components/Dashboard/AddStudentModal';
+
+// Import shared components
+import { DashboardHeader } from '../../components/Dashboard/DashboardHeader';
+import { ItemSelector } from '../../components/Dashboard/ItemSelector';
+import { PersonInfoCard } from '../../components/Dashboard/PersonInfoCard';
+import { QuickStats } from '../../components/Dashboard/QuickStats';
+import { PlaceholderCharts } from '../../components/Dashboard/PlaceholderCharts';
+import { RecentActivity } from '../../components/Dashboard/RecentActivity';
+import { SuccessMessage } from '../../components/Dashboard/SuccessMessage';
+import { generateProgressData } from '../../utils/progressGenerator';
+import { SubjectPerformance } from '../../components/Dashboard/SubjectPerformance';
 
 const ParentDashboard = () => {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [parentData, setParentData] = useState(null);
+  const [childrenData, setChildrenData] = useState([]);
+  const [selectedChildIndex, setSelectedChildIndex] = useState(0);
+  const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
-    // Check authentication and get user data
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
-        router.replace('/');
-        return;
-      }
-
+    const checkParentAccess = async () => {
       try {
-        // Get user document from Firestore
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          
-          // Check if user is actually a parent
-          if (userData.role !== 'parent') {
-            router.replace('/dashboard'); // Redirect to student dashboard
+        // Check session storage
+        const isLoggedIn = sessionStorage.getItem('user');
+        if (!isLoggedIn) {
+          router.replace('/login');
+          return;
+        }
+
+        // Get current user
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          router.replace('/login');
+          return;
+        }
+
+        // Set up real-time listener for parent data
+        const parentDocRef = doc(db, "users", currentUser.uid);
+        const unsubscribe = onSnapshot(parentDocRef, async (docSnap) => {
+          if (!docSnap.exists()) {
+            setError('Parent data not found');
+            setLoading(false);
             return;
           }
+
+          const parentInfo = docSnap.data();
           
-          setUser({ id: currentUser.uid, ...userData });
-        } else {
-          console.error('User document not found');
-          router.replace('/');
-        }
+          // Check if user is actually a parent
+          if (parentInfo.role !== 'parent') {
+            router.replace('/login');
+            return;
+          }
+
+          setParentData(parentInfo);
+
+          // Fetch children data if children array exists
+          if (parentInfo.children && parentInfo.children.length > 0) {
+            await fetchChildrenData(parentInfo.children);
+          } else {
+            // Check for legacy studentEmail field
+            if (parentInfo.studentEmail) {
+              await fetchLegacyStudentData(parentInfo.studentEmail);
+            } else {
+              setChildrenData([]);
+            }
+          }
+          
+          setLoading(false);
+        });
+
+        return () => unsubscribe();
+
       } catch (error) {
-        console.error('Error fetching user data:', error);
-        router.replace('/');
-      } finally {
+        console.error("Error fetching parent/student data:", error);
+        setError('Error loading dashboard data');
         setLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    const fetchChildrenData = async (children) => {
+      try {
+        const childrenInfo = [];
+        for (const child of children) {
+          try {
+            const childDocRef = doc(db, "users", child.id);
+            const childDocSnap = await getDoc(childDocRef);
+            
+            if (childDocSnap.exists()) {
+              childrenInfo.push({
+                id: child.id,
+                name: child.name,
+                email: child.email,
+                ...childDocSnap.data()
+              });
+            } else {
+              // If child document doesn't exist, use data from parent's array
+              childrenInfo.push(child);
+            }
+          } catch (err) {
+            console.error(`Error fetching child ${child.id}:`, err);
+            // Fallback to using data from parent's children array
+            childrenInfo.push(child);
+          }
+        }
+        setChildrenData(childrenInfo);
+      } catch (error) {
+        console.error("Error fetching children data:", error);
+        setError('Error loading children data');
+      }
+    };
+
+    const fetchLegacyStudentData = async (studentEmail) => {
+      try {
+        const studentsRef = collection(db, "users");
+        const studentQuery = query(studentsRef, 
+          where("email", "==", studentEmail),
+          where("role", "==", "student")
+        );
+        const studentSnapshot = await getDocs(studentQuery);
+
+        if (!studentSnapshot.empty) {
+          const studentDoc = studentSnapshot.docs[0];
+          setChildrenData([{
+            id: studentDoc.id,
+            name: studentDoc.data().fullName || studentEmail.split('@')[0],
+            email: studentEmail,
+            ...studentDoc.data()
+          }]);
+        } else {
+          setError('Student data not found');
+        }
+      } catch (error) {
+        console.error("Error fetching legacy student data:", error);
+        setError('Error loading student data');
+      }
+    };
+
+    checkParentAccess();
   }, [router]);
 
+  const handleAddChild = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleChildAdded = (result) => {
+    console.log('Child added successfully:', result);
+    setSuccessMessage(`✅ Successfully added ${result.student.name} to your children!`);
+    // Hide success message after 5 seconds
+    setTimeout(() => setSuccessMessage(''), 5000);
+    // Data will be updated automatically through onSnapshot
+  };
+
+  const handleChildChange = (event) => {
+    setSelectedChildIndex(parseInt(event.target.value));
+  };
+
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-pulse text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">Loading parent dashboard...</div>
       </div>
     );
   }
 
-  if (!user) {
-    return null; // Will redirect
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="bg-red-500 text-white p-4 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Error</h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
   }
+
+  // No children state
+  if (!childrenData || childrenData.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-900 p-6">
+        <div className="max-w-6xl mx-auto">
+          <SuccessMessage message={successMessage} isVisible={!!successMessage} />
+          
+          <DashboardHeader 
+            userType="parent"
+            userData={parentData}
+            itemCount={0}
+            itemLabel=""
+          />
+
+          <div className="bg-gray-800 p-12 rounded-lg shadow-xl text-center">
+            <div className="text-8xl mb-6">👨‍👩‍👧‍👦</div>
+            <h2 className="text-white text-2xl font-bold mb-4">No Children Added Yet</h2>
+            <p className="text-gray-400 text-lg mb-8">Add your child to start tracking their learning progress</p>
+            <button
+              onClick={handleAddChild}
+              className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg"
+            >
+              Add Your First Child
+            </button>
+          </div>
+
+          <AddStudentModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            userRole="parent"
+            userId={auth.currentUser?.uid}
+            onSuccess={handleChildAdded}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const selectedChild = childrenData[selectedChildIndex];
+  const childProgress = generateProgressData();
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow-xl mb-6">
-          <h1 className="text-white text-3xl font-bold mb-2">
-            Welcome, {user.fullName}!
-          </h1>
-          <p className="text-gray-300">Parent Dashboard</p>
-        </div>
+        <SuccessMessage message={successMessage} isVisible={!!successMessage} />
 
-        {/* Children Section */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow-xl mb-6">
-          <h2 className="text-white text-2xl font-bold mb-4">Your Children</h2>
-          
-          {user.children && user.children.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {user.children.map((childId, index) => (
-                <div key={childId} className="bg-gray-700 p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Child {index + 1}</h3>
-                  <p className="text-gray-300 text-sm">ID: {childId}</p>
-                  <p className="text-gray-400 text-sm">Loading details...</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 mb-4">
-              <div className="text-4xl mb-4 text-gray-400">👨‍👩‍👧‍👦</div>
-              </div>
-              <h3 className="text-white text-lg font-medium mb-2">No Children Added</h3>
-              <p className="text-gray-400 mb-6">
-                Add your children to start tracking their progress
-              </p>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                Add Child
-              </button>
-            </div>
-          )}
-        </div>
+        <DashboardHeader 
+          userType="parent"
+          userData={parentData}
+          itemCount={childrenData.length}
+          itemLabel="child"
+        />
 
-        {/* Quick Stats - Mock Data */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-            <h3 className="text-white text-lg font-semibold mb-2">Total Study Time</h3>
-            <p className="text-3xl font-bold text-blue-400">0 hrs</p>
-            <p className="text-gray-400 text-sm">This week</p>
-          </div>
-          
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-            <h3 className="text-white text-lg font-semibold mb-2">Completed Quizzes</h3>
-            <p className="text-3xl font-bold text-green-400">0</p>
-            <p className="text-gray-400 text-sm">This month</p>
-          </div>
-          
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-            <h3 className="text-white text-lg font-semibold mb-2">Average Score</h3>
-            <p className="text-3xl font-bold text-yellow-400">--%</p>
-            <p className="text-gray-400 text-sm">Overall</p>
-          </div>
-        </div>
+        <ItemSelector
+          items={childrenData}
+          selectedIndex={selectedChildIndex}
+          onSelectionChange={handleChildChange}
+          onAddItem={handleAddChild}
+          userType="parent"
+        />
+
+        <PersonInfoCard
+          person={selectedChild}
+          userType="parent"
+          onAddItem={handleAddChild}
+          itemCount={childrenData.length}
+          additionalInfo={{
+            accountCreated: selectedChild.createdAt ? 
+              new Date(selectedChild.createdAt.seconds * 1000).toLocaleDateString() : 
+              'Unknown'
+          }}
+        />
+
+        <QuickStats stats={childProgress} />
+
+        <PlaceholderCharts 
+          showSubjects={false} 
+          subjects={[]} 
+        />
+
+        <RecentActivity activities={childProgress.recentActivity} />
+
+        <AddStudentModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          userRole="parent"
+          userId={auth.currentUser?.uid}
+          onSuccess={handleChildAdded}
+        />
       </div>
     </div>
   );
