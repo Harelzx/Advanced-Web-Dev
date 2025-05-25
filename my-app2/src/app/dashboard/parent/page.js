@@ -29,7 +29,7 @@ const ParentDashboard = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
 
-  const fetchChildrenData = async (children, setChildrenData, setError, setSelectedChildIndex, selectedChildIndex) => {
+  const fetchChildrenData = async (children) => {
     try {
       const childrenInfo = [];
       for (const child of children) {
@@ -41,7 +41,7 @@ const ParentDashboard = () => {
               id: child.id,
               name: child.name,
               email: child.email,
-              addedAt: child.addedAt, // Keep this for removal
+              addedAt: child.addedAt,
               ...childDocSnap.data()
             });
           } else {
@@ -53,6 +53,7 @@ const ParentDashboard = () => {
         }
       }
       setChildrenData(childrenInfo);
+      // Update selected index if needed
       if (selectedChildIndex >= childrenInfo.length) {
         setSelectedChildIndex(Math.max(0, childrenInfo.length - 1));
       }
@@ -62,7 +63,7 @@ const ParentDashboard = () => {
     }
   };
 
-  const fetchLegacyStudentData = async (studentEmail, setChildrenData, setError) => {
+  const fetchLegacyStudentData = async (studentEmail) => {
     try {
       const studentsRef = collection(db, "users");
       const studentQuery = query(studentsRef, 
@@ -111,10 +112,10 @@ const ParentDashboard = () => {
         }
         setParentData(parentInfo);
         if (parentInfo.children && parentInfo.children.length > 0) {
-          await fetchChildrenData(parentInfo.children, setChildrenData, setError, setSelectedChildIndex, selectedChildIndex);
+          await fetchChildrenData(parentInfo.children);
         } else {
           if (parentInfo.studentEmail) {
-            await fetchLegacyStudentData(parentInfo.studentEmail, setChildrenData, setError);
+            await fetchLegacyStudentData(parentInfo.studentEmail);
           } else {
             setChildrenData([]);
           }
@@ -126,7 +127,7 @@ const ParentDashboard = () => {
       if (unsubscribeAuth) unsubscribeAuth();
       if (unsubscribeParent) unsubscribeParent();
     };
-  }, [router, selectedChildIndex]);
+  }, [router]);
 
   // Modal handlers
   const handleAddChild = () => {
@@ -156,6 +157,11 @@ const ParentDashboard = () => {
   const handleChildRemoved = (result) => {
     setSuccessMessage(`🗑️ ${result.person.name} has been removed from your children list.`);
     setTimeout(() => setSuccessMessage(''), 5000);
+    
+    // Update selected index if needed
+    if (selectedChildIndex >= childrenData.length - 1) {
+      setSelectedChildIndex(Math.max(0, childrenData.length - 2));
+    }
   };
 
   const handleChildChange = (event) => {
@@ -224,6 +230,18 @@ const ParentDashboard = () => {
   const selectedChild = childrenData[selectedChildIndex];
   const childProgress = generateProgressData();
 
+  // Add safety check for selectedChild
+  if (!selectedChild) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="bg-red-500 text-white p-4 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Error</h2>
+          <p>Selected child not found</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
@@ -241,7 +259,7 @@ const ParentDashboard = () => {
           selectedIndex={selectedChildIndex}
           onSelectionChange={handleChildChange}
           onAddItem={handleAddChild}
-          onRemoveItem={handleRemoveChild}  // New prop
+          onRemoveItem={handleRemoveChild}
           userType="parent"
         />
 
@@ -251,7 +269,7 @@ const ParentDashboard = () => {
           itemCount={childrenData.length}
           showAddButton={false} 
           additionalInfo={{
-            accountCreated: selectedChild.createdAt ? 
+            accountCreated: selectedChild.createdAt?.seconds ? 
               new Date(selectedChild.createdAt.seconds * 1000).toLocaleDateString() : 
               'Unknown'
           }}

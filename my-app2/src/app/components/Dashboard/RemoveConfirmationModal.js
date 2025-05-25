@@ -29,23 +29,17 @@ const RemoveConfirmationModal = ({
     try {
       const userDocRef = doc(db, 'users', userId);
       const fieldName = userType?.toLowerCase() === 'parent' ? 'children' : 'students';
-      console.log('userType:', userType);
-      console.log('fieldName:', fieldName);
       
       // Get current user data
       const userDoc = await getDoc(userDocRef);
-      console.log('userDoc.data():', userDoc.data());
       if (!userDoc.exists()) {
         throw new Error('User document not found');
       }
 
       const userData = userDoc.data();
       const currentArray = userData[fieldName] || [];
-      console.log('currentArray:', currentArray);
       // Find the item to remove by ID
       const itemToRemove = currentArray.find(item => item.id === personToRemove.id);
-      console.log('itemToRemove:', itemToRemove);
-      console.log('personToRemove:', personToRemove);
       if (!itemToRemove) {
         throw new Error('Item not found in array');
       }
@@ -55,17 +49,17 @@ const RemoveConfirmationModal = ({
         [fieldName]: arrayRemove(itemToRemove)
       });
 
-      // Show success message
-      const personType = userType === 'parent' ? 'child' : 'student';
-      setRemoveMessage(`✅ ${personToRemove.name} has been removed successfully!`);
-      
-      // Call success callback
+      // Call success callback immediately
       if (onSuccess) {
         onSuccess({
-          type: personType,
+          type: userType === 'parent' ? 'child' : 'student',
           person: personToRemove
         });
       }
+
+      // Show success message and close modal after 1.5 seconds
+      const personType = userType === 'parent' ? 'child' : 'student';
+      setRemoveMessage(`✅ ${personToRemove.name} has been removed successfully!`);
       
       // Close modal after 1.5 seconds
       setTimeout(() => {
@@ -73,7 +67,6 @@ const RemoveConfirmationModal = ({
       }, 1500);
 
     } catch (error) {
-      console.error('Error removing person:', error);
       const personType = userType === 'parent' ? 'child' : 'student';
       setRemoveMessage(`❌ Error removing ${personType}. Please try again.`);
       setIsRemoving(false);

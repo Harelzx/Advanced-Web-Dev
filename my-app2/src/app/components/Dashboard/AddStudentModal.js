@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
-import { auth, db } from '../../firebase/config'; // ודא שייבוא db תקין
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../../firebase/config';
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
 const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
   const [studentEmail, setStudentEmail] = useState('');
@@ -41,9 +41,9 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
       const studentDataFromDb = studentDoc.data();
       
       if (userType === 'parent') {
-        await handleParentAddChild(studentDoc.id, studentDataFromDb);
+        await handleAddPerson(studentDoc.id, studentDataFromDb, 'parent', 'children', 'child');
       } else if (userType === 'teacher') {
-        await handleTeacherAddStudent(studentDoc.id, studentDataFromDb);
+        await handleAddPerson(studentDoc.id, studentDataFromDb, 'teacher', 'students', 'student');
       } else {
         setSubmitMessage('Error: Unknown user type specified.');
         setIsSubmitting(false);
@@ -55,19 +55,18 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
     }
   };
 
-  const handleParentAddChild = async (studentDocId, studentData) => {
-    setSubmitMessage('Adding child to parent...');
+  const handleAddPerson = async (studentDocId, studentData, userType, arrayField, personType) => {
+    setSubmitMessage(`Adding ${personType} to ${userType}...`);
 
     try {
-      const parentDocRef = doc(db, 'users', userId);
+      const userDocRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userDocRef);
 
-      const parentSnap = await getDoc(parentDocRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
 
-      if (parentSnap.exists()) {
-        const parentRealData = parentSnap.data();
-
-        if (parentRealData.children && parentRealData.children.some(child => child.id === studentDocId || child.email === studentData.email)) {
-          setSubmitMessage('This child is already in your list');
+        if (userData[arrayField] && userData[arrayField].some(person => person.id === studentDocId || person.email === studentData.email)) {
+          setSubmitMessage(`This ${personType} is already in your list`);
           setIsSubmitting(false);
           return;
         }
@@ -77,24 +76,24 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
         return;
       }
 
-      const childToAdd = {
+      const personToAdd = {
         id: studentDocId,
         email: studentData.email,
         name: studentData.fullName || studentData.name || studentData.email.split('@')[0],
         addedAt: new Date()
       };
 
-      await updateDoc(parentDocRef, {
-        children: arrayUnion(childToAdd)
+      await updateDoc(userDocRef, {
+        [arrayField]: arrayUnion(personToAdd)
       });
 
-      setSubmitMessage('Child added successfully! 🎉');
+      setSubmitMessage(`${personType} added successfully! 🎉`);
       setStudentEmail('');
 
       if (onSuccess) {
         onSuccess({
-          type: 'child',
-          student: { ...childToAdd, addedAt: new Date() }
+          type: personType,
+          student: { ...personToAdd, addedAt: new Date() }
         });
       }
       
@@ -103,60 +102,7 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
       }, 1500);
 
     } catch (error) {
-      setSubmitMessage(`Error adding child: ${error.message}. Please try again.`);
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleTeacherAddStudent = async (studentDocId, studentData) => {
-    setSubmitMessage('Linking student to teacher...');
-
-    try {
-      const teacherDocRef = doc(db, 'users', userId);
-
-      const teacherSnap = await getDoc(teacherDocRef);
-
-      if (teacherSnap.exists()) {
-        const teacherRealData = teacherSnap.data();
-
-        if (teacherRealData.students && teacherRealData.students.some(student => student.id === studentDocId || student.email === studentData.email)) {
-          setSubmitMessage('This student is already in your class');
-          setIsSubmitting(false);
-          return;
-        }
-      } else {
-        setSubmitMessage('Error: Your user profile was not found.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      const studentToAdd = {
-        id: studentDocId,
-        email: studentData.email,
-        name: studentData.fullName || studentData.name || studentData.email.split('@')[0],
-        addedAt: new Date()
-      };
-
-      await updateDoc(teacherDocRef, {
-        students: arrayUnion(studentToAdd)
-      });
-
-      setSubmitMessage('Student added to your class successfully! 🎉');
-      setStudentEmail('');
-
-      if (onSuccess) {
-        onSuccess({
-          type: 'student',
-          student: { ...studentToAdd, addedAt: new Date() }
-        });
-      }
-      
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
-
-    } catch (error) {
-      setSubmitMessage(`Error adding student to class: ${error.message}. Please try again.`);
+      setSubmitMessage(`Error adding ${personType}: ${error.message}. Please try again.`);
       setIsSubmitting(false);
     }
   };
