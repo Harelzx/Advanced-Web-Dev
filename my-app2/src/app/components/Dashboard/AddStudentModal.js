@@ -1,9 +1,9 @@
 'use client'
 import { useState } from 'react';
-import { db } from '@/app/firebase/config';
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { auth, db } from '../../firebase/config'; // ודא שייבוא db תקין
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc, serverTimestamp } from 'firebase/firestore';
 
-const AddStudentModal = ({ isOpen, onClose, userRole, userId, onSuccess }) => {
+const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
   const [studentEmail, setStudentEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -17,17 +17,16 @@ const AddStudentModal = ({ isOpen, onClose, userRole, userId, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!studentEmail.trim()) {
       setSubmitMessage('Please enter a valid email address');
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage('');
+    setSubmitMessage('Searching for student...');
 
     try {
-      // Find the student by email
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('email', '==', studentEmail.trim()), where('role', '==', 'student'));
       const querySnapshot = await getDocs(q);
@@ -39,138 +38,137 @@ const AddStudentModal = ({ isOpen, onClose, userRole, userId, onSuccess }) => {
       }
 
       const studentDoc = querySnapshot.docs[0];
-      const studentData = studentDoc.data();
+      const studentDataFromDb = studentDoc.data();
       
-      // Different logic based on user role
-      if (userRole === 'parent') {
-        await handleParentAddChild(studentDoc, studentData);
-      } else if (userRole === 'teacher') {
-        await handleTeacherAddStudent(studentDoc, studentData);
+      if (userType === 'parent') {
+        await handleParentAddChild(studentDoc.id, studentDataFromDb);
+      } else if (userType === 'teacher') {
+        await handleTeacherAddStudent(studentDoc.id, studentDataFromDb);
+      } else {
+        setSubmitMessage('Error: Unknown user type specified.');
+        setIsSubmitting(false);
       }
 
     } catch (error) {
-      console.error('Error adding student:', error);
-      setSubmitMessage('Error adding student. Please try again.');
+      setSubmitMessage(`Error finding student: ${error.message}. Please try again.`);
       setIsSubmitting(false);
     }
   };
 
-  const handleParentAddChild = async (studentDoc, studentData) => {
+  const handleParentAddChild = async (studentDocId, studentData) => {
+    setSubmitMessage('Adding child to parent...');
+
     try {
-      // Get current parent data to check for duplicates
       const parentDocRef = doc(db, 'users', userId);
-      const parentDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', userId)));
-      
-      if (!parentDoc.empty) {
-        const parentData = parentDoc.docs[0].data();
-        
-        // Check if child is already added
-        if (parentData.children && parentData.children.some(child => child.email === studentEmail.trim())) {
+
+      const parentSnap = await getDoc(parentDocRef);
+
+      if (parentSnap.exists()) {
+        const parentRealData = parentSnap.data();
+
+        if (parentRealData.children && parentRealData.children.some(child => child.id === studentDocId || child.email === studentData.email)) {
           setSubmitMessage('This child is already in your list');
           setIsSubmitting(false);
           return;
         }
+      } else {
+        setSubmitMessage('Error: Your user profile was not found.');
+        setIsSubmitting(false);
+        return;
       }
 
-      // Add child to parent's children array
+      const childToAdd = {
+        id: studentDocId,
+        email: studentData.email,
+        name: studentData.fullName || studentData.name || studentData.email.split('@')[0],
+        addedAt: new Date()
+      };
+
       await updateDoc(parentDocRef, {
-        children: arrayUnion({
-          id: studentDoc.id,
-          email: studentData.email,
-          name: studentData.fullName || studentData.name || studentData.email.split('@')[0],
-          addedAt: new Date()
-        })
+        children: arrayUnion(childToAdd)
       });
 
       setSubmitMessage('Child added successfully! 🎉');
       setStudentEmail('');
-      
-      // Call success callback
+
       if (onSuccess) {
         onSuccess({
           type: 'child',
-          student: {
-            id: studentDoc.id,
-            email: studentData.email,
-            name: studentData.fullName || studentData.name || studentData.email.split('@')[0]
-          }
+          student: { ...childToAdd, addedAt: new Date() }
         });
       }
       
-      // Close modal after 2 seconds
       setTimeout(() => {
         handleClose();
-      }, 2000);
+      }, 1500);
 
     } catch (error) {
-      console.error('Error adding child:', error);
-      setSubmitMessage('Error adding child. Please try again.');
+      setSubmitMessage(`Error adding child: ${error.message}. Please try again.`);
       setIsSubmitting(false);
     }
   };
 
-  const handleTeacherAddStudent = async (studentDoc, studentData) => {
+  const handleTeacherAddStudent = async (studentDocId, studentData) => {
+    setSubmitMessage('Linking student to teacher...');
+
     try {
-      // Get current teacher data to check for duplicates
       const teacherDocRef = doc(db, 'users', userId);
-      const teacherDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', userId)));
-      
-      if (!teacherDoc.empty) {
-        const teacherData = teacherDoc.docs[0].data();
-        
-        // Check if student is already added
-        if (teacherData.students && teacherData.students.some(student => student.email === studentEmail.trim())) {
+
+      const teacherSnap = await getDoc(teacherDocRef);
+
+      if (teacherSnap.exists()) {
+        const teacherRealData = teacherSnap.data();
+
+        if (teacherRealData.students && teacherRealData.students.some(student => student.id === studentDocId || student.email === studentData.email)) {
           setSubmitMessage('This student is already in your class');
           setIsSubmitting(false);
           return;
         }
+      } else {
+        setSubmitMessage('Error: Your user profile was not found.');
+        setIsSubmitting(false);
+        return;
       }
 
-      // Add student to teacher's students array
+      const studentToAdd = {
+        id: studentDocId,
+        email: studentData.email,
+        name: studentData.fullName || studentData.name || studentData.email.split('@')[0],
+        addedAt: new Date()
+      };
+
       await updateDoc(teacherDocRef, {
-        students: arrayUnion({
-          id: studentDoc.id,
-          email: studentData.email,
-          name: studentData.fullName || studentData.name || studentData.email.split('@')[0],
-          addedAt: new Date()
-        })
+        students: arrayUnion(studentToAdd)
       });
 
       setSubmitMessage('Student added to your class successfully! 🎉');
       setStudentEmail('');
-      
-      // Call success callback
+
       if (onSuccess) {
         onSuccess({
           type: 'student',
-          student: {
-            id: studentDoc.id,
-            email: studentData.email,
-            name: studentData.fullName || studentData.name || studentData.email.split('@')[0]
-          }
+          student: { ...studentToAdd, addedAt: new Date() }
         });
       }
       
-      // Close modal after 2 seconds
       setTimeout(() => {
         handleClose();
-      }, 2000);
+      }, 1500);
 
     } catch (error) {
-      console.error('Error adding student:', error);
-      setSubmitMessage('Error adding student to class. Please try again.');
+      setSubmitMessage(`Error adding student to class: ${error.message}. Please try again.`);
       setIsSubmitting(false);
     }
   };
 
   if (!isOpen) return null;
 
-  const modalTitle = userRole === 'parent' ? '👶 Add Child' : '🎓 Add Student';
-  const emailLabel = userRole === 'parent' ? "Child's Email Address" : "Student's Email Address";
-  const emailHelp = userRole === 'parent' 
+  const modalTitle = userType === 'parent' ? '👶 Add Child' : '🎓 Add Student';
+  const emailLabel = userType === 'parent' ? "Child's Email Address" : "Student's Email Address";
+  const emailHelp = userType === 'parent' 
     ? "Enter the email address your child used to register as a student"
     : "Enter the email address of the student you want to add to your class";
-  const submitButtonText = userRole === 'parent' ? 'Add Child' : 'Add Student';
+  const submitButtonText = userType === 'parent' ? 'Add Child' : 'Add Student';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -180,6 +178,7 @@ const AddStudentModal = ({ isOpen, onClose, userRole, userId, onSuccess }) => {
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-white text-2xl transition-colors"
+            disabled={isSubmitting}
           >
             ×
           </button>
@@ -210,7 +209,9 @@ const AddStudentModal = ({ isOpen, onClose, userRole, userId, onSuccess }) => {
             <div className={`p-3 rounded-lg text-sm transition-all ${
               submitMessage.includes('successfully') || submitMessage.includes('🎉')
                 ? 'bg-green-900 text-green-300 border border-green-700'
-                : 'bg-red-900 text-red-300 border border-red-700'
+                : submitMessage.includes('Error') || submitMessage.includes('No student found') || submitMessage.includes('already in your list')
+                  ? 'bg-red-900 text-red-300 border border-red-700'
+                  : 'bg-blue-900 text-blue-300 border border-blue-700'
             }`}>
               {submitMessage}
             </div>

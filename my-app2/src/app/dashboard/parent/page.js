@@ -4,6 +4,8 @@ import { auth, db } from '../../firebase/config';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import AddStudentModal from '../../components/Dashboard/AddStudentModal';
+import RemoveConfirmationModal from '../../components/Dashboard/RemoveConfirmationModal';
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Import shared components
 import { DashboardHeader } from '../../components/Dashboard/DashboardHeader';
@@ -14,7 +16,6 @@ import { PlaceholderCharts } from '../../components/Dashboard/PlaceholderCharts'
 import { RecentActivity } from '../../components/Dashboard/RecentActivity';
 import { SuccessMessage } from '../../components/Dashboard/SuccessMessage';
 import { generateProgressData } from '../../utils/progressGenerator';
-import { SubjectPerformance } from '../../components/Dashboard/SubjectPerformance';
 
 const ParentDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -22,145 +23,139 @@ const ParentDashboard = () => {
   const [childrenData, setChildrenData] = useState([]);
   const [selectedChildIndex, setSelectedChildIndex] = useState(0);
   const [error, setError] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [childToRemove, setChildToRemove] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    const checkParentAccess = async () => {
-      try {
-        // Check session storage
-        const isLoggedIn = sessionStorage.getItem('user');
-        if (!isLoggedIn) {
-          router.replace('/login');
-          return;
-        }
-
-        // Get current user
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          router.replace('/login');
-          return;
-        }
-
-        // Set up real-time listener for parent data
-        const parentDocRef = doc(db, "users", currentUser.uid);
-        const unsubscribe = onSnapshot(parentDocRef, async (docSnap) => {
-          if (!docSnap.exists()) {
-            setError('Parent data not found');
-            setLoading(false);
-            return;
-          }
-
-          const parentInfo = docSnap.data();
-          
-          // Check if user is actually a parent
-          if (parentInfo.role !== 'parent') {
-            router.replace('/login');
-            return;
-          }
-
-          setParentData(parentInfo);
-
-          // Fetch children data if children array exists
-          if (parentInfo.children && parentInfo.children.length > 0) {
-            await fetchChildrenData(parentInfo.children);
+  const fetchChildrenData = async (children, setChildrenData, setError, setSelectedChildIndex, selectedChildIndex) => {
+    try {
+      const childrenInfo = [];
+      for (const child of children) {
+        try {
+          const childDocRef = doc(db, "users", child.id);
+          const childDocSnap = await getDoc(childDocRef);
+          if (childDocSnap.exists()) {
+            childrenInfo.push({
+              id: child.id,
+              name: child.name,
+              email: child.email,
+              addedAt: child.addedAt, // Keep this for removal
+              ...childDocSnap.data()
+            });
           } else {
-            // Check for legacy studentEmail field
-            if (parentInfo.studentEmail) {
-              await fetchLegacyStudentData(parentInfo.studentEmail);
-            } else {
-              setChildrenData([]);
-            }
-          }
-          
-          setLoading(false);
-        });
-
-        return () => unsubscribe();
-
-      } catch (error) {
-        console.error("Error fetching parent/student data:", error);
-        setError('Error loading dashboard data');
-        setLoading(false);
-      }
-    };
-
-    const fetchChildrenData = async (children) => {
-      try {
-        const childrenInfo = [];
-        for (const child of children) {
-          try {
-            const childDocRef = doc(db, "users", child.id);
-            const childDocSnap = await getDoc(childDocRef);
-            
-            if (childDocSnap.exists()) {
-              childrenInfo.push({
-                id: child.id,
-                name: child.name,
-                email: child.email,
-                ...childDocSnap.data()
-              });
-            } else {
-              // If child document doesn't exist, use data from parent's array
-              childrenInfo.push(child);
-            }
-          } catch (err) {
-            console.error(`Error fetching child ${child.id}:`, err);
-            // Fallback to using data from parent's children array
             childrenInfo.push(child);
           }
+        } catch (err) {
+          console.error(`Error fetching child ${child.id}:`, err);
+          childrenInfo.push(child);
         }
-        setChildrenData(childrenInfo);
-      } catch (error) {
-        console.error("Error fetching children data:", error);
-        setError('Error loading children data');
       }
-    };
+      setChildrenData(childrenInfo);
+      if (selectedChildIndex >= childrenInfo.length) {
+        setSelectedChildIndex(Math.max(0, childrenInfo.length - 1));
+      }
+    } catch (error) {
+      console.error("Error fetching children data:", error);
+      setError('Error loading children data');
+    }
+  };
 
-    const fetchLegacyStudentData = async (studentEmail) => {
-      try {
-        const studentsRef = collection(db, "users");
-        const studentQuery = query(studentsRef, 
-          where("email", "==", studentEmail),
-          where("role", "==", "student")
-        );
-        const studentSnapshot = await getDocs(studentQuery);
+  const fetchLegacyStudentData = async (studentEmail, setChildrenData, setError) => {
+    try {
+      const studentsRef = collection(db, "users");
+      const studentQuery = query(studentsRef, 
+        where("email", "==", studentEmail),
+        where("role", "==", "student")
+      );
+      const studentSnapshot = await getDocs(studentQuery);
+      if (!studentSnapshot.empty) {
+        const studentDoc = studentSnapshot.docs[0];
+        setChildrenData([{
+          id: studentDoc.id,
+          name: studentDoc.data().fullName || studentEmail.split('@')[0],
+          email: studentEmail,
+          ...studentDoc.data()
+        }]);
+      } else {
+        setError('Student data not found');
+      }
+    } catch (error) {
+      console.error("Error fetching legacy student data:", error);
+      setError('Error loading student data');
+    }
+  };
 
-        if (!studentSnapshot.empty) {
-          const studentDoc = studentSnapshot.docs[0];
-          setChildrenData([{
-            id: studentDoc.id,
-            name: studentDoc.data().fullName || studentEmail.split('@')[0],
-            email: studentEmail,
-            ...studentDoc.data()
-          }]);
+  useEffect(() => {
+    let unsubscribeAuth;
+    let unsubscribeParent;
+    setLoading(true);
+    unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        router.replace('/login');
+        return;
+      }
+      // Set up real-time listener for parent data
+      const parentDocRef = doc(db, "users", currentUser.uid);
+      unsubscribeParent = onSnapshot(parentDocRef, async (docSnap) => {
+        if (!docSnap.exists()) {
+          setError('Parent data not found');
+          setLoading(false);
+          return;
+        }
+        const parentInfo = docSnap.data();
+        if (parentInfo.role !== 'parent') {
+          router.replace('/login');
+          return;
+        }
+        setParentData(parentInfo);
+        if (parentInfo.children && parentInfo.children.length > 0) {
+          await fetchChildrenData(parentInfo.children, setChildrenData, setError, setSelectedChildIndex, selectedChildIndex);
         } else {
-          setError('Student data not found');
+          if (parentInfo.studentEmail) {
+            await fetchLegacyStudentData(parentInfo.studentEmail, setChildrenData, setError);
+          } else {
+            setChildrenData([]);
+          }
         }
-      } catch (error) {
-        console.error("Error fetching legacy student data:", error);
-        setError('Error loading student data');
-      }
+        setLoading(false);
+      });
+    });
+    return () => {
+      if (unsubscribeAuth) unsubscribeAuth();
+      if (unsubscribeParent) unsubscribeParent();
     };
+  }, [router, selectedChildIndex]);
 
-    checkParentAccess();
-  }, [router]);
-
+  // Modal handlers
   const handleAddChild = () => {
-    setIsModalOpen(true);
+    setIsAddModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
   };
 
+  const handleRemoveChild = (child) => {
+    setChildToRemove(child);
+    setIsRemoveModalOpen(true);
+  };
+
+  const handleCloseRemoveModal = () => {
+    setIsRemoveModalOpen(false);
+    setChildToRemove(null);
+  };
+
+  // Success handlers
   const handleChildAdded = (result) => {
-    console.log('Child added successfully:', result);
     setSuccessMessage(`✅ Successfully added ${result.student.name} to your children!`);
-    // Hide success message after 5 seconds
     setTimeout(() => setSuccessMessage(''), 5000);
-    // Data will be updated automatically through onSnapshot
+  };
+
+  const handleChildRemoved = (result) => {
+    setSuccessMessage(`🗑️ ${result.person.name} has been removed from your children list.`);
+    setTimeout(() => setSuccessMessage(''), 5000);
   };
 
   const handleChildChange = (event) => {
@@ -215,9 +210,9 @@ const ParentDashboard = () => {
           </div>
 
           <AddStudentModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            userRole="parent"
+            isOpen={isAddModalOpen}
+            onClose={handleCloseAddModal}
+            userType="parent"
             userId={auth.currentUser?.uid}
             onSuccess={handleChildAdded}
           />
@@ -246,14 +241,15 @@ const ParentDashboard = () => {
           selectedIndex={selectedChildIndex}
           onSelectionChange={handleChildChange}
           onAddItem={handleAddChild}
+          onRemoveItem={handleRemoveChild}  // New prop
           userType="parent"
         />
 
         <PersonInfoCard
           person={selectedChild}
           userType="parent"
-          onAddItem={handleAddChild}
           itemCount={childrenData.length}
+          showAddButton={false} 
           additionalInfo={{
             accountCreated: selectedChild.createdAt ? 
               new Date(selectedChild.createdAt.seconds * 1000).toLocaleDateString() : 
@@ -270,12 +266,23 @@ const ParentDashboard = () => {
 
         <RecentActivity activities={childProgress.recentActivity} />
 
+        {/* Add Modal */}
         <AddStudentModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          userRole="parent"
+          isOpen={isAddModalOpen}
+          onClose={handleCloseAddModal}
+          userType="parent"
           userId={auth.currentUser?.uid}
           onSuccess={handleChildAdded}
+        />
+
+        {/* Remove Modal */}
+        <RemoveConfirmationModal
+          isOpen={isRemoveModalOpen}
+          onClose={handleCloseRemoveModal}
+          userType="parent"
+          userId={auth.currentUser?.uid}
+          personToRemove={childToRemove}
+          onSuccess={handleChildRemoved}
         />
       </div>
     </div>
