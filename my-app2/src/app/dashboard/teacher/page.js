@@ -17,7 +17,6 @@ import { RecentActivity } from '../../components/Dashboard/RecentActivity';
 import { SuccessMessage } from '../../components/Dashboard/SuccessMessage';
 import { EmptyState } from '../../components/Dashboard/EmptyState';
 import { generateProgressData } from '../../utils/progressGenerator';
-import { SubjectPerformance } from '../../components/Dashboard/SubjectPerformance';
 
 const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -56,6 +55,10 @@ const TeacherDashboard = () => {
         }
       }
       setStudentsData(studentsInfo);
+      // Update selected index if needed
+      if (selectedStudentIndex >= studentsInfo.length) {
+        setSelectedStudentIndex(Math.max(0, studentsInfo.length - 1));
+      }
     } catch (error) {
       console.error("Error fetching students data:", error);
       setError(`Error loading students data: ${error.message}`);
@@ -134,6 +137,11 @@ const TeacherDashboard = () => {
   const handleStudentRemoved = (result) => {
     setSuccessMessage(`🗑️ ${result.person.name} has been removed from your students list.`);
     setTimeout(() => setSuccessMessage(''), 5000);
+    
+    // Update selected index if needed
+    if (selectedStudentIndex >= studentsData.length - 1) {
+      setSelectedStudentIndex(Math.max(0, studentsData.length - 2));
+    }
   };
 
   // Show loading state
@@ -206,8 +214,6 @@ const TeacherDashboard = () => {
           onAddItem={handleAddStudent}
           onRemoveItem={handleRemoveStudent}
           userType="teacher"
-          showAddButton={true}
-          showRemoveButton={true}
         />
 
         <PersonInfoCard
@@ -216,7 +222,7 @@ const TeacherDashboard = () => {
           showAddButton={false}
           itemCount={studentsData.length}
           additionalInfo={{
-            accountCreated: selectedStudent.createdAt ? 
+            accountCreated: selectedStudent.createdAt?.seconds ? 
               new Date(selectedStudent.createdAt.seconds * 1000).toLocaleDateString() : 
               'Unknown'
           }}
