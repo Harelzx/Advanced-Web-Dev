@@ -6,6 +6,14 @@ export const PersonInfoCard = ({
     itemCount,
     additionalInfo = {} 
   }) => {
+    if (!person) {
+      return (
+        <div className="bg-gray-800 p-6 rounded-lg shadow-xl mb-6">
+          <div className="text-red-400">No person data available</div>
+        </div>
+      );
+    }
+
     const getTitle = () => {
       return userType === 'teacher' ? 'Student Information' : 'Student Information';
     };
@@ -29,10 +37,10 @@ export const PersonInfoCard = ({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="text-gray-300">
-            <span className="font-medium">Name:</span> {person.fullName || person.name}
+            <span className="font-medium">Name:</span> {person.fullName || person.name || 'N/A'}
           </div>
           <div className="text-gray-300">
-            <span className="font-medium">Email:</span> {person.email}
+            <span className="font-medium">Email:</span> {person.email || 'N/A'}
           </div>
           {additionalInfo.lastActivity && (
             <div className="text-gray-300">

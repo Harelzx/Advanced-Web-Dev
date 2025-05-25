@@ -1,8 +1,16 @@
+import { SuccessMessage } from './SuccessMessage';
+import { DashboardHeader } from './DashboardHeader';
+import AddStudentModal from './AddStudentModal';
+
 export const EmptyState = ({ 
     userType, 
     userData, 
     onAddItem, 
-    successMessage 
+    successMessage,
+    isModalOpen,
+    onCloseModal,
+    onSuccess,
+    userId
   }) => {
     const getIcon = () => {
       return userType === 'teacher' ? '👨‍🎓' : '👨‍👩‍👧‍👦';
@@ -45,6 +53,14 @@ export const EmptyState = ({
               {getButtonText()}
             </button>
           </div>
+
+          <AddStudentModal
+            isOpen={isModalOpen}
+            onClose={onCloseModal}
+            userType={userType}
+            userId={userId}
+            onSuccess={onSuccess}
+          />
         </div>
       </div>
     );
