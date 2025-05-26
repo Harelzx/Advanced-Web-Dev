@@ -28,6 +28,7 @@ const ParentDashboard = () => {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [childToRemove, setChildToRemove] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [justAddedChild, setJustAddedChild] = useState(false);
   const router = useRouter();
 
   const fetchChildrenData = async (children) => {
@@ -49,7 +50,6 @@ const ParentDashboard = () => {
             childrenInfo.push(child);
           }
         } catch (err) {
-          console.error(`Error fetching child ${child.id}:`, err);
           childrenInfo.push(child);
         }
       }
@@ -59,7 +59,6 @@ const ParentDashboard = () => {
         setSelectedChildIndex(Math.max(0, childrenInfo.length - 1));
       }
     } catch (error) {
-      console.error("Error fetching children data:", error);
       setError('Error loading children data');
     }
   };
@@ -84,7 +83,6 @@ const ParentDashboard = () => {
         setError('Student data not found');
       }
     } catch (error) {
-      console.error("Error fetching legacy student data:", error);
       setError('Error loading student data');
     }
   };
@@ -132,12 +130,13 @@ const ParentDashboard = () => {
 
   // Modal handlers
   const handleAddChild = () => {
-    console.log('Attempting to open Add Child Modal');
+    if (justAddedChild) return;
     setIsAddModalOpen(true);
   };
 
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
+    setJustAddedChild(false);
   };
 
   const handleRemoveChild = (child) => {
@@ -152,18 +151,20 @@ const ParentDashboard = () => {
   };
 
   // Success handlers
-  const handleChildAdded = (result) => {
-    setSuccessMessage(`✅ Successfully added ${result.student.name} to your children!`);
-    setTimeout(() => setSuccessMessage(''), 5000);
+  const handleAddSuccess = (result) => {
+    setSuccessMessage(`✅ Successfully added ${result.student.name} to your children list!`);
+    setTimeout(() => setSuccessMessage(''), 4000);
+    setJustAddedChild(true);
+    handleCloseAddModal();
   };
 
-  const handleChildRemoved = (result) => {
+  const handleStudentRemoved = async (result) => {
     setSuccessMessage(`🗑️ ${result.person.name} has been removed from your children list.`);
-    setTimeout(() => setSuccessMessage(''), 5000);
+    setTimeout(() => setSuccessMessage(''), 4000);
     
-    // Update selected index if needed
-    if (selectedChildIndex >= childrenData.length - 1) {
-      setSelectedChildIndex(Math.max(0, childrenData.length - 2));
+    if (result.remainingCount === 0) {
+      setChildrenData([]);
+      setSelectedChildIndex(0);
     }
   };
 
@@ -218,13 +219,15 @@ const ParentDashboard = () => {
             </button>
           </div>
 
-          <AddStudentModal
-            isOpen={isAddModalOpen}
-            onClose={handleCloseAddModal}
-            userType="parent"
-            userId={auth.currentUser?.uid}
-            onSuccess={handleChildAdded}
-          />
+          {isAddModalOpen && (
+            <AddStudentModal
+              isOpen={isAddModalOpen}
+              onClose={handleCloseAddModal}
+              userType="parent"
+              userId={auth.currentUser?.uid}
+              onSuccess={handleAddSuccess}
+            />
+          )}
         </div>
       </div>
     );
@@ -293,22 +296,26 @@ const ParentDashboard = () => {
         </div>
       </div>
 
-      <AddStudentModal
-        isOpen={isAddModalOpen}
-        onClose={handleCloseAddModal}
-        userType="parent"
-        userId={auth.currentUser?.uid}
-        onSuccess={handleChildAdded}
-      />
+      {isAddModalOpen && (
+        <AddStudentModal
+          isOpen={isAddModalOpen}
+          onClose={handleCloseAddModal}
+          userType="parent"
+          userId={auth.currentUser?.uid}
+          onSuccess={handleAddSuccess}
+        />
+      )}
 
-      <RemoveConfirmationModal
-        isOpen={isRemoveModalOpen}
-        onClose={handleCloseRemoveModal}
-        userType="parent"
-        userId={auth.currentUser?.uid}
-        personToRemove={childToRemove}
-        onSuccess={handleChildRemoved}
-      />
+      {isRemoveModalOpen && (
+        <RemoveConfirmationModal
+          isOpen={isRemoveModalOpen}
+          onClose={handleCloseRemoveModal}
+          userType="parent"
+          userId={auth.currentUser?.uid}
+          personToRemove={childToRemove}
+          onSuccess={handleStudentRemoved}
+        />
+      )}
     </>
   );
 };

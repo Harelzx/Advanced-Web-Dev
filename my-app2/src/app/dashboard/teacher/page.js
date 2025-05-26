@@ -28,6 +28,7 @@ const TeacherDashboard = () => {
   const [studentToRemove, setStudentToRemove] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+  const [justAddedStudent, setJustAddedStudent] = useState(false);
   const router = useRouter();
 
   const fetchStudentsData = async (students) => {
@@ -46,21 +47,20 @@ const TeacherDashboard = () => {
               ...studentDocSnap.data()
             });
           } else {
-            console.warn(`Student document ${student.id} not found, using array data`);
             studentsInfo.push(student);
           }
         } catch (err) {
-          console.error(`Error fetching student ${student.id}:`, err);
           studentsInfo.push(student);
         }
       }
       setStudentsData(studentsInfo);
       // Update selected index if needed
-      if (selectedStudentIndex >= studentsInfo.length) {
+      if (selectedStudentIndex >= studentsInfo.length && studentsInfo.length > 0) {
         setSelectedStudentIndex(Math.max(0, studentsInfo.length - 1));
+      } else if (studentsInfo.length === 0) {
+        setSelectedStudentIndex(0);
       }
     } catch (error) {
-      console.error("Error fetching students data:", error);
       setError(`Error loading students data: ${error.message}`);
     }
   };
@@ -108,11 +108,13 @@ const TeacherDashboard = () => {
   }, [router]);
 
   const handleAddStudent = () => {
+    if (justAddedStudent) return;
     setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+    setJustAddedStudent(false);
   };
 
   const handleRemoveStudent = (student) => {
@@ -131,16 +133,18 @@ const TeacherDashboard = () => {
 
   const handleAddSuccess = (result) => {
     setSuccessMessage(`✅ Successfully added ${result.student.name} to your class!`);
-    setTimeout(() => setSuccessMessage(''), 5000);
+    setTimeout(() => setSuccessMessage(''), 4000);
+    setJustAddedStudent(true);
+    handleModalClose();
   };
 
-  const handleStudentRemoved = (result) => {
+  const handleStudentRemoved = async (result) => {
     setSuccessMessage(`🗑️ ${result.person.name} has been removed from your students list.`);
-    setTimeout(() => setSuccessMessage(''), 5000);
+    setTimeout(() => setSuccessMessage(''), 4000);
     
-    // Update selected index if needed
-    if (selectedStudentIndex >= studentsData.length - 1) {
-      setSelectedStudentIndex(Math.max(0, studentsData.length - 2));
+    if (result.remainingCount === 0) {
+      setStudentsData([]);
+      setSelectedStudentIndex(0);
     }
   };
 
@@ -182,13 +186,26 @@ const TeacherDashboard = () => {
   }
 
   const selectedStudent = studentsData[selectedStudentIndex];
+  
+  // אם אין סטודנט נבחר או שהאינדקס לא תקין, נציג את EmptyState
+  if (!selectedStudent && studentsData.length > 0) {
+    // אם יש סטודנטים אבל האינדקס לא תקין, נתקן את האינדקס
+    const validIndex = Math.max(0, Math.min(selectedStudentIndex, studentsData.length - 1));
+    if (validIndex !== selectedStudentIndex) {
+      setSelectedStudentIndex(validIndex);
+      return (
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+          <div className="text-white text-xl">Updating selection...</div>
+        </div>
+      );
+    }
+  }
+  
+  // אם אין סטודנט נבחר בכלל, נציג שגיאה זמנית
   if (!selectedStudent) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="bg-red-500 text-white p-4 rounded-lg">
-          <h2 className="text-xl font-bold mb-2">Error</h2>
-          <p>Selected student not found</p>
-        </div>
+        <div className="text-white text-xl">Loading...</div>
       </div>
     );
   }
@@ -240,22 +257,26 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      <AddStudentModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        userType="teacher"
-        userId={auth.currentUser?.uid}
-        onSuccess={handleAddSuccess}
-      />
+      {isModalOpen && (
+        <AddStudentModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          userType="teacher"
+          userId={auth.currentUser?.uid}
+          onSuccess={handleAddSuccess}
+        />
+      )}
 
-      <RemoveConfirmationModal
-        isOpen={isRemoveModalOpen}
-        onClose={handleCloseRemoveModal}
-        userType="teacher"
-        userId={auth.currentUser?.uid}
-        personToRemove={studentToRemove}
-        onSuccess={handleStudentRemoved}
-      />
+      {isRemoveModalOpen && (
+        <RemoveConfirmationModal
+          isOpen={isRemoveModalOpen}
+          onClose={handleCloseRemoveModal}
+          userType="teacher"
+          userId={auth.currentUser?.uid}
+          personToRemove={studentToRemove}
+          onSuccess={handleStudentRemoved}
+        />
+      )}
     </>
   );
 };
