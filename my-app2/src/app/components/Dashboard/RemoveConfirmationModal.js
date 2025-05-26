@@ -1,20 +1,23 @@
+// RemoveConfirmationModal.js - תיקון למיקום במרכז המסך
 'use client'
+
 import { useState } from 'react';
 import { db } from '../../firebase/config';
 import { doc, updateDoc, arrayRemove, getDoc } from 'firebase/firestore';
 
-const RemoveConfirmationModal = ({ 
-  isOpen, 
-  onClose, 
-  userType, 
-  userId, 
+const RemoveConfirmationModal = ({
+  isOpen,
+  onClose,
+  userType,
+  userId,
   personToRemove,
-  onSuccess 
+  onSuccess
 }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeMessage, setRemoveMessage] = useState('');
 
   const handleClose = () => {
+    if (isRemoving) return; // Don't close if removing
     setRemoveMessage('');
     setIsRemoving(false);
     onClose();
@@ -38,8 +41,10 @@ const RemoveConfirmationModal = ({
 
       const userData = userDoc.data();
       const currentArray = userData[fieldName] || [];
+      
       // Find the item to remove by ID
       const itemToRemove = currentArray.find(item => item.id === personToRemove.id);
+      
       if (!itemToRemove) {
         throw new Error('Item not found in array');
       }
@@ -49,22 +54,23 @@ const RemoveConfirmationModal = ({
         [fieldName]: arrayRemove(itemToRemove)
       });
 
-      // Call success callback immediately
+      // Show success message
+      const personType = userType === 'parent' ? 'child' : 'student';
+      setRemoveMessage(`✅ ${personToRemove.name} has been removed successfully!`);
+      setIsRemoving(false);
+
+      // המתן 4 שניות כשהמודאל עדיין פתוח ומציג את הודעת ההצלחה
+      await new Promise(resolve => setTimeout(resolve, 4000));
+
+      // רק לאחר ההמתנה, קרא לפונקציית ההצלחה וסגור את המודאל
       if (onSuccess) {
         onSuccess({
           type: userType === 'parent' ? 'child' : 'student',
           person: personToRemove
         });
       }
-
-      // Show success message and close modal after 1.5 seconds
-      const personType = userType === 'parent' ? 'child' : 'student';
-      setRemoveMessage(`✅ ${personToRemove.name} has been removed successfully!`);
       
-      // Close modal after 1.5 seconds
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
+      handleClose();
 
     } catch (error) {
       const personType = userType === 'parent' ? 'child' : 'student';
@@ -73,69 +79,64 @@ const RemoveConfirmationModal = ({
     }
   };
 
-  if (!isOpen || !personToRemove) return null;
-
-  const personType = userType === 'parent' ? 'child' : 'student';
-  const modalTitle = userType === 'parent' ? '🗑️ Remove Child' : '🗑️ Remove Student';
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 border border-gray-700">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-white text-2xl font-bold">{modalTitle}</h3>
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div className="modal-content modal-enter">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-600 rounded-t">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {userType === 'parent' ? 'Remove Child' : 'Remove Student'}
+          </h3>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-white text-2xl transition-colors"
+            className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
             disabled={isRemoving}
           >
-            ×
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1l12 12M13 1L1 13"/>
+            </svg>
           </button>
         </div>
 
-        {/* Person Info */}
-        <div className="bg-gray-700 p-4 rounded-lg mb-4">
-          <div className="text-white font-semibold mb-1">{personToRemove.name}</div>
-          <div className="text-gray-300 text-sm">{personToRemove.email}</div>
-        </div>
+        {/* Body */}
+        <div className="p-5">
+          <div className="space-y-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              Are you sure you want to remove <span className="font-semibold">{personToRemove?.name}</span> from your {userType === 'parent' ? 'children' : 'students'} list?
+              This action cannot be undone.
+            </p>
 
-        {/* Warning Message */}
-        <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4 mb-4">
-          <p className="text-red-200 text-sm">
-            ⚠️ Are you sure you want to remove <strong>{personToRemove.name}</strong> from your {personType} list?
-          </p>
-          <p className="text-red-300 text-xs mt-2">
-            This action cannot be undone. You'll need to add them again if you change your mind.
-          </p>
-        </div>
+            {removeMessage && (
+              <div className={`p-3 rounded ${
+                removeMessage.includes('Error') ? 'bg-red-500' : 'bg-green-500'
+              } text-white`}>
+                {removeMessage}
+              </div>
+            )}
 
-        {/* Success/Error Message */}
-        {removeMessage && (
-          <div className={`p-3 rounded-lg text-sm transition-all mb-4 ${
-            removeMessage.includes('✅')
-              ? 'bg-green-900 text-green-300 border border-green-700'
-              : 'bg-red-900 text-red-300 border border-red-700'
-          }`}>
-            {removeMessage}
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleClose}
+                className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                disabled={isRemoving}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemove}
+                disabled={isRemoving}
+                className={`px-6 py-2 rounded-lg font-medium text-white ${
+                  isRemoving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300'
+                }`}
+              >
+                {isRemoving ? 'Removing...' : 'Remove'}
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="flex-1 bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            disabled={isRemoving}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleRemove}
-            className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isRemoving}
-          >
-            {isRemoving ? 'Removing...' : `Remove ${personType === 'child' ? 'Child' : 'Student'}`}
-          </button>
         </div>
       </div>
     </div>
