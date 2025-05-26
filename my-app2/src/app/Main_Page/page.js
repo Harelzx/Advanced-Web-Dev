@@ -14,44 +14,37 @@ export const metadata = {
 export default function MainPage() {
   return (
     <main className="p-4 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-          className="bg-white p-4 border rounded shadow text-center bg-center"
-          style={{ backgroundImage: "url('/OIP.jpeg')", backgroundSize: "50%" }}
-        >
-          <div className="bg-white bg-opacity-75 p-4 rounded">
-            <h2 className="text-xl font-semibold text-gray-800">Interactive Study</h2>
-            <p className="text-gray-700 text-base leading-relaxed font-bold">Study your subjects with interactive quizzes and activities.</p>
-            <Link href="/InterStudy">
+      <div className="bg-white p-6 border rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Progress Tracker Dashboard</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Progress Overview */}
+          <div className="bg-gray-100 p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-700">Overall Progress</h3>
+            <p className="text-gray-600">Completion Rate: <span className="font-bold text-green-600">75%</span></p>
+            <div className="w-full bg-gray-200 rounded-full h-4 mt-2">
+              <div className="bg-green-500 h-4 rounded-full" style={{ width: "75%" }}></div>
+            </div>
+          </div>
+          {/* Module Completion */}
+          <div className="bg-gray-100 p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-700">Completed Modules</h3>
+            <ul className="text-gray-600">
+              <li>Math Basics - <span className="font-bold text-green-600">Completed</span></li>
+              <li>Science Foundations - <span className="font-bold text-yellow-600">In Progress</span></li>
+              <li>Reading Skills - <span className="font-bold text-red-600">Not Started</span></li>
+            </ul>
+          </div>
+          {/* Next Steps */}
+          <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
+            <h3 className="text-lg font-semibold text-gray-700">Next Steps</h3>
+            <p className="text-gray-600">Complete Science Foundations module by May 28, 2025.</p>
+            <Link href="/StudyModules">
               <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                Go to Interactive Study
+                Continue Learning
               </button>
             </Link>
           </div>
         </div>
-        <div
-          className="bg-white p-4 border rounded shadow text-center bg-cover bg-center"
-          style={{ backgroundImage: "url('/OIP2.jpeg')", backgroundSize: "50%" }}
-        >
-          <div className="bg-white bg-opacity-75 p-4 rounded">
-            <h2 className="text-xl font-semibold text-gray-800">Personalized Learning Path</h2>
-            <p className="text-gray-700 text-base leading-relaxed font-bold">Get a customized learning path to address your knowledge gaps.</p>
-            <Link href="/PersonalizedPath">
-              <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                Go to Personalized Learning Path
-              </button>
-            </Link>
-          </div>
-        </div>
-      </div>
-      <div className="bg-white p-4 border rounded shadow text-center">
-        <h2 className="text-xl font-semibold text-gray-800">First Quiz</h2>
-        <p className="text-gray-700 text-base leading-relaxed">Start your first math quiz and test your skills!</p>
-        <Link href="/FirstQuiz">
-          <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-            Go to First Quiz
-          </button>
-        </Link>
       </div>
       <div className="bg-yellow-100 p-4 border rounded shadow">
         <BadgeCase

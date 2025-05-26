@@ -1,90 +1,27 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  padding: 0;
+
+:root {
+  --background: #00ffc8;
+  --foreground: #ff0000;
 }
 
-/* Header styling */
-header {
-  text-align: center;
-  padding: 20px;
-  background-color: #f0f0f0;
-}
-header h1 {
-  margin: 0;
-  font-size: 2em;
-}
-header p {
-  margin: 5px 0 0;
-  color: #555;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-/* Option cards grid (if not using Tailwind for this) */
-.study-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  padding: 20px;
-}
-@media (max-width: 600px) {
-  .study-options {
-    grid-template-columns: 1fr;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #cc00ff;
+    --foreground: #000000;
   }
 }
-.option-card {
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  text-align: center;
-  background-color: #fff;
-  transition: transform 0.2s;
-}
-.option-card:hover {
-  transform: scale(1.05);
-}
-.option-card h2 {
-  margin: 10px 0;
-  font-size: 1.5em;
-}
-.option-card p {
-  margin: 10px 0;
-  color: #333;
-}
 
-/* Button styling (if not using Tailwind for buttons) */
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-}
-button:hover {
-  background-color: #45a049;
-}
-
-/* Badge case container */
-.badge-case-container {
-  display: flex;
-  justify-content: center;
-  margin: 2rem auto;
-  background: linear-gradient(135deg, #f7e9c6 0%, #e0c97f 100%);
-  border-radius: 2rem;
-  border: 8px solid #bfa76f;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  padding: 2rem;
-}
-
-/* Quiz center container for vertical and horizontal centering */
-.quiz-center-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
