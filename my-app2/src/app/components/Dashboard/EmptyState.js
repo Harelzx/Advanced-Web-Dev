@@ -1,4 +1,4 @@
-import { SuccessMessage } from './SuccessMessage';
+import SuccessMessage from './SuccessMessage';
 import { DashboardHeader } from './DashboardHeader';
 import AddStudentModal from './AddStudentModal';
 
