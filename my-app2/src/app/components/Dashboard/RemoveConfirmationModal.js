@@ -1,7 +1,7 @@
 // RemoveConfirmationModal.js - תיקון למיקום במרכז המסך
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { doc, updateDoc, arrayRemove, getDoc } from 'firebase/firestore';
 
@@ -15,11 +15,17 @@ const RemoveConfirmationModal = ({
 }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeMessage, setRemoveMessage] = useState('');
+  const [internalOpen, setInternalOpen] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) setInternalOpen(true);
+  }, [isOpen]);
 
   const handleClose = () => {
     if (isRemoving) return; // Don't close if removing
     setRemoveMessage('');
     setIsRemoving(false);
+    setInternalOpen(false);
     onClose();
   };
 
@@ -54,23 +60,17 @@ const RemoveConfirmationModal = ({
         [fieldName]: arrayRemove(itemToRemove)
       });
 
-      // Show success message
-      const personType = userType === 'parent' ? 'child' : 'student';
-      setRemoveMessage(`✅ ${personToRemove.name} has been removed successfully!`);
-      setIsRemoving(false);
-
-      // המתן 4 שניות כשהמודאל עדיין פתוח ומציג את הודעת ההצלחה
-      await new Promise(resolve => setTimeout(resolve, 4000));
-
-      // רק לאחר ההמתנה, קרא לפונקציית ההצלחה וסגור את המודאל
+      // קודם נסגור את המודאל
+      handleClose();
+      
+      // רק אחרי שהמודאל נסגר, נקרא לפונקציית ההצלחה
       if (onSuccess) {
-        onSuccess({
+        await onSuccess({
           type: userType === 'parent' ? 'child' : 'student',
-          person: personToRemove
+          person: personToRemove,
+          remainingCount: currentArray.length - 1
         });
       }
-      
-      handleClose();
 
     } catch (error) {
       const personType = userType === 'parent' ? 'child' : 'student';
@@ -79,7 +79,7 @@ const RemoveConfirmationModal = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!internalOpen) return null;
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">

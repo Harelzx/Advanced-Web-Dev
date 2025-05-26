@@ -1,7 +1,7 @@
 // AddStudentModal.js - תיקון למיקום במרכז המסך
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
@@ -9,17 +9,22 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
   const [studentEmail, setStudentEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [internalOpen, setInternalOpen] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) setInternalOpen(true);
+  }, [isOpen]);
 
   const handleClose = () => {
     setStudentEmail('');
     setSubmitMessage('');
     setIsSubmitting(false);
+    setInternalOpen(false);
     onClose();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted with email:', studentEmail);
 
     if (!studentEmail.trim()) {
       setSubmitMessage('Please enter a valid email address');
@@ -27,7 +32,6 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
     }
 
     if (!userId) {
-      console.error('No userId provided');
       setSubmitMessage('Error: User ID is missing');
       return;
     }
@@ -36,13 +40,11 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
     setSubmitMessage('Searching for student...');
 
     try {
-      console.log('Searching for student with email:', studentEmail.trim());
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('email', '==', studentEmail.trim()), where('role', '==', 'student'));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.log('No student found with email:', studentEmail.trim());
         setSubmitMessage('No student found with this email address');
         setIsSubmitting(false);
         return;
@@ -50,27 +52,23 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
 
       const studentDoc = querySnapshot.docs[0];
       const studentDataFromDb = studentDoc.data();
-      console.log('Found student:', studentDataFromDb);
       
       if (userType === 'parent') {
         await handleAddPerson(studentDoc.id, studentDataFromDb, 'parent', 'children', 'child');
       } else if (userType === 'teacher') {
         await handleAddPerson(studentDoc.id, studentDataFromDb, 'teacher', 'students', 'student');
       } else {
-        console.error('Unknown user type:', userType);
         setSubmitMessage('Error: Unknown user type specified.');
         setIsSubmitting(false);
       }
 
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
       setSubmitMessage(`Error finding student: ${error.message}. Please try again.`);
       setIsSubmitting(false);
     }
   };
 
   const handleAddPerson = async (studentDocId, studentData, userType, arrayField, personType) => {
-    console.log('Adding person:', { studentDocId, studentData, userType, arrayField, personType });
     setSubmitMessage(`Adding ${personType} to ${userType}...`);
 
     try {
@@ -78,17 +76,14 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
       const userSnap = await getDoc(userDocRef);
 
       if (!userSnap.exists()) {
-        console.error('User document not found for ID:', userId);
         setSubmitMessage('Error: Your user profile was not found.');
         setIsSubmitting(false);
         return;
       }
 
       const userData = userSnap.data();
-      console.log('Current user data:', userData);
 
       if (userData[arrayField] && userData[arrayField].some(person => person.id === studentDocId || person.email === studentData.email)) {
-        console.log('Person already exists in list');
         setSubmitMessage(`This ${personType} is already in your list`);
         setIsSubmitting(false);
         return;
@@ -101,34 +96,28 @@ const AddStudentModal = ({ isOpen, onClose, userType, userId, onSuccess }) => {
         addedAt: new Date()
       };
 
-      console.log('Adding person:', personToAdd);
       await updateDoc(userDocRef, {
         [arrayField]: arrayUnion(personToAdd)
       });
 
-      setSubmitMessage(`${personType} added successfully! 🎉`);
-      setStudentEmail('');
-
+      // קודם נסגור את המודאל
+      handleClose();
+      
+      // רק אחרי שהמודאל נסגר, נקרא לפונקציית ההצלחה
       if (onSuccess) {
-        console.log('Calling onSuccess callback');
         onSuccess({
           type: personType,
           student: { ...personToAdd, addedAt: new Date() }
         });
       }
-      
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
 
     } catch (error) {
-      console.error('Error in handleAddPerson:', error);
       setSubmitMessage(`Error adding ${personType}: ${error.message}. Please try again.`);
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen) return null;
+  if (!internalOpen) return null;
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
