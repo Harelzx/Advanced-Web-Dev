@@ -14,7 +14,8 @@ import { PersonInfoCard } from '../../components/Dashboard/PersonInfoCard';
 import { QuickStats } from '../../components/Dashboard/QuickStats';
 import { PlaceholderCharts } from '../../components/Dashboard/PlaceholderCharts';
 import { RecentActivity } from '../../components/Dashboard/RecentActivity';
-import { SuccessMessage } from '../../components/Dashboard/SuccessMessage';
+import SuccessMessage from '../../components/Dashboard/SuccessMessage';
+import { EmptyState } from '../../components/Dashboard/EmptyState';
 import { generateProgressData } from '../../utils/progressGenerator';
 
 const ParentDashboard = () => {
@@ -131,6 +132,7 @@ const ParentDashboard = () => {
 
   // Modal handlers
   const handleAddChild = () => {
+    console.log('Attempting to open Add Child Modal');
     setIsAddModalOpen(true);
   };
 
@@ -139,6 +141,7 @@ const ParentDashboard = () => {
   };
 
   const handleRemoveChild = (child) => {
+    console.log('Attempting to open Remove Child Modal', child);
     setChildToRemove(child);
     setIsRemoveModalOpen(true);
   };
@@ -243,67 +246,70 @@ const ParentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        <SuccessMessage message={successMessage} isVisible={!!successMessage} />
+    <>
+      <div className="min-h-screen bg-gray-900 p-6 relative">
+        <div className="max-w-6xl mx-auto">
+          <SuccessMessage message={successMessage} isVisible={!!successMessage} />
 
-        <DashboardHeader 
-          userType="parent"
-          userData={parentData}
-          itemCount={childrenData.length}
-          itemLabel="child"
-        />
+          <DashboardHeader 
+            userType="parent"
+            userData={parentData}
+            itemCount={childrenData.length}
+            itemLabel="child"
+          />
 
-        <ItemSelector
-          items={childrenData}
-          selectedIndex={selectedChildIndex}
-          onSelectionChange={handleChildChange}
-          onAddItem={handleAddChild}
-          onRemoveItem={handleRemoveChild}
-          userType="parent"
-        />
+          <ItemSelector
+            items={childrenData}
+            selectedIndex={selectedChildIndex}
+            onSelectionChange={handleChildChange}
+            onAddItem={handleAddChild}
+            onRemoveItem={handleRemoveChild}
+            userType="parent"
+          />
 
-        <PersonInfoCard
-          person={selectedChild}
-          userType="parent"
-          itemCount={childrenData.length}
-          showAddButton={false} 
-          additionalInfo={{
-            accountCreated: selectedChild.createdAt?.seconds ? 
-              new Date(selectedChild.createdAt.seconds * 1000).toLocaleDateString() : 
-              'Unknown'
-          }}
-        />
+          <PersonInfoCard
+            person={selectedChild}
+            userType="parent"
+            itemCount={childrenData.length}
+            showAddButton={false} 
+            additionalInfo={{
+              accountCreated: selectedChild.createdAt?.seconds ? 
+                new Date(selectedChild.createdAt.seconds * 1000).toLocaleDateString() : 
+                'Unknown'
+            }}
+          />
 
-        <QuickStats stats={childProgress} />
+          {/* Quick Stats */}
+          <QuickStats stats={childProgress} />
 
-        <PlaceholderCharts 
-          showSubjects={false} 
-          subjects={[]} 
-        />
+          {/* Charts Placeholder */}
+          <PlaceholderCharts 
+            showSubjects={false} 
+            subjects={[]} 
+          />
 
-        <RecentActivity activities={childProgress.recentActivity} />
-
-        {/* Add Modal */}
-        <AddStudentModal
-          isOpen={isAddModalOpen}
-          onClose={handleCloseAddModal}
-          userType="parent"
-          userId={auth.currentUser?.uid}
-          onSuccess={handleChildAdded}
-        />
-
-        {/* Remove Modal */}
-        <RemoveConfirmationModal
-          isOpen={isRemoveModalOpen}
-          onClose={handleCloseRemoveModal}
-          userType="parent"
-          userId={auth.currentUser?.uid}
-          personToRemove={childToRemove}
-          onSuccess={handleChildRemoved}
-        />
+          {/* Recent Activity */}
+          <RecentActivity activities={childProgress.recentActivity} />
+        </div>
       </div>
-    </div>
+
+      <AddStudentModal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        userType="parent"
+        userId={auth.currentUser?.uid}
+        onSuccess={handleChildAdded}
+      />
+
+      <RemoveConfirmationModal
+        isOpen={isRemoveModalOpen}
+        onClose={handleCloseRemoveModal}
+        userType="parent"
+        userId={auth.currentUser?.uid}
+        personToRemove={childToRemove}
+        onSuccess={handleChildRemoved}
+      />
+    </>
   );
 };
 

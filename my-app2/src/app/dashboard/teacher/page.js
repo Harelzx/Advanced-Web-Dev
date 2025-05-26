@@ -14,7 +14,7 @@ import { PersonInfoCard } from '../../components/Dashboard/PersonInfoCard';
 import { QuickStats } from '../../components/Dashboard/QuickStats';
 import { PlaceholderCharts } from '../../components/Dashboard/PlaceholderCharts';
 import { RecentActivity } from '../../components/Dashboard/RecentActivity';
-import { SuccessMessage } from '../../components/Dashboard/SuccessMessage';
+import SuccessMessage from '../../components/Dashboard/SuccessMessage';
 import { EmptyState } from '../../components/Dashboard/EmptyState';
 import { generateProgressData } from '../../utils/progressGenerator';
 
@@ -196,65 +196,67 @@ const TeacherDashboard = () => {
   const studentProgress = generateProgressData();
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        <SuccessMessage message={successMessage} isVisible={!!successMessage} />
+    <>
+      <div className="min-h-screen bg-gray-900 p-6 relative">
+        <div className="max-w-6xl mx-auto">
+          <SuccessMessage message={successMessage} isVisible={!!successMessage} />
 
-        <DashboardHeader 
-          userType="teacher"
-          userData={teacherData}
-          itemCount={studentsData.length}
-          itemLabel="student"
-        />
+          <DashboardHeader 
+            userType="teacher"
+            userData={teacherData}
+            itemCount={studentsData.length}
+            itemLabel="student"
+          />
 
-        <ItemSelector
-          items={studentsData}
-          selectedIndex={selectedStudentIndex}
-          onSelectionChange={handleStudentChange}
-          onAddItem={handleAddStudent}
-          onRemoveItem={handleRemoveStudent}
-          userType="teacher"
-        />
+          <ItemSelector
+            items={studentsData}
+            selectedIndex={selectedStudentIndex}
+            onSelectionChange={handleStudentChange}
+            onAddItem={handleAddStudent}
+            onRemoveItem={handleRemoveStudent}
+            userType="teacher"
+          />
 
-        <PersonInfoCard
-          person={selectedStudent}
-          userType="teacher"
-          showAddButton={false}
-          itemCount={studentsData.length}
-          additionalInfo={{
-            accountCreated: selectedStudent.createdAt?.seconds ? 
-              new Date(selectedStudent.createdAt.seconds * 1000).toLocaleDateString() : 
-              'Unknown'
-          }}
-        />
+          <PersonInfoCard
+            person={selectedStudent}
+            userType="teacher"
+            showAddButton={false}
+            itemCount={studentsData.length}
+            additionalInfo={{
+              accountCreated: selectedStudent.createdAt?.seconds ? 
+                new Date(selectedStudent.createdAt.seconds * 1000).toLocaleDateString() : 
+                'Unknown'
+            }}
+          />
 
-        <QuickStats stats={studentProgress} />
+          <QuickStats stats={studentProgress} />
 
-        <PlaceholderCharts 
-          showSubjects={false} 
-          subjects={[]} 
-        />
+          <PlaceholderCharts 
+            showSubjects={false} 
+            subjects={[]} 
+          />
 
-        <RecentActivity activities={studentProgress.recentActivity} />
-
-        <AddStudentModal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          userType="teacher"
-          userId={auth.currentUser?.uid}
-          onSuccess={handleAddSuccess}
-        />
-
-        <RemoveConfirmationModal
-          isOpen={isRemoveModalOpen}
-          onClose={handleCloseRemoveModal}
-          userType="teacher"
-          userId={auth.currentUser?.uid}
-          personToRemove={studentToRemove}
-          onSuccess={handleStudentRemoved}
-        />
+          <RecentActivity activities={studentProgress.recentActivity} />
+        </div>
       </div>
-    </div>
+
+      <AddStudentModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        userType="teacher"
+        userId={auth.currentUser?.uid}
+        onSuccess={handleAddSuccess}
+      />
+
+      <RemoveConfirmationModal
+        isOpen={isRemoveModalOpen}
+        onClose={handleCloseRemoveModal}
+        userType="teacher"
+        userId={auth.currentUser?.uid}
+        personToRemove={studentToRemove}
+        onSuccess={handleStudentRemoved}
+      />
+    </>
   );
 };
 
