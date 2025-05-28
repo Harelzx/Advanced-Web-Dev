@@ -1,4 +1,4 @@
-'use client'
+'use client' // Marks this component as a Client Component in Next.js, indicating it runs on the client side
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
@@ -125,7 +125,6 @@ const FirstQuiz = () => {
             >
               Check Answer
             </button>
-
             {feedback[questions[currentIndex].id] && (
               <p className={`mt-3 text-lg ${feedback[questions[currentIndex].id] === "Yay!" ? 'text-green-400' : 'text-red-400'}`}>
                 {feedback[questions[currentIndex].id]}
