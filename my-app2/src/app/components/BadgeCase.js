@@ -1,47 +1,58 @@
-import { FaCalculator, FaFlask, FaCalendarCheck, FaBook, FaTrophy, FaPuzzlePiece, FaLock } from "react-icons/fa";
+"use client";
+
+import dynamic from "next/dynamic";
+import bookAnim from "../animations/book.json";
+import calendarAnim from "../animations/calendar.json";
+import mathAnim from "../animations/math.json";
+import puzzleAnim from "../animations/puzzle.json";
+import sciencAnim from "../animations/scienc.json";
+import trophyAnim from "../animations/trophy.json";
+import { FaLock } from "react-icons/fa";
+
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 const allBadges = [
   { 
     label: "Math Master", 
     color: "bg-green-500", 
-    icon: <FaCalculator />,
+    anim: mathAnim,
     description: "Complete 10 math quizzes with a score of 90% or higher"
   },
   { 
     label: "Science Star", 
     color: "bg-blue-500", 
-    icon: <FaFlask />,
+    anim: sciencAnim,
     description: "Achieve a perfect score on 5 science experiments"
   },
   { 
     label: "Daily Login", 
     color: "bg-yellow-500", 
-    icon: <FaCalendarCheck />,
+    anim: calendarAnim,
     description: "Log in for 7 consecutive days"
   },
   { 
     label: "Book Worm", 
     color: "bg-purple-500", 
-    icon: <FaBook />,
+    anim: bookAnim,
     description: "Read 20 articles or books in the library"
   },
   { 
     label: "Champion", 
     color: "bg-red-500", 
-    icon: <FaTrophy />,
+    anim: trophyAnim,
     description: "Win 3 competitions in any subject"
   },
   { 
     label: "Puzzle Solver", 
     color: "bg-pink-500", 
-    icon: <FaPuzzlePiece />,
+    anim: puzzleAnim,
     description: "Solve 15 puzzles with no hints"
   },
 ];
 
 export default function BadgeCase({ earnedBadges = [], fullName, school }) {
   return (
-    <div className="w-full max-w-2xl mx-auto bg-gradient-to-br from-[#f7e9c6] to-[#e0c97f] rounded-2xl border-4 border-[#bfa76f] shadow-2xl p-6 mt-6">
+    <div className="bg-gray-100 p-4 rounded-lg shadow">
       <div className="mb-6 text-center text-stone-700">
         <div className="font-semibold text-lg">Full name: <span className="font-normal">{fullName}</span></div>
         <div className="font-semibold text-lg">School: <span className="font-normal">{school}</span></div>
@@ -53,12 +64,17 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
           return (
             <div
               key={badge.label}
-              className={`relative group flex flex-col items-center justify-center rounded-full w-20 h-20 shadow-md border-2 ${earned ? `${badge.color} border-white` : 'bg-gray-300 opacity-70 border-gray-400'}`}
+              className="relative group flex flex-col items-center justify-center"
             >
-              <span className="text-2xl mb-1">
-                {earned ? badge.icon : <FaLock />}
-              </span>
-              <span className="text-center text-xs font-medium text-white">
+              <div className="mb-1 w-30 h-30 flex items-center justify-center ">
+                {earned ? (
+                  <Lottie animationData={badge.anim} loop={true} />
+                ) : (
+                  <FaLock className="w-15 h-12 text-2xl text-gray-800" />
+                )}
+              </div>
+
+              <span className="text-center text-sm font-semibold text-gray-800 mt-2">
                 {badge.label}
               </span>
               {/* Tooltip */}
@@ -72,3 +88,6 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
     </div>
   );
 }
+
+
+

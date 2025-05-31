@@ -1,5 +1,6 @@
 import "./globals.css";
 import Link from 'next/link';
+import Navbar from './components/Navbar';
 
 export const metadata = {
   title: "First Next App",
@@ -9,17 +10,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="h-screen flex flex-col">
-        <div className="p-4 border border-black-600 flex justify-between items-center">
-          <div className="flex justify-start gap-6">
-            <Link href="/Main_Page" className="p-2">Home</Link>
-            <Link href="/InterStudy" className="p-2">Learning Recovery Hub</Link>
-            <Link href="/PersonalizedPath" className="p-2">Custom Recovery Plan</Link>
-            <Link href="/FirstQuiz" className="p-2">Initial Gap Assessment</Link>
-          </div>
-          <Link href="/" className="p-2">Log Out</Link>
+      <body className="flex">
+        <div flex min-h-screen>
+          <Navbar />
+          <main className="flex-grow">{children}</main>
         </div>
-        <div className="grow">{children}</div>
+
       </body>
     </html>
   );
