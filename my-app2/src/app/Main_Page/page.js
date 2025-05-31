@@ -46,7 +46,7 @@ export default function MainPage() {
           </div>
         </div>
       </div>
-      <div className="bg-yellow-100 p-4 border rounded shadow">
+      <div className="bg-white p-4 border rounded shadow">
         <BadgeCase
           earnedBadges={earnedBadges}
           fullName={user.fullName}
