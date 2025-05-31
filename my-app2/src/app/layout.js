@@ -1,6 +1,7 @@
 import "./globals.css";
 import Link from 'next/link';
 import Navbar from './components/Navbar';
+import AppShell from './components/AppShell';
 
 export const metadata = {
   title: "First Next App",
@@ -10,11 +11,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="flex">
-        <div flex min-h-screen>
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-        </div>
+      <body>
+
+          <AppShell >{children}</AppShell>
+
 
       </body>
     </html>
