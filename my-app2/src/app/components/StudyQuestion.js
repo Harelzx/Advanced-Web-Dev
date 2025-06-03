@@ -1,7 +1,7 @@
 "use client";
 import { FaCheck, FaTimes as FaX } from "react-icons/fa";
 
-export default function QuizQuestion({
+export default function StudyQuestion({
   question,
   isAnswered,
   userAnswer,
@@ -14,6 +14,17 @@ export default function QuizQuestion({
         <h3 className="text-2xl font-bold mb-6 leading-relaxed whitespace-pre-line text-right text-gray-800 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text">
           {question.question}
         </h3>
+
+        {/* Image if available */}
+        {question.imageUrl && (
+          <div className="mb-6">
+            <img
+              src={question.imageUrl}
+              alt="Question"
+              className="max-w-full h-auto rounded-xl shadow-lg mx-auto"
+            />
+          </div>
+        )}
 
         {/* Answer Options */}
         <div className="grid gap-4">
@@ -45,23 +56,16 @@ export default function QuizQuestion({
                 className={buttonClass}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {isAnswered && index === question.correct && (
-                      <div className="bg-emerald-500 text-white rounded-full p-2 ml-3 animate-bounce">
-                        <FaCheck size={16} />
-                      </div>
-                    )}
-                    {isAnswered &&
-                      index === userAnswer &&
-                      index !== question.correct && (
-                        <div className="bg-red-500 text-white rounded-full p-2 ml-3 animate-pulse">
-                          <FaX size={16} />
-                        </div>
-                      )}
-                  </div>
-                  <span className="text-lg font-medium group-hover:font-semibold transition-all duration-200">
-                    {option}
-                  </span>
+                  <span className="text-lg">{option}</span>
+                  {isAnswered && (
+                    <span>
+                      {index === question.correct ? (
+                        <FaCheck className="text-emerald-500" />
+                      ) : index === userAnswer ? (
+                        <FaX className="text-red-500" />
+                      ) : null}
+                    </span>
+                  )}
                 </div>
               </button>
             );

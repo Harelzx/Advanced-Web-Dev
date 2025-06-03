@@ -1,14 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaHome } from "react-icons/fa";
-import QuizModal from "./StudyModal";
-import QuizHeader from "./StudyHeader";
-import QuizQuestion from "./StudyQuestion";
-import QuizActions from "./StudyActions";
-import QuizExplanation from "./StudyExplanation";
-import QuizResults from "./StudyResults";
+import StudyModal from "./StudyModal";
+import StudyHeader from "./StudyHeader";
+import StudyQuestion from "./StudyQuestion";
+import StudySectionedQuestion from "./StudySectionedQuestion";
+import StudyActions from "./StudyActions";
+import StudyExplanation from "./StudyExplanation";
+import StudyResults from "./StudyResults";
 
-export default function Quiz({
+export default function Study({
   questions,
   title = "חידון מתמטיקה",
   icon = "🧮",
@@ -25,7 +26,7 @@ export default function Quiz({
       description: "נוסחאות בסיסיות ותרגילים מהירים",
       timeLabel: "זמן מוגבל לכל שאלה",
     },
-    moderate: {
+    medium: {
       color:
         "from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700",
       bgColor: "bg-amber-50",
@@ -43,7 +44,7 @@ export default function Quiz({
       textColor: "text-rose-800",
       icon: "⚡",
       title: "קשה",
-      description: "שאלות מבגרות (שאלון 581) - אתגר אמיתי",
+      description: "שאלות מבגרות - אתגר אמיתי",
       timeLabel: "ללא הגבלת זמן",
     },
   },
@@ -74,29 +75,68 @@ export default function Quiz({
     const difficultyQuestions =
       questions[selectedDifficulty]?.slice(0, 5) || [];
     setSelectedQuestions(difficultyQuestions);
-    setUserAnswers(new Array(difficultyQuestions.length).fill(null));
+    // Initialize answers array based on whether questions have sections
+    const initialAnswers = difficultyQuestions.map((q) =>
+      q.sections ? new Array(q.sections.length).fill(null) : null
+    );
+    setUserAnswers(initialAnswers);
     setCurrentQuestion(0);
     setTimeLeft(difficultyQuestions[0]?.timeLimit || null);
     setShowModal(false);
   };
 
-  const handleAnswer = (answerIndex) => {
+  const handleAnswer = (sectionIndex, answerIndex) => {
     if (isAnswered) return;
 
+    const currentQ = selectedQuestions[currentQuestion];
     const newAnswers = [...userAnswers];
-    newAnswers[currentQuestion] = answerIndex;
-    setUserAnswers(newAnswers);
-    setIsAnswered(true);
 
-    if (answerIndex === selectedQuestions[currentQuestion].correct) {
-      setScore(score + 1);
+    if (currentQ.sections) {
+      // For sectioned questions
+      newAnswers[currentQuestion][sectionIndex] = answerIndex;
+      setUserAnswers(newAnswers);
+
+      // Check if all sections are answered
+      const allSectionsAnswered = newAnswers[currentQuestion].every(
+        (answer) => answer !== null
+      );
+
+      if (allSectionsAnswered) {
+        setIsAnswered(true);
+        // Calculate score for all sections
+        let sectionScore = 0;
+        currentQ.sections.forEach((section, idx) => {
+          if (newAnswers[currentQuestion][idx] === section.correctAnswer) {
+            sectionScore += section.points;
+          }
+        });
+        setScore(score + sectionScore);
+      }
+    } else {
+      // For regular questions
+      newAnswers[currentQuestion] = answerIndex;
+      setUserAnswers(newAnswers);
+      setIsAnswered(true);
+
+      if (answerIndex === currentQ.correct) {
+        setScore(score + 1);
+      }
     }
   };
 
   const handleTimeUp = () => {
     setIsAnswered(true);
     const newAnswers = [...userAnswers];
-    newAnswers[currentQuestion] = -1; // -1 indicates no answer/timeout
+    const currentQ = selectedQuestions[currentQuestion];
+
+    if (currentQ.sections) {
+      // For sectioned questions, mark all unanswered sections as timed out
+      newAnswers[currentQuestion] = newAnswers[currentQuestion].map(
+        (answer) => answer ?? -1
+      );
+    } else {
+      newAnswers[currentQuestion] = -1; // -1 indicates no answer/timeout
+    }
     setUserAnswers(newAnswers);
   };
 
@@ -124,6 +164,21 @@ export default function Quiz({
     setQuizCompleted(false);
   };
 
+  const restartCurrentLevel = () => {
+    setCurrentQuestion(0);
+    const difficultyQuestions = questions[difficulty]?.slice(0, 5) || [];
+    setSelectedQuestions(difficultyQuestions);
+    const initialAnswers = difficultyQuestions.map((q) =>
+      q.sections ? new Array(q.sections.length).fill(null) : null
+    );
+    setUserAnswers(initialAnswers);
+    setShowExplanation(false);
+    setTimeLeft(difficultyQuestions[0]?.timeLimit || null);
+    setIsAnswered(false);
+    setScore(0);
+    setQuizCompleted(false);
+  };
+
   const getDifficultyConfig = (diff) => {
     return (
       difficultyConfigs[diff] || {
@@ -142,7 +197,7 @@ export default function Quiz({
   // Show modal for difficulty selection
   if (showModal) {
     return (
-      <QuizModal
+      <StudyModal
         onClose={onHome || (() => (window.location.href = "/"))}
         onStartQuiz={startQuiz}
         difficultyConfigs={difficultyConfigs}
@@ -154,12 +209,26 @@ export default function Quiz({
 
   // Show results screen
   if (quizCompleted) {
+    const totalPossibleScore = selectedQuestions.reduce(
+      (total, q) =>
+        total +
+        (q.sections
+          ? q.sections.reduce((sTotal, s) => sTotal + (s.points || 0), 0)
+          : 1),
+      0
+    );
+
+    // Normalize score to 100
+    const normalizedScore = Math.round((score / totalPossibleScore) * 100);
+
     return (
-      <QuizResults
+      <StudyResults
         score={score}
         totalQuestions={selectedQuestions.length}
-        onRestart={resetQuiz}
-        onHome={onHome || (() => (window.location.href = "/"))}
+        maxScore={100}
+        onRestart={restartCurrentLevel}
+        onChooseDifficulty={resetQuiz}
+        onHome={onHome || (() => (window.location.href = "/Main_Page"))}
       />
     );
   }
@@ -194,7 +263,7 @@ export default function Quiz({
         <div className="max-w-4xl w-full">
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
             {/* Header */}
-            <QuizHeader
+            <StudyHeader
               currentQuestion={currentQuestion}
               totalQuestions={selectedQuestions.length}
               difficulty={difficulty}
@@ -203,15 +272,24 @@ export default function Quiz({
             />
 
             {/* Question Content */}
-            <QuizQuestion
-              question={question}
-              isAnswered={isAnswered}
-              userAnswer={userAnswers[currentQuestion]}
-              onAnswer={handleAnswer}
-            />
+            {question.sections ? (
+              <StudySectionedQuestion
+                question={question}
+                userAnswers={userAnswers[currentQuestion] || []}
+                onAnswer={handleAnswer}
+                isAnswered={isAnswered}
+              />
+            ) : (
+              <StudyQuestion
+                question={question}
+                isAnswered={isAnswered}
+                userAnswer={userAnswers[currentQuestion]}
+                onAnswer={(answerIndex) => handleAnswer(null, answerIndex)}
+              />
+            )}
 
             {/* Action Buttons */}
-            <QuizActions
+            <StudyActions
               isAnswered={isAnswered}
               showExplanation={showExplanation}
               onToggleExplanation={() => setShowExplanation(!showExplanation)}
@@ -220,10 +298,21 @@ export default function Quiz({
             />
 
             {/* Explanation */}
-            <QuizExplanation
-              explanation={question.explanation}
-              show={showExplanation}
-            />
+            {showExplanation && question.sections ? (
+              question.sections.map((section, index) => (
+                <StudyExplanation
+                  key={section.id}
+                  explanation={section.explanation}
+                  show={true}
+                  title={`הסבר לחלק ${section.id}`}
+                />
+              ))
+            ) : (
+              <StudyExplanation
+                explanation={question.explanation}
+                show={showExplanation}
+              />
+            )}
           </div>
         </div>
       </div>

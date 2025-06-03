@@ -1,7 +1,7 @@
-'use client';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Navbar from './Navbar';
+"use client";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import Navbar from "./Navbar";
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
@@ -13,12 +13,15 @@ export default function AppShell({ children }) {
 
   if (!mounted) return null;
 
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/sign-up');
+  const hideNavbar =
+    pathname === "/login" || pathname === "/sign-up" || pathname === "/";
 
   return (
-        <div className="min-h-screen flex">
-          {!hideNavbar && <Navbar />}
-          <main className="flex-grow">{children}</main>
-        </div>
+    <div className="min-h-screen flex">
+      {!hideNavbar && <Navbar />}
+      <main className={`flex-grow ${!hideNavbar ? "md:ml-64" : ""}`}>
+        {children}
+      </main>
+    </div>
   );
 }

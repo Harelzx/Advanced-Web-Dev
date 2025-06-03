@@ -1,7 +1,11 @@
 "use client";
 import { FaLightbulb } from "react-icons/fa";
 
-export default function QuizExplanation({ explanation, show }) {
+export default function StudyExplanation({
+  explanation,
+  show,
+  title = "הסבר מפורט:",
+}) {
   if (!show) return null;
 
   return (
@@ -12,7 +16,7 @@ export default function QuizExplanation({ explanation, show }) {
           <div className="bg-blue-500 text-white rounded-full p-2 ml-3">
             <FaLightbulb size={20} />
           </div>
-          <h4 className="font-bold text-xl text-blue-800">הסבר מפורט:</h4>
+          <h4 className="font-bold text-xl text-blue-800">{title}</h4>
         </div>
         <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
           <p className="text-blue-700 whitespace-pre-line text-right leading-relaxed text-lg">

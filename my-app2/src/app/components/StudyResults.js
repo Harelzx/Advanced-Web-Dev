@@ -1,13 +1,15 @@
 "use client";
-import { FaGraduationCap, FaHome } from "react-icons/fa";
+import { FaGraduationCap, FaHome, FaRedo } from "react-icons/fa";
 
-export default function QuizResults({
+export default function StudyResults({
   score,
   totalQuestions,
+  maxScore = 100,
   onRestart,
   onHome,
+  onChooseDifficulty,
 }) {
-  const percentage = Math.round((score / totalQuestions) * 100);
+  const percentage = Math.round((score / maxScore) * 100);
 
   const getScoreEmoji = () => {
     if (percentage >= 90) return "🏆";
@@ -85,7 +87,10 @@ export default function QuizResults({
               <p className="text-lg text-gray-600">
                 הציון שלך:{" "}
                 <span className="font-bold text-indigo-600">{score}</span> מתוך{" "}
-                <span className="font-bold">{totalQuestions}</span>
+                <span className="font-bold">{maxScore}</span> נקודות
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                השלמת {totalQuestions} שאלות
               </p>
               <p className="text-lg text-gray-600 mt-2">{getScoreMessage()}</p>
             </div>
@@ -94,17 +99,24 @@ export default function QuizResults({
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
               <button
                 onClick={onRestart}
-                className="group bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center space-x-2"
+                className="group bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center"
               >
-                <FaGraduationCap className="mr-2 group-hover:animate-pulse" />
-                <span>התחל חידון חדש</span>
+                <FaRedo className="ml-2 group-hover:animate-spin" />
+                <span>התחל מחדש את אותה רמה</span>
+              </button>
+              <button
+                onClick={onChooseDifficulty}
+                className="group bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center"
+              >
+                <FaGraduationCap className="ml-2 group-hover:animate-pulse" />
+                <span>בחר רמה אחרת</span>
               </button>
               <button
                 onClick={onHome}
-                className="group bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center space-x-2"
+                className="group bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center"
               >
-                <FaHome className="group-hover:animate-pulse" />
-                <span>חזור לדף הבית</span>
+                <FaHome className="ml-2 group-hover:animate-pulse" />
+                <span>חזור לדף הראשי</span>
               </button>
             </div>
           </div>

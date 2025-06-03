@@ -1,7 +1,7 @@
 "use client";
 import { FaTimes } from "react-icons/fa";
 
-export default function QuizModal({
+export default function StudyModal({
   onClose,
   onStartQuiz,
   difficultyConfigs = {}, // set a default value

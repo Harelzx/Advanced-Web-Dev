@@ -1,7 +1,7 @@
 "use client";
 import { FaLightbulb, FaTrophy } from "react-icons/fa";
 
-export default function QuizActions({
+export default function StudyActions({
   isAnswered,
   showExplanation,
   onToggleExplanation,

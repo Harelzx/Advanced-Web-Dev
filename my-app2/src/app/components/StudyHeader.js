@@ -1,7 +1,6 @@
 "use client";
-import { FaClock } from "react-icons/fa";
 
-export default function QuizHeader({
+export default function StudyHeader({
   currentQuestion,
   totalQuestions,
   difficulty,
@@ -9,45 +8,37 @@ export default function QuizHeader({
   timeLeft,
 }) {
   return (
-    <div
-      className={`${difficultyConfig.bgColor} border-b ${difficultyConfig.borderColor} p-6`}
-    >
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">{difficultyConfig.icon}</span>
-            <div>
-              <div className="text-lg font-bold text-gray-800">
-                שאלה {currentQuestion + 1} מתוך {totalQuestions}
-              </div>
-              <div
-                className={`text-sm ${difficultyConfig.textColor} font-medium`}
-              >
-                {difficulty === "easy"
-                  ? "רמה קלה"
-                  : difficulty === "moderate"
-                  ? "רמה בינונית"
-                  : "רמה קשה"}
-              </div>
-            </div>
-          </div>
+    <div className="p-8 border-b border-gray-100">
+      {/* Difficulty Badge */}
+      <div className="flex items-center justify-between mb-6">
+        <div
+          className={`${difficultyConfig.bgColor} ${difficultyConfig.textColor} ${difficultyConfig.borderColor} border rounded-full px-4 py-2 text-sm font-semibold flex items-center space-x-2`}
+        >
+          <span className="text-lg">{difficultyConfig.icon}</span>
+          <span>{difficultyConfig.title}</span>
         </div>
 
+        {/* Timer */}
         {timeLeft !== null && (
-          <div
-            className={`flex items-center space-x-3 px-4 py-2 rounded-2xl ${
-              timeLeft <= 10
-                ? "bg-red-100 text-red-600 animate-pulse"
-                : "bg-blue-100 text-blue-600"
-            } transition-all duration-300`}
-          >
-            <FaClock className={timeLeft <= 10 ? "animate-spin" : ""} />
-            <span className="font-bold text-lg">{timeLeft}s</span>
+          <div className="flex items-center space-x-2">
+            <div
+              className={`text-lg font-mono ${
+                timeLeft <= 10
+                  ? "text-red-600 animate-pulse"
+                  : timeLeft <= 20
+                  ? "text-orange-600"
+                  : "text-gray-600"
+              }`}
+            >
+              {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:
+              {String(timeLeft % 60).padStart(2, "0")}
+            </div>
+            <span className="text-sm text-gray-500">⏱️</span>
           </div>
         )}
       </div>
 
-      {/* Enhanced Progress Bar */}
+      {/* Progress Bar */}
       <div className="relative">
         <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
           <div

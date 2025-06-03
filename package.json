@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "node scripts/seedQuestions.js",
+    "upload": "node scripts/uploadBagrutImages.js"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
@@ -17,8 +19,12 @@
     "vite": "^6.3.0"
   },
   "dependencies": {
+    "dotenv": "^16.5.0",
     "firebase": "^11.8.1",
+    "lottie-react": "^2.4.1",
     "next": "^15.1.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-firebase-hooks": "^5.1.1"
   }
 }
