@@ -13,7 +13,7 @@ export default function AppShell({ children }) {
 
   if (!mounted) return null;
 
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/sign-up');
+  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/FirstQuiz') || pathname.startsWith('/sign-up');
 
   return (
         <div className="min-h-screen flex">
