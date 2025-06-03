@@ -2,14 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
-import {
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  updateDoc,
-  getDoc
-} from 'firebase/firestore';
+import {collection, getDocs, doc, setDoc,} from 'firebase/firestore';
 
 const FirstQuiz = () => {
   const router = useRouter();
@@ -21,8 +14,7 @@ const FirstQuiz = () => {
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [answeredQuestions, setAnsweredQuestions] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
-  const userId = 'l7twdmv3SeSB3HHGM53gbOI9EMu1'; // Replace with actual auth ID
+  const userId = sessionStorage.getItem('uid'); 
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -45,7 +37,6 @@ const FirstQuiz = () => {
         setLoading(false);
       }
     };
-
     fetchQuestions();
   }, []);
 
@@ -53,12 +44,6 @@ const FirstQuiz = () => {
     if (questions.length > 0) {
       const currentQuestion = questions[currentIndex];
       let options = [currentQuestion.Answer, ...currentQuestion.fakeAnswers];
-      if (options.length > 4) options = options.slice(0, 4);
-      while (options.length < 4) {
-        const dummy = ['0', '5', '10'].filter(opt => !options.includes(opt));
-        if (dummy.length) options.push(dummy.shift());
-        else break;
-      }
       for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
@@ -74,7 +59,7 @@ const FirstQuiz = () => {
     }
   };
 
-  const checkAnswer = (questionId, userAnswer, correctAnswer, subject) => {
+  const checkAnswer = (questionId, userAnswer, correctAnswer) => {
     if (!userAnswer) {
       setFeedback(prev => ({
         ...prev,
@@ -106,12 +91,9 @@ const FirstQuiz = () => {
     setSubmitting(true);
     try {
       const results = {};
-      const wrongAnswers = {};
-
       questions.forEach((q) => {
         const userAns = userAnswers[q.id];
         const isCorrect = userAns && userAns.trim().toLowerCase() === q.Answer.trim().toLowerCase();
-
         if (!results[q.subject]) {
           results[q.subject] = { total: 0, correct: 0, wrongIds: [] };
         }

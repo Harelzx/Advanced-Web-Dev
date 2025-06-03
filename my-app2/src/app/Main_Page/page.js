@@ -4,10 +4,7 @@ import Link from 'next/link';
 import BadgeCase from '@/app/components/BadgeCase';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
-import {
-  collection,
-  getDocs,
-} from 'firebase/firestore';
+import {collection, getDocs,} from 'firebase/firestore';
 
 const earnedBadges = ["Math Master", "Daily Login"];
 const user = {
@@ -17,14 +14,10 @@ const user = {
 
 export default function MainPage() {
     const [grades, setGrades] = useState({});
-    const [modules, setModules] = useState([]);
-    const [completedSteps, setCompletedSteps] = useState(new Set());
-
-    
   useEffect(() => {
     const fetchGrades = async () => {
       try {
-        const userId = 'l7twdmv3SeSB3HHGM53gbOI9EMu1';
+        const userId = sessionStorage.getItem('uid');
         const resultsRef = collection(db, `users/${userId}/results`);
         const querySnapshot = await getDocs(resultsRef);
 

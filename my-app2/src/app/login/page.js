@@ -31,6 +31,7 @@ const Login = () => {
             const userData = userDocSnap.data();
             const role = userData.role;
             sessionStorage.setItem('user', true);
+            sessionStorage.setItem('uid', user.user.uid);
             setEmail('');
             setPassword('');
             if (role === 'teacher') {
