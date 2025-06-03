@@ -36,7 +36,7 @@ const Login = () => {
             if (role === 'teacher') {
               router.push('/dashboard');
             } else if (role === 'student') {
-              window.location.href = 'Main_Page';
+              window.location.href = 'FirstQuiz';
             } else {
               setRoleError('Unknown user role.');
             }

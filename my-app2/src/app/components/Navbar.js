@@ -15,8 +15,9 @@ export default function Navbar() {
             </button>
 
             {/* Navbar for larger screens */}
-            <div className={`w-64 bg-white dark:bg-gray-900 shadow-xl  transform transition-transform duration-300 ease-in-out
-            ${open ? 'block' : 'hidden'} md:block`}
+            <div   
+  className={`w-64 bg-white dark:bg-gray-900 shadow-xl z-10 
+              ${open ? 'block' : 'hidden'} md:block`}
             >
 
                 <h2 className="text-xl font-bold text-green-600 dark:text-green-100 p-4">LearnPath</h2>
