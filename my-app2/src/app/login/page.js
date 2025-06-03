@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/app/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -18,7 +18,6 @@ const Login = () => {
   const router = useRouter();
   const [roleError, setRoleError] = useState('');
 
-  // After login, check user role and redirect accordingly
   useEffect(() => {
     const checkRoleAndRedirect = async () => {
       if (user && user.user) {
@@ -37,7 +36,22 @@ const Login = () => {
             if (role === 'teacher') {
               router.push('/dashboard');
             } else if (role === 'student') {
-              window.location.href = 'FirstQuiz';
+              // Check if student has results collection
+              try {
+                const resultsRef = collection(db, `users/${user.user.uid}/results`);
+                const resultsSnapshot = await getDocs(resultsRef);
+                if (resultsSnapshot.empty) {
+                  // start the firstquiz
+                  router.push('/FirstQuiz');
+                } else {
+                  // results exist then go to main
+                  router.push('/Main_Page');
+                }
+              } catch (resultsError) {
+                console.error('Error checking results collection:', resultsError);
+                // If there's an error checking results, default to FirstQuiz
+                router.push('/FirstQuiz');
+              }
             } else {
               setRoleError('Unknown user role.');
             }
