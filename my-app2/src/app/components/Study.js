@@ -8,6 +8,9 @@ import StudySectionedQuestion from "./StudySectionedQuestion";
 import StudyActions from "./StudyActions";
 import StudyExplanation from "./StudyExplanation";
 import StudyResults from "./StudyResults";
+import { auth, db } from "@/app/firebase/config";
+import { doc, setDoc, serverTimestamp, increment } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function Study({
   questions,
@@ -49,6 +52,7 @@ export default function Study({
     },
   },
 }) {
+  const [user] = useAuthState(auth);
   const [showModal, setShowModal] = useState(true);
   const [difficulty, setDifficulty] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -194,6 +198,48 @@ export default function Study({
     );
   };
 
+  // Function to save results to Firebase
+  const saveResults = async (normalizedScore, questionResults) => {
+    if (!user) return;
+
+    try {
+      // Create a unique ID for this quiz attempt
+      const quizId = `${difficulty}_${Date.now()}`;
+
+      // Save detailed results
+      await setDoc(doc(db, "users", user.uid, "interStudyResults", quizId), {
+        difficulty,
+        score: normalizedScore,
+        totalQuestions: selectedQuestions.length,
+        timestamp: serverTimestamp(),
+        details: {
+          rawScore: score,
+          questionResults: questionResults,
+        },
+      });
+
+      // Update user's average score for this difficulty
+      const averageScoreRef = doc(
+        db,
+        "users",
+        user.uid,
+        "interStudyStats",
+        difficulty
+      );
+      await setDoc(
+        averageScoreRef,
+        {
+          lastUpdated: serverTimestamp(),
+          attempts: increment(1),
+          totalScore: increment(normalizedScore),
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Error saving quiz results:", error);
+    }
+  };
+
   // Show modal for difficulty selection
   if (showModal) {
     return (
@@ -220,6 +266,37 @@ export default function Study({
 
     // Normalize score to 100
     const normalizedScore = Math.round((score / totalPossibleScore) * 100);
+
+    // Prepare detailed results for each question
+    const questionResults = selectedQuestions.map((q, index) => {
+      if (q.sections) {
+        return {
+          questionId: q.id,
+          type: "sectioned",
+          userAnswers: userAnswers[index],
+          correctAnswers: q.sections.map((s) => s.correctAnswer),
+          points: q.sections.reduce(
+            (total, s, sIndex) =>
+              total +
+              (userAnswers[index][sIndex] === s.correctAnswer ? s.points : 0),
+            0
+          ),
+        };
+      } else {
+        return {
+          questionId: q.id,
+          type: "single",
+          userAnswer: userAnswers[index],
+          correctAnswer: q.correct,
+          points: userAnswers[index] === q.correct ? 1 : 0,
+        };
+      }
+    });
+
+    // Save results to Firebase
+    if (user) {
+      saveResults(normalizedScore, questionResults);
+    }
 
     return (
       <StudyResults
