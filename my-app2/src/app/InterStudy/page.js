@@ -91,6 +91,13 @@ const InterStudyPage = () => {
           console.log(`Found ${bagrutSnapshot.docs.length} bagrut questions`);
 
           const hardQuestions = [];
+          const questionsBySubject = {
+            algebra: [],
+            calculus: [],
+            geometry: [],
+            statistics: [],
+            trigonometry: [],
+          };
 
           for (const doc of bagrutSnapshot.docs) {
             try {
@@ -103,13 +110,34 @@ const InterStudyPage = () => {
                 sectionsCount: data.sections?.length,
               });
 
-              // Only process if it's algebra or calculus
-              if (data.subject === "algebra" || data.subject === "calculus") {
+              // Map the database subject names to our standardized subject names
+              const subjectMapping = {
+                algebra: "algebra",
+                calculus: "calculus",
+                geometry: "geometry",
+                "prob&stat": "statistics",
+                statistics: "statistics",
+                trig: "trigonometry",
+              };
+
+              const normalizedSubject = subjectMapping[data.subject];
+              const validSubjects = [
+                "algebra",
+                "calculus",
+                "geometry",
+                "statistics",
+                "trigonometry",
+              ];
+
+              if (validSubjects.includes(normalizedSubject)) {
                 let imageUrl = null;
                 const questionData = {
                   ...data,
                   id: doc.id,
                   level: "hard",
+                  subject: normalizedSubject, // Use the normalized subject name
+                  sections: data.sections || [], // Ensure sections exists
+                  question: data.question || "שאלת בגרות", // Default question text
                 };
 
                 if (data.imageRef) {
@@ -117,7 +145,8 @@ const InterStudyPage = () => {
                     // Log the initial image reference
                     console.log("Processing image reference:", {
                       imageRef: data.imageRef,
-                      subject: data.subject,
+                      originalSubject: data.subject,
+                      normalizedSubject: normalizedSubject,
                       questionId: doc.id,
                     });
 
@@ -125,10 +154,12 @@ const InterStudyPage = () => {
                     const cleanImageRef = data.imageRef
                       .replace(/^\/+/, "")
                       .trim();
-                    const cleanSubject = data.subject.toLowerCase().trim();
+
+                    // Use original subject for storage path
+                    const storageSubject = data.subject.toLowerCase().trim();
 
                     // Try with subject folder first
-                    const imagePath = `${cleanSubject}/${cleanImageRef}`;
+                    const imagePath = `${storageSubject}/${cleanImageRef}`;
                     let storageRef = ref(storage, imagePath);
 
                     console.log("Attempting to get URL with subject folder:", {
@@ -187,12 +218,50 @@ const InterStudyPage = () => {
                   count: sections.length,
                 });
 
+                // Ensure we have at least one section with required properties
+                if (sections.length === 0) {
+                  // Create a default section if none exists
+                  sections.push({
+                    id: "1",
+                    text: data.text || "פתור את השאלה",
+                    correct_answer: data.correct_answer || "תשובה א",
+                    incorrect_answers: data.incorrect_answers || [
+                      "תשובה ב",
+                      "תשובה ג",
+                      "תשובה ד",
+                    ],
+                    score: 100,
+                  });
+                }
+
                 const transformedSections = sections.map((section, index) => {
-                  // Shuffle the options
-                  const options = [
-                    section.correct_answer,
-                    ...(section.incorrect_answers || []),
-                  ].filter(Boolean);
+                  // Ensure all required properties exist with defaults
+                  const sectionId = section.id || String(index + 1);
+                  const sectionText = section.text || `חלק ${sectionId}`;
+                  const correctAnswer = section.correct_answer || "תשובה א";
+                  const incorrectAnswers = section.incorrect_answers || [
+                    "תשובה ב",
+                    "תשובה ג",
+                    "תשובה ד",
+                  ];
+
+                  // Ensure we have valid options array
+                  let options = [];
+                  if (
+                    correctAnswer &&
+                    incorrectAnswers &&
+                    Array.isArray(incorrectAnswers)
+                  ) {
+                    options = [correctAnswer, ...incorrectAnswers].filter(
+                      Boolean
+                    );
+                  } else {
+                    // Default options if none provided
+                    options = ["תשובה א", "תשובה ב", "תשובה ג", "תשובה ד"];
+                    console.warn(
+                      `Using default options for section ${sectionId} in question ${doc.id}`
+                    );
+                  }
 
                   // Fisher-Yates shuffle
                   for (let i = options.length - 1; i > 0; i--) {
@@ -201,15 +270,29 @@ const InterStudyPage = () => {
                   }
 
                   // Find the new index of the correct answer after shuffling
-                  const correctAnswerIndex = options.indexOf(
-                    section.correct_answer
-                  );
+                  const correctAnswerIndex = options.indexOf(correctAnswer);
+
+                  // If correctAnswer is not in options (shouldn't happen, but just in case)
+                  if (correctAnswerIndex === -1) {
+                    console.warn(
+                      `Correct answer not found in options for section ${sectionId} in question ${doc.id}`
+                    );
+                    options = ["תשובה א", "תשובה ב", "תשובה ג", "תשובה ד"];
+                    return {
+                      id: sectionId,
+                      text: sectionText,
+                      points: section.score || 0,
+                      options: options,
+                      correctAnswer: 0, // First option is correct by default
+                      explanation: section.explanation || "אין הסבר זמין",
+                    };
+                  }
 
                   return {
-                    id: section.id || String(index + 1),
-                    text: section.text || `חלק ${section.id || index + 1}`,
+                    id: sectionId,
+                    text: sectionText,
                     points: section.score || 0,
-                    options,
+                    options: options,
                     correctAnswer: correctAnswerIndex,
                     explanation: section.explanation || "אין הסבר זמין",
                   };
@@ -220,11 +303,19 @@ const InterStudyPage = () => {
                   if (imageUrl) {
                     questionData.imageUrl = imageUrl;
                   }
-                  hardQuestions.push(questionData);
+                  // Add to subject-specific array instead of hardQuestions
+                  questionsBySubject[normalizedSubject].push(questionData);
                   console.log("Successfully added question:", {
                     id: doc.id,
+                    subject: normalizedSubject,
                     sectionsCount: transformedSections.length,
                     hasImage: !!imageUrl,
+                    sections: transformedSections.map((s) => ({
+                      id: s.id,
+                      text: s.text,
+                      optionsCount: s.options.length,
+                      correctAnswerIndex: s.correctAnswer,
+                    })),
                   });
                 } else {
                   console.warn("Skipping question - no valid sections:", {
@@ -232,7 +323,7 @@ const InterStudyPage = () => {
                   });
                 }
               } else {
-                console.log("Skipping non-algebra/calculus question:", {
+                console.log("Skipping invalid subject question:", {
                   id: doc.id,
                   subject: data.subject,
                 });
@@ -245,9 +336,39 @@ const InterStudyPage = () => {
             }
           }
 
+          // Select one random question from each subject
+          Object.entries(questionsBySubject).forEach(([subject, questions]) => {
+            if (questions.length > 0) {
+              const randomIndex = Math.floor(Math.random() * questions.length);
+              hardQuestions.push(questions[randomIndex]);
+              console.log(`Selected random question for ${subject}:`, {
+                totalQuestions: questions.length,
+                selectedIndex: randomIndex,
+                questionId: questions[randomIndex].id,
+              });
+            } else {
+              console.warn(`No questions available for subject: ${subject}`);
+            }
+          });
+
+          // Shuffle the final array of selected questions
+          for (let i = hardQuestions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [hardQuestions[i], hardQuestions[j]] = [
+              hardQuestions[j],
+              hardQuestions[i],
+            ];
+          }
+
           fetchedQuestions.hard = hardQuestions;
           console.log("Successfully processed hard questions:", {
             count: hardQuestions.length,
+            bySubject: Object.fromEntries(
+              Object.entries(questionsBySubject).map(([subject, questions]) => [
+                subject,
+                questions.length,
+              ])
+            ),
           });
         } catch (bagrutError) {
           console.error("Error fetching bagrut questions:", {
@@ -295,23 +416,36 @@ const InterStudyPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <p className="text-xl text-red-600">שגיאה בטעינת השאלות</p>
-          <p className="text-gray-600 mt-2">{error}</p>
-        </div>
+      <div className="min-h-screen bg-white">
+        <main className="max-w-6xl mx-auto p-6">
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <div className="text-6xl mb-6">❌</div>
+            <h3 className="text-2xl font-bold text-red-600 mb-4">
+              שגיאה בטעינת השאלות
+            </h3>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </main>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin text-6xl mb-4">⚡</div>
-          <p className="text-xl text-gray-600">טוען שאלות...</p>
-        </div>
+      <div className="min-h-screen bg-white">
+        <main className="max-w-6xl mx-auto p-6">
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <div className="w-32 h-32 mx-auto mb-6">
+              <div className="animate-spin text-6xl">⚡</div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              טוען שאלות
+            </h3>
+            <p className="text-gray-600">
+              אנא המתן בזמן שאנחנו טוענים את השאלות עבורך...
+            </p>
+          </div>
+        </main>
       </div>
     );
   }
@@ -319,44 +453,9 @@ const InterStudyPage = () => {
   return (
     <Study
       questions={questions}
-      title="חידון מתמטיקה"
+      title="למידה אינטראקטיבית"
       icon="🧮"
       onHome={() => (window.location.href = "/")}
-      difficultyConfigs={{
-        easy: {
-          color:
-            "from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700",
-          bgColor: "bg-emerald-50",
-          borderColor: "border-emerald-200",
-          textColor: "text-emerald-800",
-          icon: "🌱",
-          title: "קל",
-          description: "נוסחאות בסיסיות ותרגילים מהירים",
-          timeLabel: "30 שניות לשאלה",
-        },
-        medium: {
-          color:
-            "from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700",
-          bgColor: "bg-amber-50",
-          borderColor: "border-amber-200",
-          textColor: "text-amber-800",
-          icon: "🔥",
-          title: "בינוני",
-          description: "שאלות מורכבות יותר ונושאים מתקדמים",
-          timeLabel: "45 שניות לשאלה",
-        },
-        hard: {
-          color:
-            "from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700",
-          bgColor: "bg-rose-50",
-          borderColor: "border-rose-200",
-          textColor: "text-rose-800",
-          icon: "⚡",
-          title: "בגרות",
-          description: "שאלות בגרות באלגברה וחשבון דיפרנציאלי",
-          timeLabel: "ללא הגבלת זמן",
-        },
-      }}
     />
   );
 };

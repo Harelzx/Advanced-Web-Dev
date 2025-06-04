@@ -4,16 +4,16 @@ import { FaHome } from "react-icons/fa";
 import StudyModal from "./StudyModal";
 import StudyHeader from "./StudyHeader";
 import StudyQuestion from "./StudyQuestion";
-import StudySectionedQuestion from "./StudySectionedQuestion";
 import StudyActions from "./StudyActions";
 import StudyExplanation from "./StudyExplanation";
 import StudyResults from "./StudyResults";
 import { auth, db } from "@/app/firebase/config";
 import { doc, setDoc, serverTimestamp, increment } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
+import Navbar from "./Navbar";
+import { fetchQuestionsByDifficulty } from "@/app/firebase/questions";
 
 export default function Study({
-  questions,
   title = "חידון מתמטיקה",
   icon = "🧮",
   onHome,
@@ -62,7 +62,9 @@ export default function Study({
   const [timeLeft, setTimeLeft] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
+  const [rawScores, setRawScores] = useState([]);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -74,19 +76,40 @@ export default function Study({
     }
   }, [timeLeft, isAnswered]);
 
-  const startQuiz = (selectedDifficulty) => {
+  const startQuiz = async (selectedDifficulty) => {
+    setIsLoading(true);
     setDifficulty(selectedDifficulty);
-    const difficultyQuestions =
-      questions[selectedDifficulty]?.slice(0, 5) || [];
-    setSelectedQuestions(difficultyQuestions);
-    // Initialize answers array based on whether questions have sections
-    const initialAnswers = difficultyQuestions.map((q) =>
-      q.sections ? new Array(q.sections.length).fill(null) : null
-    );
-    setUserAnswers(initialAnswers);
-    setCurrentQuestion(0);
-    setTimeLeft(difficultyQuestions[0]?.timeLimit || null);
-    setShowModal(false);
+
+    try {
+      const questions = await fetchQuestionsByDifficulty(selectedDifficulty);
+
+      if (questions.length === 0) {
+        throw new Error("No questions found for this difficulty level");
+      }
+
+      // Initialize sectioned questions with currentSection = 0
+      const initializedQuestions = questions.map((q) => ({
+        ...q,
+        currentSection: 0,
+      }));
+
+      setSelectedQuestions(initializedQuestions);
+      // For sectioned questions, we need an answer for each section
+      const initialAnswers = initializedQuestions.map((q) =>
+        q.type === "sectioned" ? new Array(q.sections.length).fill(null) : null
+      );
+      setUserAnswers(initialAnswers);
+      setRawScores(new Array(questions.length).fill(0));
+      setCurrentQuestion(0);
+      setTimeLeft(questions[0]?.timeLimit || 30);
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error starting quiz:", error);
+      alert("שגיאה בטעינת השאלות. אנא נסה שוב מאוחר יותר.");
+      resetQuiz();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAnswer = (sectionIndex, answerIndex) => {
@@ -94,62 +117,106 @@ export default function Study({
 
     const currentQ = selectedQuestions[currentQuestion];
     const newAnswers = [...userAnswers];
+    const newRawScores = [...rawScores];
 
-    if (currentQ.sections) {
-      // For sectioned questions
+    if (currentQ.type === "sectioned") {
+      // For sectioned questions, store answer in the array for this question
+      if (!Array.isArray(newAnswers[currentQuestion])) {
+        newAnswers[currentQuestion] = new Array(currentQ.sections.length).fill(
+          null
+        );
+      }
+
+      // Update the answer for the specific section
       newAnswers[currentQuestion][sectionIndex] = answerIndex;
-      setUserAnswers(newAnswers);
+
+      // Calculate score for this section
+      const isCorrect = answerIndex === 0;
+      const sectionScore =
+        currentQ.sections[sectionIndex].score ||
+        Math.floor(100 / currentQ.sections.length);
+
+      // Reset the score for this question and recalculate total from all sections
+      newRawScores[currentQuestion] = newAnswers[currentQuestion].reduce(
+        (total, ans, idx) => {
+          if (ans === null) return total;
+          const secScore =
+            currentQ.sections[idx].score ||
+            Math.floor(100 / currentQ.sections.length);
+          return total + (ans === 0 ? secScore : 0);
+        },
+        0
+      );
 
       // Check if all sections are answered
       const allSectionsAnswered = newAnswers[currentQuestion].every(
         (answer) => answer !== null
       );
-
       if (allSectionsAnswered) {
         setIsAnswered(true);
-        // Calculate score for all sections
-        let sectionScore = 0;
-        currentQ.sections.forEach((section, idx) => {
-          if (newAnswers[currentQuestion][idx] === section.correctAnswer) {
-            sectionScore += section.points;
-          }
-        });
-        setScore(score + sectionScore);
       }
     } else {
-      // For regular questions
+      // For regular questions, store single answer
       newAnswers[currentQuestion] = answerIndex;
-      setUserAnswers(newAnswers);
       setIsAnswered(true);
 
-      if (answerIndex === currentQ.correct) {
-        setScore(score + 1);
-      }
+      // Calculate score
+      const isCorrect = answerIndex === 0;
+      newRawScores[currentQuestion] = isCorrect ? 20 : 0;
     }
+
+    setUserAnswers(newAnswers);
+    setRawScores(newRawScores);
+
+    // Calculate total score
+    const totalScore = newRawScores.reduce((sum, score) => sum + score, 0);
+    setScore(totalScore);
   };
 
   const handleTimeUp = () => {
     setIsAnswered(true);
-    const newAnswers = [...userAnswers];
     const currentQ = selectedQuestions[currentQuestion];
+    const newAnswers = [...userAnswers];
+    const newRawScores = [...rawScores];
 
-    if (currentQ.sections) {
-      // For sectioned questions, mark all unanswered sections as timed out
-      newAnswers[currentQuestion] = newAnswers[currentQuestion].map(
-        (answer) => answer ?? -1
+    if (currentQ.type === "sectioned") {
+      if (!Array.isArray(newAnswers[currentQuestion])) {
+        newAnswers[currentQuestion] = new Array(currentQ.sections.length).fill(
+          null
+        );
+      }
+      // Mark current section as timed out
+      newAnswers[currentQuestion][currentQ.currentSection] = -1;
+
+      // Recalculate score for the question
+      newRawScores[currentQuestion] = newAnswers[currentQuestion].reduce(
+        (total, ans, idx) => {
+          if (ans === null || ans === -1) return total;
+          const secScore =
+            currentQ.sections[idx].score ||
+            Math.floor(100 / currentQ.sections.length);
+          return total + (ans === 0 ? secScore : 0);
+        },
+        0
       );
     } else {
-      newAnswers[currentQuestion] = -1; // -1 indicates no answer/timeout
+      newAnswers[currentQuestion] = -1;
+      newRawScores[currentQuestion] = 0; // No points for timeout
     }
+
     setUserAnswers(newAnswers);
+    setRawScores(newRawScores);
+    setScore(newRawScores.reduce((sum, score) => sum + score, 0));
   };
 
   const nextQuestion = () => {
     if (currentQuestion < selectedQuestions.length - 1) {
+      // Move to next question
       setCurrentQuestion(currentQuestion + 1);
       setIsAnswered(false);
       setShowExplanation(false);
-      setTimeLeft(selectedQuestions[currentQuestion + 1].timeLimit || null);
+      const nextQ = selectedQuestions[currentQuestion + 1];
+      setTimeLeft(nextQ.timeLimit || null);
     } else {
       setQuizCompleted(true);
     }
@@ -161,6 +228,7 @@ export default function Study({
     setCurrentQuestion(0);
     setSelectedQuestions([]);
     setUserAnswers([]);
+    setRawScores([]);
     setShowExplanation(false);
     setTimeLeft(null);
     setIsAnswered(false);
@@ -168,19 +236,26 @@ export default function Study({
     setQuizCompleted(false);
   };
 
-  const restartCurrentLevel = () => {
-    setCurrentQuestion(0);
-    const difficultyQuestions = questions[difficulty]?.slice(0, 5) || [];
-    setSelectedQuestions(difficultyQuestions);
-    const initialAnswers = difficultyQuestions.map((q) =>
-      q.sections ? new Array(q.sections.length).fill(null) : null
-    );
-    setUserAnswers(initialAnswers);
-    setShowExplanation(false);
-    setTimeLeft(difficultyQuestions[0]?.timeLimit || null);
-    setIsAnswered(false);
-    setScore(0);
-    setQuizCompleted(false);
+  const restartCurrentLevel = async () => {
+    setIsLoading(true);
+    try {
+      const questions = await fetchQuestionsByDifficulty(difficulty);
+      setSelectedQuestions(questions);
+      setCurrentQuestion(0);
+      setUserAnswers(new Array(questions.length).fill(null));
+      setRawScores(new Array(questions.length).fill(0));
+      setShowExplanation(false);
+      setTimeLeft(questions[0]?.timeLimit || null);
+      setIsAnswered(false);
+      setScore(0);
+      setQuizCompleted(false);
+    } catch (error) {
+      console.error("Error restarting quiz:", error);
+      alert("שגיאה בטעינת השאלות. אנא נסה שוב מאוחר יותר.");
+      resetQuiz();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getDifficultyConfig = (diff) => {
@@ -199,22 +274,33 @@ export default function Study({
   };
 
   // Function to save results to Firebase
-  const saveResults = async (normalizedScore, questionResults) => {
+  const saveResults = async () => {
     if (!user) return;
 
     try {
       // Create a unique ID for this quiz attempt
       const quizId = `${difficulty}_${Date.now()}`;
 
+      // Calculate percentage score (out of 100)
+      const maxScore = selectedQuestions.length * 20; // 20 points per question
+      const percentageScore = Math.round((score / maxScore) * 100);
+
       // Save detailed results
       await setDoc(doc(db, "users", user.uid, "interStudyResults", quizId), {
         difficulty,
-        score: normalizedScore,
+        score: percentageScore,
         totalQuestions: selectedQuestions.length,
         timestamp: serverTimestamp(),
         details: {
           rawScore: score,
-          questionResults: questionResults,
+          maxPossibleScore: maxScore,
+          questionResults: selectedQuestions.map((q, index) => ({
+            questionId: q.id,
+            userAnswer: userAnswers[index],
+            isCorrect: userAnswers[index] === 0,
+            points: rawScores[index],
+            maxPoints: 20,
+          })),
         },
       });
 
@@ -231,7 +317,7 @@ export default function Study({
         {
           lastUpdated: serverTimestamp(),
           attempts: increment(1),
-          totalScore: increment(normalizedScore),
+          totalScore: increment(percentageScore),
         },
         { merge: true }
       );
@@ -240,159 +326,80 @@ export default function Study({
     }
   };
 
-  // Show modal for difficulty selection
-  if (showModal) {
-    return (
-      <StudyModal
-        onClose={onHome || (() => (window.location.href = "/"))}
-        onStartQuiz={startQuiz}
-        difficultyConfigs={difficultyConfigs}
-        title={title}
-        icon={icon}
-      />
-    );
-  }
-
-  // Show results screen
-  if (quizCompleted) {
-    const totalPossibleScore = selectedQuestions.reduce(
-      (total, q) =>
-        total +
-        (q.sections
-          ? q.sections.reduce((sTotal, s) => sTotal + (s.points || 0), 0)
-          : 1),
-      0
-    );
-
-    // Normalize score to 100
-    const normalizedScore = Math.round((score / totalPossibleScore) * 100);
-
-    // Prepare detailed results for each question
-    const questionResults = selectedQuestions.map((q, index) => {
-      if (q.sections) {
-        return {
-          questionId: q.id,
-          type: "sectioned",
-          userAnswers: userAnswers[index],
-          correctAnswers: q.sections.map((s) => s.correctAnswer),
-          points: q.sections.reduce(
-            (total, s, sIndex) =>
-              total +
-              (userAnswers[index][sIndex] === s.correctAnswer ? s.points : 0),
-            0
-          ),
-        };
-      } else {
-        return {
-          questionId: q.id,
-          type: "single",
-          userAnswer: userAnswers[index],
-          correctAnswer: q.correct,
-          points: userAnswers[index] === q.correct ? 1 : 0,
-        };
-      }
-    });
-
-    // Save results to Firebase
-    if (user) {
-      saveResults(normalizedScore, questionResults);
-    }
-
-    return (
-      <StudyResults
-        score={score}
-        totalQuestions={selectedQuestions.length}
-        maxScore={100}
-        onRestart={restartCurrentLevel}
-        onChooseDifficulty={resetQuiz}
-        onHome={onHome || (() => (window.location.href = "/Main_Page"))}
-      />
-    );
-  }
-
-  // Show loading if no questions
-  if (selectedQuestions.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin text-6xl mb-4">⚡</div>
-          <p className="text-xl text-gray-600">טוען שאלות...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const question = selectedQuestions[currentQuestion];
-  const diffConfig = getDifficultyConfig(difficulty);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
-      {/* Floating Home Button */}
-      <button
-        onClick={onHome || (() => (window.location.href = "/"))}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4 rounded-full font-semibold shadow-2xl z-50 transition-all duration-300 transform hover:scale-110 group"
-      >
-        <FaHome size={20} className="group-hover:animate-pulse" />
-      </button>
-
-      {/* Main Content */}
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="max-w-4xl w-full">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-            {/* Header */}
-            <StudyHeader
-              currentQuestion={currentQuestion}
-              totalQuestions={selectedQuestions.length}
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      {showModal ? (
+        <StudyModal
+          onClose={onHome}
+          onStartQuiz={startQuiz}
+          difficultyConfigs={difficultyConfigs}
+          title={title}
+          icon={icon}
+        />
+      ) : (
+        <div className="container mx-auto px-4 py-8">
+          {isLoading ? (
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-2xl text-gray-600">טוען שאלות...</div>
+            </div>
+          ) : quizCompleted ? (
+            <StudyResults
+              score={score}
+              questions={selectedQuestions}
+              userAnswers={userAnswers}
               difficulty={difficulty}
-              difficultyConfig={diffConfig}
-              timeLeft={timeLeft}
+              config={getDifficultyConfig(difficulty)}
+              onRestart={restartCurrentLevel}
+              onNewQuiz={resetQuiz}
+              onSave={saveResults}
             />
-
-            {/* Question Content */}
-            {question.sections ? (
-              <StudySectionedQuestion
-                question={question}
-                userAnswers={userAnswers[currentQuestion] || []}
-                onAnswer={handleAnswer}
-                isAnswered={isAnswered}
-              />
-            ) : (
-              <StudyQuestion
-                question={question}
-                isAnswered={isAnswered}
-                userAnswer={userAnswers[currentQuestion]}
-                onAnswer={(answerIndex) => handleAnswer(null, answerIndex)}
-              />
-            )}
-
-            {/* Action Buttons */}
-            <StudyActions
-              isAnswered={isAnswered}
-              showExplanation={showExplanation}
-              onToggleExplanation={() => setShowExplanation(!showExplanation)}
-              onNext={nextQuestion}
-              isLastQuestion={currentQuestion === selectedQuestions.length - 1}
-            />
-
-            {/* Explanation */}
-            {showExplanation && question.sections ? (
-              question.sections.map((section, index) => (
-                <StudyExplanation
-                  key={section.id}
-                  explanation={section.explanation}
-                  show={true}
-                  title={`הסבר לחלק ${section.id}`}
+          ) : (
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                <StudyHeader
+                  currentQuestion={currentQuestion}
+                  totalQuestions={selectedQuestions.length}
+                  timeLeft={timeLeft}
+                  difficulty={difficulty}
+                  config={getDifficultyConfig(difficulty)}
                 />
-              ))
-            ) : (
-              <StudyExplanation
-                explanation={question.explanation}
-                show={showExplanation}
-              />
-            )}
-          </div>
+
+                <StudyQuestion
+                  question={selectedQuestions[currentQuestion]}
+                  selectedAnswer={userAnswers[currentQuestion]}
+                  onAnswer={handleAnswer}
+                  isAnswered={isAnswered}
+                />
+
+                {isAnswered && (
+                  <StudyExplanation
+                    show={showExplanation}
+                    onToggle={() => setShowExplanation(!showExplanation)}
+                    explanation={selectedQuestions[currentQuestion].explanation}
+                  />
+                )}
+
+                <StudyActions
+                  isAnswered={isAnswered}
+                  isLastQuestion={
+                    currentQuestion === selectedQuestions.length - 1
+                  }
+                  onNext={nextQuestion}
+                  onFinish={() => {
+                    setQuizCompleted(true);
+                    saveResults();
+                  }}
+                  showExplanation={showExplanation}
+                  onToggleExplanation={() =>
+                    setShowExplanation(!showExplanation)
+                  }
+                />
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

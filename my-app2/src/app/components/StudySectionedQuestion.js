@@ -9,20 +9,35 @@ export default function StudySectionedQuestion({
   isAnswered,
   onQuestionComplete,
 }) {
+  // Add null check for question
+  if (!question || !question.sections) {
+    return (
+      <div className="p-8 text-center">
+        <div className="text-xl text-gray-600">שגיאה בטעינת השאלה</div>
+      </div>
+    );
+  }
+
   const [currentSection, setCurrentSection] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [imageStatus, setImageStatus] = useState("loading");
-  const [proxyImageUrl, setProxyImageUrl] = useState(question.imageUrl);
+  const [proxyImageUrl, setProxyImageUrl] = useState(question?.imageUrl);
 
   const totalSections = question.sections.length;
-  const currentSectionData = question.sections[currentSection];
+  const currentSectionData = question.sections[currentSection] || {};
   const isCurrentSectionAnswered = userAnswers[currentSection] !== null;
   const allSectionsAnswered = userAnswers.every((answer) => answer !== null);
 
   useEffect(() => {
     // Reset to first section when question changes
     setCurrentSection(0);
-  }, [question.id]);
+    // Reset image state for new question
+    setRetryCount(0);
+    setImageStatus("loading");
+    if (question?.imageUrl) {
+      setProxyImageUrl(question.imageUrl);
+    }
+  }, [question?.id, question?.imageUrl]);
 
   useEffect(() => {
     // If current section is answered and not all sections are answered,
@@ -171,7 +186,14 @@ export default function StudySectionedQuestion({
 
           {/* Answer Options */}
           <div className="grid gap-4">
-            {currentSectionData.options.map((option, index) => {
+            {(
+              currentSectionData.options || [
+                "תשובה א",
+                "תשובה ב",
+                "תשובה ג",
+                "תשובה ד",
+              ]
+            ).map((option, index) => {
               let buttonClass =
                 "group w-full p-5 text-right rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] ";
 
