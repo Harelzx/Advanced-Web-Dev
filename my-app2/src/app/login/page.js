@@ -33,7 +33,7 @@ const Login = () => {
             sessionStorage.setItem('uid', user.user.uid);
             setEmail('');
             setPassword('');
-            if (role === 'teacher') {
+            if (role === 'teacher' || role === 'parent') {
               router.push('/dashboard');
             } else if (role === 'student') {
               // Check if student has results collection
