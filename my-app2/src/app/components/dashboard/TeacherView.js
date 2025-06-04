@@ -1,6 +1,6 @@
 import StatsCard from './StatsCard';
 
-export default function TeacherView({ studentsData = [] }) {
+export default function TeacherView({ studentsData = [], onAddStudent, onRemoveStudent }) {
   const totalStudents = studentsData.length;
   const averageGrade = studentsData.length > 0 
     ? (studentsData.reduce((sum, student) => sum + student.averageGrade, 0) / studentsData.length).toFixed(1)
@@ -16,9 +16,9 @@ export default function TeacherView({ studentsData = [] }) {
           subtitle="Total Students:"
           value={totalStudents}
           valueColor="text-green-600"
-          buttonText="Manage Students"
+          buttonText="Add Student"
           buttonColor="bg-green-500 hover:bg-green-600"
-          onButtonClick={() => console.log('Manage students clicked')}
+          onButtonClick={onAddStudent}
         />
         
         {/* Class Performance */}
@@ -39,13 +39,22 @@ export default function TeacherView({ studentsData = [] }) {
               {studentsData.map((student) => (
                 <div key={student.id} className="border rounded-lg p-3 bg-white">
                   <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-semibold text-gray-800">{student.name}</h4>
-                    <span className={`font-bold ${
-                      student.averageGrade >= 80 ? "text-green-600" : 
-                      student.averageGrade >= 60 ? "text-yellow-600" : "text-red-600"
-                    }`}>
-                      {student.averageGrade.toFixed(1)}% Average
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <h4 className="font-semibold text-gray-800">{student.name}</h4>
+                      <span className={`font-bold ${
+                        student.averageGrade >= 80 ? "text-green-600" : 
+                        student.averageGrade >= 60 ? "text-yellow-600" : "text-red-600"
+                      }`}>
+                        {student.averageGrade.toFixed(1)}% Average
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => onRemoveStudent(student)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      title="Remove Student"
+                    >
+                      Remove
+                    </button>
                   </div>
                   
                   {/* Grades by Subject */}
@@ -74,7 +83,15 @@ export default function TeacherView({ studentsData = [] }) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 mt-2">No student data available.</p>
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No students assigned yet.</p>
+              <button
+                onClick={onAddStudent}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              >
+                Add Your First Student
+              </button>
+            </div>
           )}
         </StatsCard>
       </div>

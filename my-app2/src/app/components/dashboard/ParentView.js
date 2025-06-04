@@ -1,13 +1,22 @@
 import StatsCard from './StatsCard';
 import ProgressBar from './ProgressBar';
 
-export default function ParentView({ studentsData = [] }) {
+export default function ParentView({ studentsData = [], onAddChild, onRemoveChild }) {
   // For parents, studentsData will contain their children's data
   const children = studentsData;
   
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">Your Children's Progress</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-700">Your Children's Progress</h2>
+        <button
+          onClick={onAddChild}
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Add Child
+        </button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {children.length > 0 ? (
           <>
@@ -15,14 +24,23 @@ export default function ParentView({ studentsData = [] }) {
             {children.map((child, index) => (
               <StatsCard key={child.id} title={child.name}>
                 <div className="space-y-2">
-                  <p className="text-gray-600">
-                    Average Grade: <span className={`font-bold ${
-                      child.averageGrade >= 80 ? "text-green-600" : 
-                      child.averageGrade >= 60 ? "text-yellow-600" : "text-red-600"
-                    }`}>
-                      {child.averageGrade.toFixed(1)}%
-                    </span>
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-600">
+                      Average Grade: <span className={`font-bold ${
+                        child.averageGrade >= 80 ? "text-green-600" : 
+                        child.averageGrade >= 60 ? "text-yellow-600" : "text-red-600"
+                      }`}>
+                        {child.averageGrade.toFixed(1)}%
+                      </span>
+                    </p>
+                    <button
+                      onClick={() => onRemoveChild(child)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+                      title="Remove Child"
+                    >
+                      Remove
+                    </button>
+                  </div>
                   
                   {/* Subjects Breakdown */}
                   <div className="text-sm">
@@ -98,11 +116,18 @@ export default function ParentView({ studentsData = [] }) {
           </>
         ) : (
           /* No Children Data */
-          <StatsCard title="No Data Available" className="md:col-span-2">
-            <p className="text-gray-600">
-              No children's progress data is currently available. 
-              Please connect your children's accounts to view their progress.
-            </p>
+          <StatsCard title="No Children Added" className="md:col-span-2">
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">
+                You haven't added any children yet. Add your first child to start tracking their progress.
+              </p>
+              <button
+                onClick={onAddChild}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              >
+                Add Your First Child
+              </button>
+            </div>
           </StatsCard>
         )}
       </div>

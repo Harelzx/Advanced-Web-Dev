@@ -2,10 +2,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, updateDoc, arrayRemove } from 'firebase/firestore';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import TeacherView from '../components/dashboard/TeacherView';
 import ParentView from '../components/dashboard/ParentView';
+import AddStudentModal from '../components/dashboard/AddStudentModal';
+import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -14,6 +16,9 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('');
   const [studentsData, setStudentsData] = useState([]);
   const [currentUserId, setCurrentUserId] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [studentToRemove, setStudentToRemove] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -41,7 +46,8 @@ const Dashboard = () => {
             
             // Fetch students data based on role
             if (userData.role === 'teacher' || userData.role === 'parent') {
-              await fetchStudentsData(userData.role, uid, userData.children || []);
+              const children = userData.children || [];
+              await fetchStudentsData(userData.role, uid, children);
             }
           }
         } catch (error) {
@@ -59,22 +65,41 @@ const Dashboard = () => {
     try {
       let students = [];
       
+      // Ensure childrenIds is an array
+      const validChildrenIds = Array.isArray(childrenIds) ? childrenIds : [];
+      
       if (role === 'teacher') {
-        // For teachers, get all students (simplified for now)
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, where('role', '==', 'student'));
-        const usersSnapshot = await getDocs(q);
-        
-        for (const userDoc of usersSnapshot.docs) {
-          const studentData = await getStudentResults(userDoc.id, userDoc.data());
-          students.push(studentData);
+        // For teachers, get all students assigned to them
+        if (validChildrenIds.length > 0) {
+          for (const studentId of validChildrenIds) {
+            try {
+              const studentDocRef = doc(db, 'users', studentId);
+              const studentDocSnap = await getDoc(studentDocRef);
+              if (studentDocSnap.exists()) {
+                const studentData = await getStudentResults(studentId, studentDocSnap.data());
+                students.push(studentData);
+              }
+            } catch (error) {
+              console.error(`Error fetching student ${studentId}:`, error);
+            }
+          }
         }
       } else if (role === 'parent') {
-        // For parents, get only their children
-        // For demo, we'll use the current user's own results if they're a student
-        // In real implementation, this would use the children array
-        const studentData = await getStudentResults(currentUid, { fullName: userName });
-        students.push(studentData);
+        // For parents, get their children
+        if (validChildrenIds.length > 0) {
+          for (const childId of validChildrenIds) {
+            try {
+              const childDocRef = doc(db, 'users', childId);
+              const childDocSnap = await getDoc(childDocRef);
+              if (childDocSnap.exists()) {
+                const studentData = await getStudentResults(childId, childDocSnap.data());
+                students.push(studentData);
+              }
+            } catch (error) {
+              console.error(`Error fetching child ${childId}:`, error);
+            }
+          }
+        }
       }
       
       setStudentsData(students);
@@ -133,6 +158,46 @@ const Dashboard = () => {
     }
   };
 
+  const openRemoveModal = (student) => {
+    setStudentToRemove(student);
+    setShowRemoveModal(true);
+  };
+
+  const closeRemoveModal = () => {
+    setStudentToRemove(null);
+    setShowRemoveModal(false);
+  };
+
+  const handleStudentRemoved = async () => {
+    // Refresh students data after removing
+    try {
+      const userDocRef = doc(db, 'users', currentUserId);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const children = userData.children || [];
+        await fetchStudentsData(userData.role, currentUserId, children);
+      }
+    } catch (error) {
+      console.error('Error refreshing student data:', error);
+    }
+  };
+
+  const handleStudentAdded = async () => {
+    // Refresh students data after adding
+    try {
+      const userDocRef = doc(db, 'users', currentUserId);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const children = userData.children || [];
+        await fetchStudentsData(userData.role, currentUserId, children);
+      }
+    } catch (error) {
+      console.error('Error refreshing student data:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -149,15 +214,42 @@ const Dashboard = () => {
       {/* Content Card */}
       <div className="bg-white p-6 border rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
-          <TeacherView studentsData={studentsData} />
+          <TeacherView 
+            studentsData={studentsData} 
+            onAddStudent={() => setShowAddModal(true)}
+            onRemoveStudent={openRemoveModal}
+          />
         ) : userRole === 'parent' ? (
-          <ParentView studentsData={studentsData} />
+          <ParentView 
+            studentsData={studentsData}
+            onAddChild={() => setShowAddModal(true)}
+            onRemoveChild={openRemoveModal}
+          />
         ) : (
           <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
             <p className="text-gray-700">Access denied. Unknown user role.</p>
           </div>
         )}
       </div>
+
+      {/* Add Student/Child Modal */}
+      <AddStudentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        userRole={userRole}
+        userId={currentUserId}
+        onStudentAdded={handleStudentAdded}
+      />
+
+      {/* Remove Student/Child Modal */}
+      <RemoveStudentModal
+        isOpen={showRemoveModal}
+        onClose={closeRemoveModal}
+        student={studentToRemove}
+        userRole={userRole}
+        userId={currentUserId}
+        onStudentRemoved={handleStudentRemoved}
+      />
     </main>
   );
 };
