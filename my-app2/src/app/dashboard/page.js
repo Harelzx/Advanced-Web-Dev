@@ -2,13 +2,18 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import TeacherView from '../components/dashboard/TeacherView';
+import ParentView from '../components/dashboard/ParentView';
 
 const Dashboard = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
+  const [studentsData, setStudentsData] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState('');
 
   useEffect(() => {
     // Check if user is logged in
@@ -21,8 +26,10 @@ const Dashboard = () => {
         return;
       }
       
-      // Fetch user data
-      const fetchUserData = async () => {
+      setCurrentUserId(uid);
+      
+      // Fetch user data and students data
+      const fetchAllData = async () => {
         try {
           const userDocRef = doc(db, 'users', uid);
           const userDocSnap = await getDoc(userDocRef);
@@ -31,6 +38,11 @@ const Dashboard = () => {
             const userData = userDocSnap.data();
             setUserRole(userData.role);
             setUserName(userData.fullName || userData.email);
+            
+            // Fetch students data based on role
+            if (userData.role === 'teacher' || userData.role === 'parent') {
+              await fetchStudentsData(userData.role, uid, userData.children || []);
+            }
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -39,9 +51,87 @@ const Dashboard = () => {
         }
       };
       
-      fetchUserData();
+      fetchAllData();
     }
   }, [router]);
+
+  const fetchStudentsData = async (role, currentUid, childrenIds = []) => {
+    try {
+      let students = [];
+      
+      if (role === 'teacher') {
+        // For teachers, get all students (simplified for now)
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('role', '==', 'student'));
+        const usersSnapshot = await getDocs(q);
+        
+        for (const userDoc of usersSnapshot.docs) {
+          const studentData = await getStudentResults(userDoc.id, userDoc.data());
+          students.push(studentData);
+        }
+      } else if (role === 'parent') {
+        // For parents, get only their children
+        // For demo, we'll use the current user's own results if they're a student
+        // In real implementation, this would use the children array
+        const studentData = await getStudentResults(currentUid, { fullName: userName });
+        students.push(studentData);
+      }
+      
+      setStudentsData(students);
+    } catch (error) {
+      console.error('Error fetching students data:', error);
+    }
+  };
+
+  const getStudentResults = async (studentId, studentInfo) => {
+    try {
+      // Get results from exercises collection
+      const exercisesRef = collection(db, `users/${studentId}/exercises`);
+      const exercisesSnapshot = await getDocs(exercisesRef);
+      
+      // Get grades from results collection  
+      const resultsRef = collection(db, `users/${studentId}/results`);
+      const resultsSnapshot = await getDocs(resultsRef);
+      
+      const grades = {};
+      const wrongQuestions = {};
+      
+      // Process results (grades)
+      resultsSnapshot.forEach((doc) => {
+        const subject = doc.id;
+        const data = doc.data();
+        grades[subject] = data.grade || 0;
+      });
+      
+      // Process exercises (wrong questions)
+      exercisesSnapshot.forEach((doc) => {
+        const subject = doc.id;
+        const data = doc.data();
+        if (data.wrongQuestions) {
+          wrongQuestions[subject] = data.wrongQuestions;
+        }
+      });
+      
+      return {
+        id: studentId,
+        name: studentInfo.fullName || studentInfo.email || 'Unknown Student',
+        grades,
+        wrongQuestions,
+        averageGrade: Object.values(grades).length > 0 
+          ? Object.values(grades).reduce((a, b) => a + b, 0) / Object.values(grades).length 
+          : 0
+      };
+    } catch (error) {
+      console.error('Error fetching student results:', error);
+      return {
+        id: studentId,
+        name: studentInfo.fullName || 'Unknown Student',
+        grades: {},
+        wrongQuestions: {},
+        averageGrade: 0
+      };
+    }
+  };
 
   if (loading) {
     return (
@@ -53,89 +143,15 @@ const Dashboard = () => {
 
   return (
     <main className="p-4 space-y-6">
-      {/* Header Card */}
-      <div className="bg-white p-6 border rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          {userRole === 'teacher' ? 'Teacher Dashboard' : 'Parent Dashboard'}
-        </h1>
-        <p className="text-gray-600">Welcome back, {userName}!</p>
-      </div>
+      {/* Header */}
+      <DashboardHeader userRole={userRole} userName={userName} />
 
       {/* Content Card */}
       <div className="bg-white p-6 border rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
-          <div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Teacher Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Students Overview */}
-              <div className="bg-gray-100 p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-700">Students</h3>
-                <p className="text-gray-600">Total Students: <span className="font-bold text-green-600">12</span></p>
-                <div className="mt-2">
-                  <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Manage Students
-                  </button>
-                </div>
-              </div>
-              
-              {/* Questions Management */}
-              <div className="bg-gray-100 p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-700">Questions</h3>
-                <p className="text-gray-600">Available Questions: <span className="font-bold text-blue-600">45</span></p>
-                <div className="mt-2">
-                  <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Manage Questions
-                  </button>
-                </div>
-              </div>
-              
-              {/* Recent Activity */}
-              <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
-                <h3 className="text-lg font-semibold text-gray-700">Recent Student Activity</h3>
-                <ul className="text-gray-600 space-y-2 mt-2">
-                  <li>• Sarah completed Math Quiz - <span className="font-bold text-green-600">95%</span></li>
-                  <li>• John finished Science Module - <span className="font-bold text-blue-600">87%</span></li>
-                  <li>• Emma started Reading Assignment - <span className="font-bold text-yellow-600">In Progress</span></li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <TeacherView studentsData={studentsData} />
         ) : userRole === 'parent' ? (
-          <div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Your Children's Progress</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Child 1 */}
-              <div className="bg-gray-100 p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-700">Alex Johnson</h3>
-                <p className="text-gray-600">Recent Quiz: <span className="font-bold text-green-600">92%</span></p>
-                <p className="text-gray-600">Last Activity: <span className="font-medium">2 days ago</span></p>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
-                  <div className="bg-green-500 h-3 rounded-full" style={{ width: "92%" }}></div>
-                </div>
-              </div>
-              
-              {/* Child 2 */}
-              <div className="bg-gray-100 p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-700">Maya Johnson</h3>
-                <p className="text-gray-600">Recent Quiz: <span className="font-bold text-blue-600">85%</span></p>
-                <p className="text-gray-600">Last Activity: <span className="font-medium">1 day ago</span></p>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
-                  <div className="bg-blue-400 h-3 rounded-full" style={{ width: "85%" }}></div>
-                </div>
-              </div>
-              
-              {/* Overall Progress */}
-              <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
-                <h3 className="text-lg font-semibold text-gray-700">Overall Family Progress</h3>
-                <p className="text-gray-600">Average Performance: <span className="font-bold text-green-600">88.5%</span></p>
-                <div className="mt-2">
-                  <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    View Detailed Reports
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ParentView studentsData={studentsData} />
         ) : (
           <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
             <p className="text-gray-700">Access denied. Unknown user role.</p>
