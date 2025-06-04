@@ -211,14 +211,14 @@ const FirstQuiz = () => {
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
                 style={{ direction: 'rtl' }}
               >
-                קודם ←
+                 הבא←
               </button>
               <button
                 onClick={goNext}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
                 style={{ direction: 'rtl' }}
               >
-                הבא →
+                 →קודם
               </button>
             </div>
 

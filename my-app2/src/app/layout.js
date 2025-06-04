@@ -1,6 +1,4 @@
 import "./globals.css";
-import Link from 'next/link';
-import Navbar from './components/Navbar';
 import AppShell from './components/AppShell';
 
 export const metadata = {

@@ -8,8 +8,8 @@ import {collection, getDocs,} from 'firebase/firestore';
 
 const earnedBadges = ["Math Master", "Daily Login"];
 const user = {
-  fullName: "Jacob Shulman",
-  school: "Braude College"
+  fullName: sessionStorage.getItem('Name'),
+  school: "Braude"
 };
 
 export default function MainPage() {
@@ -18,6 +18,7 @@ export default function MainPage() {
     const fetchGrades = async () => {
       try {
         const userId = sessionStorage.getItem('uid');
+        
         const resultsRef = collection(db, `users/${userId}/results`);
         const querySnapshot = await getDocs(resultsRef);
 
