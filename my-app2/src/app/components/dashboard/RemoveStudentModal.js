@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { db } from '../../firebase/config';
-import { doc, updateDoc, arrayRemove, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayRemove, deleteField } from 'firebase/firestore';
 
 export default function RemoveStudentModal({ 
   isOpen, 
@@ -18,18 +18,24 @@ export default function RemoveStudentModal({
     
     setRemoving(true);
     try {
+      console.log(`Removing ${userRole} ${userId} from student ${student.id}`);
+      
       // Remove student from teacher/parent's children array
       const userDocRef = doc(db, 'users', userId);
       await updateDoc(userDocRef, {
         children: arrayRemove(student.id)
       });
+      console.log('Removed student from parent/teacher children array');
 
       // Remove teacher/parent reference from student
       const studentDocRef = doc(db, 'users', student.id);
       const updateField = userRole === 'teacher' ? 'teacherId' : 'parentId';
+      
+      console.log(`Updating student field: ${updateField} to null`);
       await updateDoc(studentDocRef, {
-        [updateField]: null
+        [updateField]: null  // Use null to clear the field
       });
+      console.log('Successfully updated student document');
 
       // Notify parent component to refresh data
       if (onStudentRemoved) {

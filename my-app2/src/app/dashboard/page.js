@@ -47,6 +47,7 @@ const Dashboard = () => {
             // Fetch students data based on role
             if (userData.role === 'teacher' || userData.role === 'parent') {
               const children = userData.children || [];
+              console.log('Children data:', children); // Debug log
               await fetchStudentsData(userData.role, uid, children);
             }
           }
@@ -65,8 +66,10 @@ const Dashboard = () => {
     try {
       let students = [];
       
-      // Ensure childrenIds is an array
-      const validChildrenIds = Array.isArray(childrenIds) ? childrenIds : [];
+      // Ensure childrenIds is an array and filter out invalid IDs
+      const validChildrenIds = Array.isArray(childrenIds) 
+        ? childrenIds.filter(id => id && typeof id === 'string' && id.trim().length > 0)
+        : [];
       
       if (role === 'teacher') {
         // For teachers, get all students assigned to them
