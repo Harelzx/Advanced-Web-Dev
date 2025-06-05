@@ -14,6 +14,8 @@ const user = {
 
 export default function MainPage() {
     const [grades, setGrades] = useState({});
+    const [completedSteps, setCompletedSteps] = useState(new Set());
+    const [modules, setModules] = useState([]);
   useEffect(() => {
     const fetchGrades = async () => {
       try {
@@ -35,14 +37,21 @@ export default function MainPage() {
         console.error('Error fetching grades:', error);
       }
     };
-    const saved = localStorage.getItem('completedSteps');
-    if (saved) {
-      setCompletedSteps(new Set(JSON.parse(saved)));
+    
+    // Load saved data from localStorage if exists
+    try {
+      const saved = localStorage.getItem('completedSteps');
+      if (saved) {
+        setCompletedSteps(new Set(JSON.parse(saved)));
+      }
+      const path = localStorage.getItem('learningPath');
+      if (path) {
+        setModules(JSON.parse(path));
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
     }
-    const path = localStorage.getItem('learningPath');
-    if (path) {
-      setModules(JSON.parse(path));
-    }
+    
     fetchGrades();
   }, []);
 
