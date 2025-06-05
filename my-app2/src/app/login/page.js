@@ -17,12 +17,14 @@ const Login = () => {
   ] = useSignInWithEmailAndPassword(auth);
   const router = useRouter();
   const [roleError, setRoleError] = useState('');
+  const [redirectLoading, setRedirectLoading] = useState(false); //added states
 
   useEffect(() => {
     const checkRoleAndRedirect = async () => {
       if (user && user.user) {
+        setRedirectLoading(true); //loading
         try {
-          // Get user document from Firestore
+          //get user data from firebase
           const userDocRef = doc(db, 'users', user.user.uid);
           const userDocSnap = await getDoc(userDocRef);
 
@@ -37,12 +39,12 @@ const Login = () => {
             if (role === 'teacher') {
               router.push('/dashboard');
             } else if (role === 'student') {
-              // Check if student has results collection
+              //check if collection results exists for firstquiz
               try {
                 const resultsRef = collection(db, `users/${user.user.uid}/results`);
                 const resultsSnapshot = await getDocs(resultsRef);
                 if (resultsSnapshot.empty) {
-                  // start the firstquiz
+                  // collection doesnt exist redirect to firstquiz
                   router.push('/FirstQuiz');
                 } else {
                   // results exist then go to main
@@ -50,18 +52,21 @@ const Login = () => {
                 }
               } catch (resultsError) {
                 console.error('Error checking results collection:', resultsError);
-                // If there's an error checking results, default to FirstQuiz
-                router.push('/FirstQuiz');
+                // default main-page(incase of errors etc)
+                router.push('/Main_Page');
               }
             } else {
               setRoleError('Unknown user role.');
+              setRedirectLoading(false); // Stop loading on error
             }
           } else {
             setRoleError('User data not found.');
+            setRedirectLoading(false); // Stop loading on error
           }
         } catch (err) {
           setRoleError('Error fetching user data.');
           console.error(err);
+          setRedirectLoading(false); // Stop loading on error
         }
       }
     };
@@ -69,11 +74,24 @@ const Login = () => {
     checkRoleAndRedirect();
   }, [user, router]);
 
-  // Handle login button click
+  // login click
   const handleLogin = () => {
     setRoleError('');
     signInWithEmailAndPassword(email, password);
   };
+
+  //loading screen when redirecting
+  if (redirectLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="bg-gray-800 p-10 rounded-lg shadow-xl w-96 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <h2 className="text-white text-xl">Setting up your account...</h2>
+          <p className="text-gray-300 mt-2">Please wait while we redirect you.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
