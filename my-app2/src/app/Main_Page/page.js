@@ -4,47 +4,58 @@ import Link from 'next/link';
 import BadgeCase from '@/app/components/BadgeCase';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
-import {collection, getDocs,} from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
+import { fetchBadges, hasBadge } from '../Logic/fetchBadges';
+import { saveBadge } from '../Logic/saveBadge';
+import BadgeNotificationModal from '../components/BadgeNotificationModal';
 
-const earnedBadges = ["Math Master", "Daily Login"];
 const user = {
   fullName: sessionStorage.getItem('Name'),
   school: "Braude"
 };
 
 export default function MainPage() {
-    const [grades, setGrades] = useState({});
+  const [grades, setGrades] = useState({});
+  const [earnedBadges, setEarnedBadges] = useState([]);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+
   useEffect(() => {
-    const fetchGrades = async () => {
+    const fetchData = async () => {
       try {
         const userId = sessionStorage.getItem('uid');
-        
+        if (!userId) {
+          console.error('No user ID found in sessionStorage');
+          return;
+        }
+
+        // Fetch grades
         const resultsRef = collection(db, `users/${userId}/results`);
         const querySnapshot = await getDocs(resultsRef);
-
-        // Use document ID as subject name and grade field as value
         const subjectGrades = {};
         querySnapshot.forEach((doc) => {
-          const subject = doc.id; // Document ID is the subject name
+          const subject = doc.id;
           const data = doc.data();
           const grade = data.grade || 0;
           subjectGrades[subject] = grade;
         });
-
         setGrades(subjectGrades);
+
+        // Check and award First Login badge
+        const hasFirstLogin = await hasBadge(userId, "First login");
+        if (!hasFirstLogin) {
+          const today = new Date().toISOString().split("T")[0];
+          await saveBadge(userId, "First login", today);
+          setShowBadgeModal(true);
+        }
+
+        // Fetch updated badges
+        const badges = await fetchBadges(userId);
+        setEarnedBadges(badges);
       } catch (error) {
-        console.error('Error fetching grades:', error);
+        console.error('Error fetching data:', error);
       }
     };
-    const saved = localStorage.getItem('completedSteps');
-    if (saved) {
-      setCompletedSteps(new Set(JSON.parse(saved)));
-    }
-    const path = localStorage.getItem('learningPath');
-    if (path) {
-      setModules(JSON.parse(path));
-    }
-    fetchGrades();
+    fetchData();
   }, []);
 
   return (
@@ -79,8 +90,7 @@ export default function MainPage() {
               {Object.keys(grades).length === 0 ? (
                 <li>No grades available.</li>
               ) : (
-                 Object.entries(grades).map(([subject, grade]) => {
-                  // Color based on grade
+                Object.entries(grades).map(([subject, grade]) => {
                   let barColor = "bg-red-400";
                   if (grade >= 90) barColor = "bg-green-500";
                   else if (grade >= 75) barColor = "bg-yellow-400";
@@ -125,6 +135,10 @@ export default function MainPage() {
           school={user.school}
         />
       </div>
+      <BadgeNotificationModal
+        show={showBadgeModal}
+        onClose={() => setShowBadgeModal(false)}
+      />
     </main>
   );
 }

@@ -5,7 +5,6 @@ import bookAnim from "../animations/book.json";
 import calendarAnim from "../animations/calendar.json";
 import mathAnim from "../animations/math.json";
 import puzzleAnim from "../animations/puzzle.json";
-import sciencAnim from "../animations/scienc.json";
 import trophyAnim from "../animations/trophy.json";
 import { FaLock } from "react-icons/fa";
 
@@ -19,10 +18,10 @@ const allBadges = [
     description: "Complete 10 math quizzes with a score of 90% or higher"
   },
   { 
-    label: "Science Star", 
+    label: "First login", 
     color: "bg-blue-500", 
-    anim: sciencAnim,
-    description: "Achieve a perfect score on 5 science experiments"
+    anim: calendarAnim,
+    description: "Welcome to the platform! Complete your first login"
   },
   { 
     label: "Daily Login", 
@@ -51,6 +50,16 @@ const allBadges = [
 ];
 
 export default function BadgeCase({ earnedBadges = [], fullName, school }) {
+  // Format date for display (e.g., "June 1, 2025")
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow">
       <div className="mb-6 text-center text-stone-700">
@@ -60,26 +69,36 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
       <h3 className="text-xl font-bold mb-6 text-stone-800 text-center">Badges Earned</h3>
       <div className="grid grid-cols-3 gap-6 p-4">
         {allBadges.map((badge) => {
-          const earned = earnedBadges.includes(badge.label);
+          const earnedBadge = earnedBadges.find(b => b.label === badge.label);
+          const earned = !!earnedBadge;
+          const dateEarned = earnedBadge?.dateEarned;
+
           return (
             <div
               key={badge.label}
               className="relative group flex flex-col items-center justify-center"
             >
-              <div className="mb-1 w-30 h-30 flex items-center justify-center ">
+              <div className="mb-1 w-30 h-30 flex items-center justify-center">
                 {earned ? (
                   <Lottie animationData={badge.anim} loop={true} />
                 ) : (
                   <FaLock className="w-15 h-12 text-2xl text-gray-800" />
                 )}
               </div>
-
-              <span className="text-center text-sm font-semibold text-gray-800 mt-2">
+              <span className="text-center text-sm font-semibold text-gray-800">
                 {badge.label}
               </span>
+              {earned && dateEarned && (
+                <span className="text-center text-xs text-gray-600 mt-1">
+                  Earned: {formatDate(dateEarned)}
+                </span>
+              )}
               {/* Tooltip */}
               <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-300 bottom-full mb-2 w-40 p-2 bg-black text-white text-xs rounded-lg shadow-lg text-center z-10">
                 {badge.description}
+                {earned && dateEarned && (
+                  <div className="mt-1">Earned on: {formatDate(dateEarned)}</div>
+                )}
               </div>
             </div>
           );
@@ -88,6 +107,3 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
     </div>
   );
 }
-
-
-
