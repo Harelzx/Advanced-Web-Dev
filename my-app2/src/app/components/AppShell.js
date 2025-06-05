@@ -11,9 +11,16 @@ export default function AppShell({ children }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // Prevent hydration errors by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex">
+        <main className="flex-grow">{children}</main>
+      </div>
+    );
+  }
 
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/FirstQuiz') || pathname.startsWith('/sign-up');
+  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/FirstQuiz') || pathname.startsWith('/sign-up') || pathname.startsWith('/dashboard');
 
   return (
         <div className="min-h-screen flex">

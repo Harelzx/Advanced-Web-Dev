@@ -11,7 +11,6 @@ import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
 
 const Dashboard = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
   const [studentsData, setStudentsData] = useState([]);
@@ -53,8 +52,6 @@ const Dashboard = () => {
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
-        } finally {
-          setLoading(false);
         }
       };
       
@@ -201,14 +198,6 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-800 text-xl">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <main className="p-4 space-y-6">
       {/* Header */}
@@ -230,7 +219,7 @@ const Dashboard = () => {
           />
         ) : (
           <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
-            <p className="text-gray-700">Access denied. Unknown user role.</p>
+            <p className="text-gray-700">Loading dashboard...</p>
           </div>
         )}
       </div>
