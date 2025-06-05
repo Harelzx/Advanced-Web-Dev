@@ -122,7 +122,9 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
             placeholder="Enter name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base placeholder-gray-500"
+            autoFocus
+            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 bg-white"
+            style={{ color: '#111827', backgroundColor: '#ffffff' }}
           />
         </div>
 
