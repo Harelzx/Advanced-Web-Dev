@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
   
   //list of pages where we don't want to show the chatbot
-  const pagesWithoutChat = ['/', '/sign-up', '/login'];
+  const pagesWithoutChat = ['/', '/sign-up'];
   const shouldShowChat = !pagesWithoutChat.includes(pathname);
 
   return (
