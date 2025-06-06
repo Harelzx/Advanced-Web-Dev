@@ -218,18 +218,18 @@ const FirstQuiz = () => {
 
             <div className="flex justify-between items-center mt-6">
               <button
-                onClick={goPrev}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                style={{ direction: 'rtl' }}
-              >
-                 ←קודם
-              </button>
-              <button
                 onClick={goNext}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
                 style={{ direction: 'rtl' }}
               >
-                 הבא→
+                הבא←
+              </button>
+              <button
+                onClick={goPrev}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                style={{ direction: 'rtl' }}
+              >
+                 →קודם
               </button>
             </div>
 
