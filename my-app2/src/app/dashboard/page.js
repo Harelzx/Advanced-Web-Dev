@@ -8,6 +8,7 @@ import TeacherView from '../components/dashboard/TeacherView';
 import ParentView from '../components/dashboard/ParentView';
 import AddStudentModal from '../components/dashboard/AddStudentModal';
 import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -233,50 +234,52 @@ const Dashboard = () => {
   }
 
   return (
-    <main className="p-4 space-y-6">
-      {/* Header */}
-      <DashboardHeader userRole={userRole} userName={userName} />
+    <ProtectedRoute allowedRoles={['teacher', 'parent']}>
+      <main className="p-4 space-y-6">
+        {/* Header */}
+        <DashboardHeader userRole={userRole} userName={userName} />
 
-      {/* Content Card */}
-      <div className="bg-white p-6 border rounded-lg shadow-lg">
-        {userRole === 'teacher' ? (
-          <TeacherView 
-            studentsData={studentsData} 
-            onAddStudent={() => setShowAddModal(true)}
-            onRemoveStudent={openRemoveModal}
-          />
-        ) : userRole === 'parent' ? (
-          <ParentView 
-            studentsData={studentsData}
-            onAddChild={() => setShowAddModal(true)}
-            onRemoveChild={openRemoveModal}
-          />
-        ) : (
-          <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
-            <p className="text-gray-700">Loading dashboard...</p>
-          </div>
-        )}
-      </div>
+        {/* Content Card */}
+        <div className="bg-white p-6 border rounded-lg shadow-lg">
+          {userRole === 'teacher' ? (
+            <TeacherView 
+              studentsData={studentsData} 
+              onAddStudent={() => setShowAddModal(true)}
+              onRemoveStudent={openRemoveModal}
+            />
+          ) : userRole === 'parent' ? (
+            <ParentView 
+              studentsData={studentsData}
+              onAddChild={() => setShowAddModal(true)}
+              onRemoveChild={openRemoveModal}
+            />
+          ) : (
+            <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
+              <p className="text-gray-700">Loading dashboard...</p>
+            </div>
+          )}
+        </div>
 
-      {/* Add Student/Child Modal */}
-      <AddStudentModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        userRole={userRole}
-        userId={currentUserId}
-        onStudentAdded={handleStudentAdded}
-      />
+        {/* Add Student/Child Modal */}
+        <AddStudentModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          userRole={userRole}
+          userId={currentUserId}
+          onStudentAdded={handleStudentAdded}
+        />
 
-      {/* Remove Student/Child Modal */}
-      <RemoveStudentModal
-        isOpen={showRemoveModal}
-        onClose={closeRemoveModal}
-        student={studentToRemove}
-        userRole={userRole}
-        userId={currentUserId}
-        onStudentRemoved={handleStudentRemoved}
-      />
-    </main>
+        {/* Remove Student/Child Modal */}
+        <RemoveStudentModal
+          isOpen={showRemoveModal}
+          onClose={closeRemoveModal}
+          student={studentToRemove}
+          userRole={userRole}
+          userId={currentUserId}
+          onStudentRemoved={handleStudentRemoved}
+        />
+      </main>
+    </ProtectedRoute>
   );
 };
 

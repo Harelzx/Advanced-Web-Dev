@@ -1,5 +1,6 @@
 "use client"; // Ensures this component runs on the client side
 import Study from "@/app/components/Study";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 // Sample math questions based on Israeli Bagrut material
 const mathQuestions = {
@@ -187,11 +188,13 @@ const mathQuestions = {
 
 export default function InterStudy() {
   return (
-    <Study
-      questions={mathQuestions}
-      title="חידון מתמטיקה"
-      icon="🧮"
-      onHome={() => (window.location.href = "/")}
-    />
+    <ProtectedRoute allowedRoles={['student']}>
+      <Study
+        questions={mathQuestions}
+        title="חידון מתמטיקה"
+        icon="🧮"
+        onHome={() => (window.location.href = "/")}
+      />
+    </ProtectedRoute>
   );
 }

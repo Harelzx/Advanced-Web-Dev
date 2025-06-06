@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
 import {collection, getDocs, doc, setDoc,} from 'firebase/firestore';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const FirstQuiz = () => {
   const router = useRouter();
@@ -142,116 +143,118 @@ const FirstQuiz = () => {
   const totalQuestions = questions.length;
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
-      <div className="w-full max-w-xl bg-gray-800 p-6 rounded-xl shadow-2xl text-center">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-white font-medium text-sm">
-            נותרו {totalQuestions - totalAnswered} שאלות מתוך {totalQuestions}
-            <br />
-            <span className="text-xs text-gray-300">
-              (ענית על: {totalAnswered} | שאלה נוכחית: {currentIndex + 1})
-            </span>
+    <ProtectedRoute allowedRoles={['student']}>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
+        <div className="w-full max-w-xl bg-gray-800 p-6 rounded-xl shadow-2xl text-center">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-white font-medium text-sm">
+              נותרו {totalQuestions - totalAnswered} שאלות מתוך {totalQuestions}
+              <br />
+              <span className="text-xs text-gray-300">
+                (ענית על: {totalAnswered} | שאלה נוכחית: {currentIndex + 1})
+              </span>
+            </div>
           </div>
-        </div>
 
-        <h1 className="text-white text-3xl font-bold mb-6" style={{ direction: 'rtl', textAlign: 'right' }}>
-          חידון שאלות
-        </h1>
+          <h1 className="text-white text-3xl font-bold mb-6" style={{ direction: 'rtl', textAlign: 'right' }}>
+            חידון שאלות
+          </h1>
 
-        {loading || submitting ? (
-          <div className="text-white text-lg animate-pulse" style={{ direction: 'rtl', textAlign: 'right' }}>
-            {submitting ? 'שומר תוצאות...' : 'טוען שאלות...'}
-          </div>
-        ) : questions.length > 0 ? (
-          <>
-            <h2 className="text-xl text-white font-semibold mb-4" style={{ direction: 'rtl', textAlign: 'right' }}>
-              {questions[currentIndex].question || `שאלה ${currentIndex + 1}`}
-            </h2>
+          {loading || submitting ? (
+            <div className="text-white text-lg animate-pulse" style={{ direction: 'rtl', textAlign: 'right' }}>
+              {submitting ? 'שומר תוצאות...' : 'טוען שאלות...'}
+            </div>
+          ) : questions.length > 0 ? (
+            <>
+              <h2 className="text-xl text-white font-semibold mb-4" style={{ direction: 'rtl', textAlign: 'right' }}>
+                {questions[currentIndex].question || `שאלה ${currentIndex + 1}`}
+              </h2>
 
-            <div className="grid gap-4">
-              {shuffledOptions.map((option, index) => {
-                const qId = questions[currentIndex].id;
-                const isSelected = userAnswers[qId] === option;
-                const isCorrectAnswer = questions[currentIndex].Answer === option;
-                const isAnswered = answeredQuestions[qId];
+              <div className="grid gap-4">
+                {shuffledOptions.map((option, index) => {
+                  const qId = questions[currentIndex].id;
+                  const isSelected = userAnswers[qId] === option;
+                  const isCorrectAnswer = questions[currentIndex].Answer === option;
+                  const isAnswered = answeredQuestions[qId];
 
-                let buttonStyles = 'group w-full p-5 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] bg-gray-50 border-gray-200 text-gray-500 opacity-60';
-                if (isAnswered) {
-                  if (isSelected && !feedback[qId]?.isCorrect) {
-                    buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-red-500 border-red-600 text-white shadow-lg shadow-red-500/50 cursor-not-allowed opacity-50';
-                  } else if (isCorrectAnswer) {
-                    buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50 cursor-not-allowed';
+                  let buttonStyles = 'group w-full p-5 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] bg-gray-50 border-gray-200 text-gray-500 opacity-60';
+                  if (isAnswered) {
+                    if (isSelected && !feedback[qId]?.isCorrect) {
+                      buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-red-500 border-red-600 text-white shadow-lg shadow-red-500/50 cursor-not-allowed opacity-50';
+                    } else if (isCorrectAnswer) {
+                      buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50 cursor-not-allowed';
+                    } else {
+                      buttonStyles += ' cursor-not-allowed opacity-50';
+                    }
+                  } else if (isSelected) {
+                    buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50';
                   } else {
-                    buttonStyles += ' cursor-not-allowed opacity-50';
+                    buttonStyles += ' hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800';
                   }
-                } else if (isSelected) {
-                  buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50';
-                } else {
-                  buttonStyles += ' hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800';
-                }
 
-                return (
-                  <button
-                    key={index}
-                    className={buttonStyles}
-                    onClick={() => handleAnswerChange(qId, option)}
-                    disabled={isAnswered}
-                    style={{ direction: 'ltr', textAlign: 'left' }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-medium">{option}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  return (
+                    <button
+                      key={index}
+                      className={buttonStyles}
+                      onClick={() => handleAnswerChange(qId, option)}
+                      disabled={isAnswered}
+                      style={{ direction: 'ltr', textAlign: 'left' }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-medium">{option}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-            <button
-              onClick={() => checkAnswer(
-                questions[currentIndex].id,
-                userAnswers[questions[currentIndex].id],
-                questions[currentIndex].Answer,
-                questions[currentIndex].subject
-              )}
-              className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
-              disabled={answeredQuestions[questions[currentIndex].id]}
-              style={{ direction: 'rtl' }}
-            >
-              בדוק תשובה
-            </button>
-
-            <div className="flex justify-between items-center mt-6">
               <button
-                onClick={goNext}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                onClick={() => checkAnswer(
+                  questions[currentIndex].id,
+                  userAnswers[questions[currentIndex].id],
+                  questions[currentIndex].Answer,
+                  questions[currentIndex].subject
+                )}
+                className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
+                disabled={answeredQuestions[questions[currentIndex].id]}
                 style={{ direction: 'rtl' }}
               >
-                הבא←
+                בדוק תשובה
               </button>
-              <button
-                onClick={goPrev}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                style={{ direction: 'rtl' }}
-              >
-                 →קודם
-              </button>
-            </div>
 
-            <button
-              onClick={finishTest}
-              className="mt-6 w-full bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition"
-              disabled={submitting}
-            >
-              סיים מבחן
-            </button>
-          </>
-        ) : (
-          <p className="text-white" style={{ direction: 'rtl', textAlign: 'right' }}>
-            לא נמצאו שאלות.
-          </p>
-        )}
+              <div className="flex justify-between items-center mt-6">
+                <button
+                  onClick={goNext}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                  style={{ direction: 'rtl' }}
+                >
+                  הבא←
+                </button>
+                <button
+                  onClick={goPrev}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                  style={{ direction: 'rtl' }}
+                >
+                   →קודם
+                </button>
+              </div>
+
+              <button
+                onClick={finishTest}
+                className="mt-6 w-full bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition"
+                disabled={submitting}
+              >
+                סיים מבחן
+              </button>
+            </>
+          ) : (
+            <p className="text-white" style={{ direction: 'rtl', textAlign: 'right' }}>
+              לא נמצאו שאלות.
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

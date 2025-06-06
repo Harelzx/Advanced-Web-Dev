@@ -8,6 +8,7 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fetchBadges, hasBadge } from '../Logic/fetchBadges';
 import { saveBadge } from '../Logic/saveBadge';
 import BadgeNotificationModal from '../components/BadgeNotificationModal';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function MainPage() {
   const [grades, setGrades] = useState({});
@@ -98,6 +99,7 @@ export default function MainPage() {
   }, []);
 
   return (
+    <ProtectedRoute allowedRoles={['student']}>
     <main className="p-4 space-y-6">
       <div className="bg-white p-6 border rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Tracker Dashboard</h2>
@@ -181,5 +183,6 @@ export default function MainPage() {
         onClose={() => setShowBadgeModal(false)} 
       />
     </main>
+    </ProtectedRoute>
   );
 }

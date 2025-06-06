@@ -5,6 +5,7 @@ import { db, auth } from '../firebase/config';
 import { doc, getDoc, updateDoc, collection, getDocs, setDoc } from 'firebase/firestore';
 import loadingAnimation from "../animations/Loading.json";
 import dynamic from 'next/dynamic';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
@@ -156,7 +157,7 @@ export default function PersonalizedPath() {
   }
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={['student']}>
       <div className="min-h-screen bg-white">
         <main className="max-w-6xl mx-auto p-6 space-y-8" dir="rtl">
           {/* Header Section */}
@@ -358,6 +359,6 @@ export default function PersonalizedPath() {
           </button>
         )}
       </div>
-    </>
+    </ProtectedRoute>
   );
 }
