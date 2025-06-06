@@ -172,14 +172,14 @@ function detectMathContext(text) {
 }
 
 // פונקציה לקבלת הקשר קודם
-async function getRecentHistory(userId, limit = 3) {
+async function getRecentHistory(userId, maxResults = 3) {
   try {
     const q = query(
       collection(db, 'chats'),
       where('userId', '==', userId),
       where('type', '==', 'math_tutor'),
       orderBy('timestamp', 'desc'),
-      limit(limit)
+      limit(maxResults)
     );
     
     const querySnapshot = await getDocs(q);
