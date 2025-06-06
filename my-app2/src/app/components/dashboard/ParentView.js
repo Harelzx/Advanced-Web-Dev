@@ -12,7 +12,7 @@ export default function ParentView({ studentsData = [], onAddChild, onRemoveChil
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Your Children's Progress</h2>
+        <h2 className="text-xl font-semibold text-gray-700">Your Children&apos;s Progress</h2>
         <button
           onClick={onAddChild}
           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
@@ -164,7 +164,7 @@ export default function ParentView({ studentsData = [], onAddChild, onRemoveChil
           <StatsCard title="No Children Added" className="md:col-span-2">
             <div className="text-center py-8">
               <p className="text-gray-600 mb-4">
-                You haven't added any children yet. Add your first child to start tracking their progress.
+                You haven&apos;t added any children yet. Add your first child to start tracking their progress.
               </p>
               <button
                 onClick={onAddChild}

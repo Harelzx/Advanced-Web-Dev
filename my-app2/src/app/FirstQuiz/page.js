@@ -14,9 +14,15 @@ const FirstQuiz = () => {
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [answeredQuestions, setAnsweredQuestions] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const userId = sessionStorage.getItem('uid'); 
+  const [userId, setUserId] = useState(''); 
 
   useEffect(() => {
+    // Initialize userId from sessionStorage on client side
+    if (typeof window !== 'undefined') {
+      const uid = sessionStorage.getItem('uid');
+      setUserId(uid || '');
+    }
+
     const fetchQuestions = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'all_questions'));
@@ -88,6 +94,11 @@ const FirstQuiz = () => {
   };
 
   const finishTest = async () => {
+    if (!userId) {
+      console.error('No user ID available');
+      return;
+    }
+    
     setSubmitting(true);
     try {
       const results = {};
@@ -131,7 +142,7 @@ const FirstQuiz = () => {
   const totalQuestions = questions.length;
 
   return (
-    <div className="min-h-screen bg-white-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
       <div className="w-full max-w-xl bg-gray-800 p-6 rounded-xl shadow-2xl text-center">
         <div className="flex justify-between items-center mb-4">
           <div className="text-white font-medium text-sm">
@@ -211,14 +222,14 @@ const FirstQuiz = () => {
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
                 style={{ direction: 'rtl' }}
               >
-                 הבא←
+                 ←קודם
               </button>
               <button
                 onClick={goNext}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
                 style={{ direction: 'rtl' }}
               >
-                 →קודם
+                 הבא→
               </button>
             </div>
 

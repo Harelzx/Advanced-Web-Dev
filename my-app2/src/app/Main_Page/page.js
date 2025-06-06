@@ -177,7 +177,7 @@ export default function MainPage() {
 
       {/* Badge Notification Modal */}
       <BadgeNotificationModal 
-        isOpen={showBadgeModal} 
+        show={showBadgeModal} 
         onClose={() => setShowBadgeModal(false)} 
       />
     </main>

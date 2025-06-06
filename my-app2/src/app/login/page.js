@@ -125,7 +125,7 @@ const Login = () => {
           <p className="text-red-400 mt-2">{roleError}</p>
         )}
         <p className="text-white mt-3 text-sm">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/sign-up" className="text-indigo-400 hover:text-indigo-300">
             Sign Up
           </Link>
