@@ -171,14 +171,13 @@ function detectMathContext(text) {
   return detectedContexts.sort((a, b) => b.confidence - a.confidence);
 }
 
-// פונקציה לקבלת הקשר קודם
+// פונקציה לקבלת הקשר קודם - פשוטה יותר
 async function getRecentHistory(userId, maxResults = 3) {
   try {
+    // פשוט query ללא index מורכב
     const q = query(
       collection(db, 'chats'),
       where('userId', '==', userId),
-      where('type', '==', 'math_tutor'),
-      orderBy('timestamp', 'desc'),
       limit(maxResults)
     );
     
@@ -187,14 +186,20 @@ async function getRecentHistory(userId, maxResults = 3) {
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      history.push({
-        userMessage: data.userMessage,
-        botResponse: data.botResponse,
-        timestamp: data.timestamp
-      });
+      if (data.type === 'math_tutor') { // סינון בצד הקליינט
+        history.push({
+          userMessage: data.userMessage,
+          botResponse: data.botResponse,
+          timestamp: data.timestamp
+        });
+      }
     });
     
-    return history.reverse(); // החזר בסדר כרונולוגי
+    // מיון בצד הקליינט
+    return history
+      .sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds)
+      .slice(0, maxResults)
+      .reverse(); // החזר בסדר כרונולוגי
   } catch (error) {
     console.error('Error fetching history:', error);
     return [];
