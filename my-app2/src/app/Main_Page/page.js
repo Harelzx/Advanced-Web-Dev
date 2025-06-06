@@ -4,28 +4,38 @@ import Link from 'next/link';
 import BadgeCase from '@/app/components/BadgeCase';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fetchBadges, hasBadge } from '../Logic/fetchBadges';
 import { saveBadge } from '../Logic/saveBadge';
 import BadgeNotificationModal from '../components/BadgeNotificationModal';
 
-const user = {
-  fullName: sessionStorage.getItem('Name'),
-  school: "Braude"
-};
-
 export default function MainPage() {
   const [grades, setGrades] = useState({});
+  const [completedSteps, setCompletedSteps] = useState(new Set());
+  const [modules, setModules] = useState([]);
+  const [userInfo, setUserInfo] = useState({ fullName: '', school: '' });
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserData = async () => {
       try {
         const userId = sessionStorage.getItem('uid');
         if (!userId) {
           console.error('No user ID found in sessionStorage');
           return;
+        }
+
+        // Fetch user info
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUserInfo({
+            fullName: userData.name || userData.fullName || userData.email || 'Unknown User',
+            school: 'Braude College' // Default school for all users since it's not stored in DB
+          });
         }
 
         // Fetch grades
@@ -48,14 +58,43 @@ export default function MainPage() {
           setShowBadgeModal(true);
         }
 
-        // Fetch updated badges
+        // Add Math Master badge if average grade is high
+        const averageGrade = Object.values(subjectGrades).length > 0 
+          ? Object.values(subjectGrades).reduce((a, b) => a + b, 0) / Object.values(subjectGrades).length 
+          : 0;
+        
+        if (averageGrade >= 80) {
+          const hasMathMaster = await hasBadge(userId, "Math Master");
+          if (!hasMathMaster) {
+            const today = new Date().toISOString().split("T")[0];
+            await saveBadge(userId, "Math Master", today);
+            setShowBadgeModal(true);
+          }
+        }
+
+        // Fetch updated badges from Firebase
         const badges = await fetchBadges(userId);
         setEarnedBadges(badges);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching user data:', error);
       }
     };
-    fetchData();
+    
+    // Load saved data from localStorage if exists
+    try {
+      const saved = localStorage.getItem('completedSteps');
+      if (saved) {
+        setCompletedSteps(new Set(JSON.parse(saved)));
+      }
+      const path = localStorage.getItem('learningPath');
+      if (path) {
+        setModules(JSON.parse(path));
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+    }
+    
+    fetchUserData();
   }, []);
 
   return (
@@ -131,13 +170,15 @@ export default function MainPage() {
       <div className="bg-white p-6 border rounded-lg shadow-lg">
         <BadgeCase
           earnedBadges={earnedBadges}
-          fullName={user.fullName}
-          school={user.school}
+          fullName={userInfo.fullName}
+          school={userInfo.school}
         />
       </div>
-      <BadgeNotificationModal
-        show={showBadgeModal}
-        onClose={() => setShowBadgeModal(false)}
+
+      {/* Badge Notification Modal */}
+      <BadgeNotificationModal 
+        isOpen={showBadgeModal} 
+        onClose={() => setShowBadgeModal(false)} 
       />
     </main>
   );

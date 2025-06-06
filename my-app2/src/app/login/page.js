@@ -36,7 +36,7 @@ const Login = () => {
             sessionStorage.setItem('Name', userData.name);
             setEmail('');
             setPassword('');
-            if (role === 'teacher') {
+            if (role === 'teacher' || role === 'parent') {
               router.push('/dashboard');
             } else if (role === 'student') {
               //check if collection results exists for firstquiz
