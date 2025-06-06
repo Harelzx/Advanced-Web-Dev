@@ -146,7 +146,11 @@ const FirstQuiz = () => {
       <div className="w-full max-w-xl bg-gray-800 p-6 rounded-xl shadow-2xl text-center">
         <div className="flex justify-between items-center mb-4">
           <div className="text-white font-medium text-sm">
-            ענית על {totalAnswered} מתוך {totalQuestions} שאלות
+            נותרו {totalQuestions - totalAnswered} שאלות מתוך {totalQuestions}
+            <br />
+            <span className="text-xs text-gray-300">
+              (ענית על: {totalAnswered} | שאלה נוכחית: {currentIndex + 1})
+            </span>
           </div>
         </div>
 

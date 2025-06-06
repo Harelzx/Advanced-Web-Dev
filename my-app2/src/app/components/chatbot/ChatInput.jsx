@@ -146,16 +146,6 @@ const ChatInput = ({ onSendMessage, isLoading, onToggleMathKeyboard, isMathKeybo
     <div className={`border-t border-gray-200 p-4 bg-white ${isMathKeyboardOpen ? 'absolute bottom-0 w-96' : 'relative'}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex gap-2">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="שאל שאלה במתמטיקה..."
-            className="flex-1 min-h-[40px] max-h-[120px] p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
-            dir="rtl"
-            disabled={isLoading}
-          />
           <button
             type="submit"
             disabled={!message.trim() || isLoading}
@@ -171,6 +161,16 @@ const ChatInput = ({ onSendMessage, isLoading, onToggleMathKeyboard, isMathKeybo
               'שלח'
             )}
           </button>
+          <textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="שאל שאלה במתמטיקה..."
+            className="flex-1 min-h-[40px] max-h-[120px] p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
+            dir="rtl"
+            disabled={isLoading}
+          />
         </div>
 
         <div className="flex justify-start">

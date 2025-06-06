@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { db, auth } from '../firebase/config';
+import { db, auth } from '../../firebase/config';
 import MessageItem from './MessageItem';
 import ChatInput from './ChatInput';
-import { comprehensiveMathAnalysis } from '../utils/mathTextAnalyzer';
+import { comprehensiveMathAnalysis } from './mathTextAnalyzer';
 import 'katex/dist/katex.min.css';
 
 const ChatbotSidebar = () => {
@@ -240,17 +240,17 @@ const ChatbotSidebar = () => {
       <div className={`fixed top-0 right-0 h-[calc(100vh-48px)] w-96 bg-white shadow-xl z-50 transform transition-transform duration-300 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
-        <div className="flex items-center justify-between p-4 mt-4 bg-blue-500 rounded-t-lg mx-2 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 mt-4 bg-blue-500 rounded-t-lg mx-2 border-b border-gray-200" dir="rtl">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🧮</span>
-            <div className="flex flex-col">
+            <div className="flex flex-col text-right">
               <h2 className="text-lg font-semibold text-white">מורה למתמטיקה - 3 יחידות</h2>
-              {analysisHistory.length > 0 && (
+              {Math.floor(messages.length / 2) > 0 && (
                 <span className="text-xs text-blue-100">
-                  {analysisHistory.length} שאלות נותחו
+                  {Math.floor(messages.length / 2)} שאלות נשאלו
                 </span>
               )}
             </div>
+            <span className="text-2xl">🧮</span>
           </div>
           <div className="flex items-center gap-2">
             <button

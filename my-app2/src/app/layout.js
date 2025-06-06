@@ -3,7 +3,7 @@
 import "./globals.css";
 import AppShell from './components/AppShell';
 import { usePathname } from 'next/navigation';
-import ChatbotSidebar from './components/ChatbotSidebar';
+import ChatbotSidebar from './components/chatbot/ChatbotSidebar';
 
 
 export default function RootLayout({ children }) {

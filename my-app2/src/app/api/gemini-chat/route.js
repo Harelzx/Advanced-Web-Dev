@@ -195,11 +195,10 @@ async function getRecentHistory(userId, maxResults = 3) {
       }
     });
     
-    // מיון בצד הקליינט
+    // מיון בצד הקליינט - הכי חדש בראש
     return history
       .sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds)
-      .slice(0, maxResults)
-      .reverse(); // החזר בסדר כרונולוגי
+      .slice(0, maxResults); // כבר ממוין נכון - הכי חדש בראש
   } catch (error) {
     console.error('Error fetching history:', error);
     return [];
@@ -248,8 +247,8 @@ export async function POST(request) {
     let historyContext = '';
     if (recentHistory.length > 0) {
       historyContext = `
-**הקשר קודם (${recentHistory.length} הודעות אחרונות):**
-${recentHistory.map(h => `תלמיד: ${h.userMessage}\nמורה: ${h.botResponse.substring(0, 100)}...`).join('\n\n')}
+**הקשר קודם (${recentHistory.length} הודעות אחרונות, מהחדש לישן):**
+${recentHistory.map((h, index) => `${index === 0 ? 'אחרונה' : index === 1 ? 'לפני האחרונה' : `${index + 1} הודעות אחורה`}: תלמיד: ${h.userMessage}\nמורה: ${h.botResponse.substring(0, 100)}...`).join('\n\n')}
 ---`;
     }
 
