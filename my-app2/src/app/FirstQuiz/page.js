@@ -26,7 +26,7 @@ const FirstQuiz = () => {
 
     const fetchQuestions = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'all_questions'));
+        const querySnapshot = await getDocs(collection(db, 'all_questions1'));
         const questionsList = querySnapshot.docs.map((docSnap) => {
           const data = docSnap.data();
           return {
