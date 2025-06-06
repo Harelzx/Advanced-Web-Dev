@@ -14,18 +14,18 @@ export default function AppShell({ children }) {
   // Prevent hydration errors by not rendering until mounted
   if (!mounted) {
     return (
-      <div className="min-h-screen flex">
-        <main className="flex-grow">{children}</main>
+      <div className="min-h-screen">
+        <main>{children}</main>
       </div>
     );
   }
 
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/FirstQuiz') || pathname.startsWith('/sign-up') || pathname.startsWith('/dashboard');
+  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/FirstQuiz') || pathname.startsWith('/sign-up') || pathname.startsWith('/dashboard') || pathname === '/';
 
   return (
-        <div className="min-h-screen flex">
+        <div className="min-h-screen">
           {!hideNavbar && <Navbar />}
-          <main className="flex-grow">{children}</main>
+          <main className={`${!hideNavbar ? 'md:ml-64 pt-20 md:pt-0' : ''}`}>{children}</main>
         </div>
   );
 }
