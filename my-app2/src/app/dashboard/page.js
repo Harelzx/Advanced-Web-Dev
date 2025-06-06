@@ -18,6 +18,8 @@ const Dashboard = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     // Check if user is logged in
@@ -46,12 +48,14 @@ const Dashboard = () => {
             // Fetch students data based on role
             if (userData.role === 'teacher' || userData.role === 'parent') {
               const children = userData.children || [];
-              console.log('Children data:', children); // Debug log
               await fetchStudentsData(userData.role, uid, children);
             }
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
+          setError('Failed to load dashboard data. Please try refreshing the page.');
+        } finally {
+          setLoading(false);
         }
       };
       
@@ -197,6 +201,36 @@ const Dashboard = () => {
       console.error('Error refreshing student data:', error);
     }
   };
+
+  if (loading) {
+    return (
+      <main className="p-4 space-y-6">
+        <div className="bg-white p-6 border rounded-lg shadow-lg text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-700">Loading dashboard...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="p-4 space-y-6">
+        <div className="bg-white p-6 border rounded-lg shadow-lg text-center">
+          <div className="text-red-600 mb-4">
+            <span className="text-4xl">⚠️</span>
+          </div>
+          <p className="text-red-700 font-medium mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Try Again
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="p-4 space-y-6">

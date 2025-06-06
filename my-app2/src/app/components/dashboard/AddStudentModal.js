@@ -8,9 +8,15 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (isOpen) {
+      // Reset messages when modal opens
+      setErrorMessage('');
+      setSuccessMessage('');
+      setSearchTerm('');
       fetchAvailableStudents();
     }
   }, [isOpen]);
@@ -59,7 +65,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
       // Check if student is already added
       if (currentChildren.includes(studentId)) {
-        alert('This student is already added to your list.');
+        setErrorMessage(`This ${userRole === 'teacher' ? 'student' : 'child'} is already added to your list.`);
         return;
       }
 
@@ -80,12 +86,15 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
         onStudentAdded();
       }
       
-      // Close modal
-      onClose();
-    } catch (error) {
-      console.error('Error adding student:', error);
-      alert(`Failed to add ${userRole === 'teacher' ? 'student' : 'child'}. Please try again.`);
-    } finally {
+      // Show success message briefly then close modal
+      setSuccessMessage(`${userRole === 'teacher' ? 'Student' : 'Child'} added successfully!`);
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+          } catch (error) {
+        console.error('Error adding student:', error);
+        setErrorMessage(`Failed to add ${userRole === 'teacher' ? 'student' : 'child'}. Please try again.`);
+      } finally {
       setAdding(false);
     }
   };
@@ -111,6 +120,33 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
             ×
           </button>
         </div>
+
+        {/* Success/Error Messages */}
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center">
+              <span className="text-green-600 mr-2">✅</span>
+              <span className="text-green-800 font-medium">{successMessage}</span>
+            </div>
+          </div>
+        )}
+        
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-red-600 mr-2">❌</span>
+                <span className="text-red-800 font-medium">{errorMessage}</span>
+              </div>
+              <button
+                onClick={() => setErrorMessage('')}
+                className="text-red-600 hover:text-red-800 ml-2"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Search Input */}
         <div className="mb-4">

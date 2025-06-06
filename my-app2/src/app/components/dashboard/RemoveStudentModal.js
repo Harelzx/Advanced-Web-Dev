@@ -12,30 +12,27 @@ export default function RemoveStudentModal({
   onStudentRemoved 
 }) {
   const [removing, setRemoving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const removeStudent = async () => {
     if (!student) return;
     
     setRemoving(true);
+    setErrorMessage(''); // Clear any previous error messages
     try {
-      console.log(`Removing ${userRole} ${userId} from student ${student.id}`);
-      
       // Remove student from teacher/parent's children array
       const userDocRef = doc(db, 'users', userId);
       await updateDoc(userDocRef, {
         children: arrayRemove(student.id)
       });
-      console.log('Removed student from parent/teacher children array');
 
       // Remove teacher/parent reference from student
       const studentDocRef = doc(db, 'users', student.id);
       const updateField = userRole === 'teacher' ? 'teacherId' : 'parentId';
       
-      console.log(`Updating student field: ${updateField} to null`);
       await updateDoc(studentDocRef, {
         [updateField]: null  // Use null to clear the field
       });
-      console.log('Successfully updated student document');
 
       // Notify parent component to refresh data
       if (onStudentRemoved) {
@@ -46,7 +43,7 @@ export default function RemoveStudentModal({
       onClose();
     } catch (error) {
       console.error('Error removing student:', error);
-      alert(`Failed to remove ${userRole === 'teacher' ? 'student' : 'child'}. Please try again.`);
+      setErrorMessage(`Failed to remove ${userRole === 'teacher' ? 'student' : 'child'}. Please try again.`);
     } finally {
       setRemoving(false);
     }
@@ -107,6 +104,24 @@ export default function RemoveStudentModal({
             </div>
           </div>
         </div>
+
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-red-600 mr-2">❌</span>
+                <span className="text-red-800 font-medium">{errorMessage}</span>
+              </div>
+              <button
+                onClick={() => setErrorMessage('')}
+                className="text-red-600 hover:text-red-800 ml-2"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Warning Message */}
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

@@ -4,22 +4,39 @@ import Link from 'next/link';
 import BadgeCase from '@/app/components/BadgeCase';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
-import {collection, getDocs,} from 'firebase/firestore';
-
-const earnedBadges = ["Math Master", "Daily Login"];
-const user = {
-  fullName: "Jacob Shulman",
-  school: "Braude College"
-};
+import {collection, getDocs, doc, getDoc} from 'firebase/firestore';
 
 export default function MainPage() {
     const [grades, setGrades] = useState({});
     const [completedSteps, setCompletedSteps] = useState(new Set());
     const [modules, setModules] = useState([]);
+    const [userInfo, setUserInfo] = useState({ fullName: '', school: '' });
+    const [earnedBadges, setEarnedBadges] = useState([]);
   useEffect(() => {
-    const fetchGrades = async () => {
+    const fetchUserData = async () => {
       try {
         const userId = sessionStorage.getItem('uid');
+        
+        // Fetch user info
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUserInfo({
+            fullName: userData.fullName || userData.email || 'Unknown User',
+            school: userData.school || 'School Not Set'
+          });
+          
+          // Set some default badges based on user data
+          const badges = [];
+          if (userData.createdAt) {
+            badges.push("Daily Login");
+          }
+          setEarnedBadges(badges);
+        }
+        
+        // Fetch grades
         const resultsRef = collection(db, `users/${userId}/results`);
         const querySnapshot = await getDocs(resultsRef);
 
@@ -33,8 +50,17 @@ export default function MainPage() {
         });
 
         setGrades(subjectGrades);
+        
+        // Add Math Master badge if average grade is high
+        const averageGrade = Object.values(subjectGrades).length > 0 
+          ? Object.values(subjectGrades).reduce((a, b) => a + b, 0) / Object.values(subjectGrades).length 
+          : 0;
+        
+        if (averageGrade >= 80) {
+          setEarnedBadges(prev => [...prev, "Math Master"]);
+        }
       } catch (error) {
-        console.error('Error fetching grades:', error);
+        console.error('Error fetching user data:', error);
       }
     };
     
@@ -52,7 +78,7 @@ export default function MainPage() {
       console.error('Error loading from localStorage:', error);
     }
     
-    fetchGrades();
+    fetchUserData();
   }, []);
 
   return (
@@ -129,8 +155,8 @@ export default function MainPage() {
       <div className="bg-white p-6 border rounded-lg shadow-lg">
         <BadgeCase
           earnedBadges={earnedBadges}
-          fullName={user.fullName}
-          school={user.school}
+          fullName={userInfo.fullName}
+          school={userInfo.school}
         />
       </div>
     </main>
