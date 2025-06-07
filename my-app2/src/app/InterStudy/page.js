@@ -397,12 +397,10 @@ export default function InterStudyPage() {
     return (
         <ProtectedRoute allowedRoles={['student']}>
             <div className="container mx-auto p-4" dir="rtl">
-                <h1 className="text-2xl font-bold text-center mb-4">
-                    סשן תרגול: {trainingProgress.currentSession}/9
-                </h1>
                 <Study 
                     practiceSets={practiceSets} 
                     onQuizComplete={handleQuizComplete}
+                    sessionNumber={trainingProgress.currentSession}
                 />
             </div>
         </ProtectedRoute>

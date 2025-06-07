@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import { FaHome } from "react-icons/fa";
 import QuizHeader from "./StudyHeader";
 import QuizQuestion from "./StudyQuestion";
-import QuizActions from "./StudyActions";
-import QuizExplanation from "./StudyExplanation";
 import QuizResults from "./StudyResults";
 
 // Renamed from Quiz to Study and props are adapted for the training program
@@ -35,7 +33,6 @@ export default function Study({
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState([]);
-  const [showExplanation, setShowExplanation] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
@@ -86,7 +83,6 @@ export default function Study({
     if (currentQuestion < selectedQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setIsAnswered(false);
-      setShowExplanation(false);
       setTimeLeft(null); // No time limit
     } else {
       setQuizCompleted(true);
@@ -191,25 +187,19 @@ export default function Study({
 
             {/* Action Buttons */}
             {isAnswered && (
-              <>
-                <QuizExplanation
-                  explanation={question.explanation}
-                  show={showExplanation}
-                />
-                <div className="mt-6 flex justify-center w-full">
-                  <button
-                    onClick={nextQuestion}
-                    disabled={!isAnswered}
-                    className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform ${
-                      !isAnswered 
-                        ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg'
-                    }`}
-                  >
-                    {currentQuestion === selectedQuestions.length - 1 ? 'סיים תרגול' : 'השאלה הבאה'}
-                  </button>
-                </div>
-              </>
+              <div className="mt-6 flex justify-center w-full pb-6">
+                <button
+                  onClick={nextQuestion}
+                  disabled={!isAnswered}
+                  className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform ${
+                    !isAnswered 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg'
+                  }`}
+                >
+                  {currentQuestion === selectedQuestions.length - 1 ? 'סיים תרגול' : 'השאלה הבאה'}
+                </button>
+              </div>
             )}
           </div>
         </div>
