@@ -52,8 +52,7 @@ export default function InterStudyPage() {
         try {
             const firstQuizScores = await getFirstQuizScores(userId);
             if (Object.keys(firstQuizScores).length === 0 || Object.values(firstQuizScores).every(s => s === 0)) {
-                setError("לא נמצאו תוצאות מבחן ראשוני. אנא השלם את המבחן הראשון כדי להתחיל.");
-                setIsLoading(false);
+                router.push('/FirstQuiz');
                 return;
             }
 
@@ -101,7 +100,7 @@ export default function InterStudyPage() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [router]);
 
     const handleQuizComplete = useCallback(async (results) => {
         if (!user || !trainingProgress) return;
