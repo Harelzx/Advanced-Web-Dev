@@ -6,7 +6,7 @@ import { db, auth } from '../firebase/config';
 import { doc, getDoc, collection, getDocs, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 import ProtectedRoute from '../components/ProtectedRoute';
-import Study from '../components/Study';
+import Study from '../components/interstudy-ui/Study';
 import { useStudyLogic } from '../hooks/useStudyLogic';
 import { 
     getFirstQuizScores, 
@@ -14,6 +14,8 @@ import {
     buildPracticeSession,
     saveSessionResults
 } from '../firebase/trainingService';
+import SessionStartScreen from '../components/interstudy-ui/SessionStartScreen';
+import SessionSummaryScreen from '../components/interstudy-ui/SessionSummaryScreen';
 
 const difficultyMap = {
     1: 'קל', 2: 'קל', 3: 'קל',
@@ -134,7 +136,6 @@ export default function InterStudyPage() {
         if (user) {
             loadTrainingData(user.uid);
         } else if (!authLoading) {
-            // If not loading and no user, there's nothing to do.
             setIsLoading(false);
         }
     }, [user, authLoading, loadTrainingData]);
@@ -188,74 +189,22 @@ export default function InterStudyPage() {
     }
     
     if (sessionCompleted && lastSessionResults) {
-        const finalScore = Math.round((lastSessionResults.score / lastSessionResults.totalQuestions) * 100);
-        const sessionNumber = trainingProgress.completedSessions; 
-        const nextSessionNumber = trainingProgress.currentSession;
-
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4" dir="rtl">
-                <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">
-                    <div className="text-6xl mb-4">🎉</div>
-                    <h2 className="text-3xl font-bold mb-4 text-gray-800">כל הכבוד!</h2>
-                    <p className="text-lg text-gray-700 mb-6">
-                        סיימת את סשן מספר <span className="font-bold">{sessionNumber}</span> בציון <span className="font-bold text-indigo-600">{finalScore}%</span>.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        {nextSessionNumber <= 9 ? (
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition duration-300 shadow-md transform hover:scale-105"
-                            >
-                                המשך לסשן הבא ({nextSessionNumber})
-                            </button>
-                        ) : (
-                            <p className="text-lg font-semibold text-green-600">סיימת את כל תוכנית האימונים!</p>
-                        )}
-                        <button
-                            onClick={() => router.push('/Main_Page')}
-                            className="bg-gray-200/80 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-300/90 transition duration-300 shadow-md"
-                        >
-                            חזור לעמוד הראשי
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <SessionSummaryScreen 
+                results={lastSessionResults}
+                completedSessions={trainingProgress.completedSessions}
+                nextSessionNumber={trainingProgress.currentSession}
+            />
         );
     }
 
     if (!sessionStarted) {
-        const difficulty = difficultyMap[trainingProgress.currentSession] || 'מתחילים';
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4" dir="rtl">
-                <div className="max-w-2xl w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">
-                    <div className="text-5xl mb-4">🚀</div>
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">תרגול מספר {trainingProgress.currentSession}</h1>
-                    <p className="text-xl text-gray-600 mb-6">רמת קושי: <span className="font-semibold text-indigo-600">{difficulty}</span></p>
-                    
-                    <p className="text-gray-700 mb-8 max-w-lg mx-auto">
-                        התרגול מותאם אישית עבורך על בסיס התוצאות מהמבחן הראשוני ומתמקד בנושאים שבהם נדרש חיזוק.
-                    </p>
-                    
-                    <div className="bg-indigo-50/50 p-6 rounded-2xl mb-8 text-right space-y-4">
-                        <h3 className="text-lg font-bold text-gray-800 mb-3">כמה המלצות לפני שמתחילים:</h3>
-                        <div className="flex items-start">
-                            <span className="text-xl text-indigo-500 ml-3 pt-1">💡</span>
-                            <p className="text-gray-700"><strong>קצב מומלץ:</strong> תרגול אחד ביום, עד שלושה בשבוע. עקביות היא המפתח.</p>
-                        </div>
-                        <div className="flex items-start">
-                            <span className="text-xl text-indigo-500 ml-3 pt-1">🤔</span>
-                            <p className="text-gray-700"><strong>נתקעת?</strong> אין בעיה! מורה ה-AI שלנו זמין לכל שאלה, 24/7.</p>
-                        </div>
-                    </div>
-                    
-                    <button
-                        onClick={() => setSessionStarted(true)}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 px-8 rounded-2xl hover:shadow-xl transition-all duration-300 text-xl shadow-lg transform hover:scale-105"
-                    >
-                        בואו נתחיל!
-                    </button>
-                </div>
-            </div>
+            <SessionStartScreen 
+                sessionNumber={trainingProgress.currentSession}
+                difficulty={difficultyMap[trainingProgress.currentSession] || 'מתחילים'}
+                onStart={() => setSessionStarted(true)}
+            />
         );
     }
 
