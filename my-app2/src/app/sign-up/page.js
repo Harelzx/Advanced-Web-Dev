@@ -9,7 +9,7 @@ import Link from 'next/link';
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student'); // New state for role
+  const [role, setRole] = useState('student');
   const [
     createUserWithEmailAndPassword,
     user,
@@ -28,11 +28,11 @@ const SignUp = () => {
       try {
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: userCredential.user.email,
-          role: role, // Use selected role
+          role: role,
           createdAt: new Date()
         });
       } catch (err) {
-        console.error("Error adding user data: ", err);
+        console.error("שגיאה בהוספת נתוני משתמש: ", err);
       }
     }
   };
@@ -47,49 +47,49 @@ const SignUp = () => {
       router.push('/login');
     }
     if (error) {
-      console.error('Firebase error:', error.message);
+      console.error('שגיאת Firebase:', error.message);
     }
   }, [user, error, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-gray-800 p-10 rounded-lg shadow-xl w-96 relative">
+    <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
+      <div className="bg-white p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
         {/* Back to login arrow */}
-        <Link href="/" className="absolute left-4 top-4 text-white text-2xl hover:text-indigo-400" aria-label="Back to login">
-          &#8592;
+        <Link href="/" className="absolute right-4 top-4 text-black text-2xl hover:text-indigo-400" aria-label="חזרה להתחברות">
+          →
         </Link>
-        <h1 className="text-white text-2xl mb-5 text-center">Sign Up</h1>
+        <h1 className="text-black text-2xl mb-5 text-right">הרשמה</h1>
         <input
           type="email"
-          placeholder="Email"
+          placeholder="מייל"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="סיסמא"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white"
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white text-right"
         >
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
+          <option value="student">תלמיד</option>
+          <option value="teacher">מורה</option>
         </select>
         <button
           onClick={handleSignUp}
-          className="w-full p-3 bg-indigo-600 rounded text-white hover:bg-indigo-500"
+          className="w-full p-3 bg-green-600 rounded text-white"
           disabled={loading}
         >
-          {loading ? 'Signing Up...' : 'Sign Up'}
+          {loading ? 'נרשם...' : 'הירשם'}
         </button>
         {error && (
-          <p className="text-red-400 mt-2">{error.message}</p>
+          <p className="text-red-400 mt-2 text-right">{error.message}</p>
         )}
       </div>
     </div>
