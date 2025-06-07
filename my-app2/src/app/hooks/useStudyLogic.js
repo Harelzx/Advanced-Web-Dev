@@ -1,18 +1,21 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 
+// Custom hook for managing the logic of a study/practice session.
 export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
+    // State for managing the quiz flow and data
     const [difficulty, setDifficulty] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [selectedQuestions, setSelectedQuestions] = useState([]);
     const [userAnswers, setUserAnswers] = useState([]);
-    const [timeLeft, setTimeLeft] = useState(null);
     const [isAnswered, setIsAnswered] = useState(false);
     const [score, setScore] = useState(0);
     const [quizCompleted, setQuizCompleted] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [startTime, setStartTime] = useState(null);
 
+    // Effect to initialize the quiz when practice sets are provided.
     useEffect(() => {
         if (practiceSets && typeof practiceSets === 'object') {
             const difficultyLevel = Object.keys(practiceSets).find(key => practiceSets[key] && practiceSets[key].length > 0);
@@ -23,13 +26,13 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
                 setSelectedQuestions(questions);
                 setUserAnswers(new Array(questions.length).fill(null));
                 setCurrentQuestion(0);
-                setTimeLeft(null);
                 setIsLoading(false);
                 setStartTime(Date.now());
             }
         }
     }, [practiceSets]);
 
+    // Handles the user's answer submission for the current question.
     const handleAnswer = (answerIndex) => {
         if (isAnswered) return;
 
@@ -43,11 +46,11 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
         }
     };
 
+    // Moves to the next question or completes the quiz.
     const nextQuestion = () => {
         if (currentQuestion < selectedQuestions.length - 1) {
             setCurrentQuestion(currentQuestion + 1);
             setIsAnswered(false);
-            setTimeLeft(null);
         } else {
             setQuizCompleted(true);
             
@@ -71,9 +74,11 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
         }
     };
 
+    // Derived state for the current question and answer
     const question = selectedQuestions.length > 0 ? selectedQuestions[currentQuestion] : null;
     const userAnswer = userAnswers.length > 0 ? userAnswers[currentQuestion] : null;
 
+    // The API returned by the hook for the component to use.
     return {
         isLoading,
         quizCompleted,
@@ -87,4 +92,4 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
         handleAnswer,
         nextQuestion
     };
-} 
+}

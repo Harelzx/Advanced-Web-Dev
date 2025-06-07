@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { db } from '../../firebase/config';
 import { doc, updateDoc, arrayRemove, deleteField } from 'firebase/firestore';
 
+// A confirmation modal for removing a student/child from a teacher/parent's list.
 export default function RemoveStudentModal({ 
   isOpen, 
   onClose, 

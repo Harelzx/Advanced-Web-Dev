@@ -1,3 +1,4 @@
+// A reusable progress bar component.
 export default function ProgressBar({ 
   percentage, 
   color = "bg-green-500", 

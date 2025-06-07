@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation';
 
+// Displays the header for the dashboard with a welcome message and logout button.
 export default function DashboardHeader({ userRole, userName }) {
   const router = useRouter();
 

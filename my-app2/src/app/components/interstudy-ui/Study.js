@@ -75,7 +75,6 @@ export default function Study({
               totalQuestions={totalQuestions}
               difficulty={difficulty}
               difficultyConfig={diffConfig}
-              timeLeft={null} // timeLeft logic removed for now
               sessionNumber={sessionNumber}
             />
 

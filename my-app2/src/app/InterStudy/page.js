@@ -18,6 +18,7 @@ import SessionStartScreen from '../components/interstudy-ui/SessionStartScreen';
 import SessionSummaryScreen from '../components/interstudy-ui/SessionSummaryScreen';
 import { difficultyMap } from '@/utils/constants';
 
+// A simple controller component that wraps the Study UI with the study logic hook.
 const StudyController = ({ practiceSets, onQuizComplete, sessionNumber, onHome }) => {
     const studyState = useStudyLogic(practiceSets, onQuizComplete, sessionNumber);
     
@@ -30,6 +31,8 @@ const StudyController = ({ practiceSets, onQuizComplete, sessionNumber, onHome }
     );
 };
 
+// The main page component for the interactive study session.
+// It acts as a controller, managing the overall state of a training session.
 export default function InterStudyPage() {
     const [user, authLoading] = useAuthState(auth);
     const router = useRouter();
@@ -44,6 +47,7 @@ export default function InterStudyPage() {
     const [sessionCompleted, setSessionCompleted] = useState(false);
     const [lastSessionResults, setLastSessionResults] = useState(null);
 
+    // Loads all necessary data for the training session, including user progress and questions.
     const loadTrainingData = useCallback(async (userId) => {
         setIsLoading(true);
         setError(null);
@@ -102,6 +106,7 @@ export default function InterStudyPage() {
         }
     }, [router]);
 
+    // Handles the completion of a quiz session, saving results and updating progress.
     const handleQuizComplete = useCallback(async (results) => {
         if (!user || !trainingProgress) return;
         
@@ -126,6 +131,7 @@ export default function InterStudyPage() {
         }
     }, [user, trainingProgress, practiceSets]);
 
+    // Effect to load data when the user is authenticated.
     useEffect(() => {
         if (user) {
             loadTrainingData(user.uid);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import StatsCard from './StatsCard';
 import ProgressBar from './ProgressBar';
 
+// Displays the parent's view of the dashboard.
 export default function ParentView({ studentsData = [], onAddChild, onRemoveChild }) {
   const [isChildrenCardsCollapsed, setIsChildrenCardsCollapsed] = useState(false);
   const [isDetailedAnalysisCollapsed, setIsDetailedAnalysisCollapsed] = useState(false);
@@ -95,6 +96,7 @@ export default function ParentView({ studentsData = [], onAddChild, onRemoveChil
   );
 }
 
+// Displays a card with a summary of a single child's progress.
 const ChildCard = ({ child, completionPercentage, totalSessions, onRemoveChild }) => {
   const [showDetails, setShowDetails] = useState(false);
   const lastActivityDate = child.trainingProgress?.lastActivity?.toDate();

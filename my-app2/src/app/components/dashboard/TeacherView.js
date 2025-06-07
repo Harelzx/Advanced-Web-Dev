@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StatsCard from './StatsCard';
 
+// Displays the teacher's view of the dashboard.
 export default function TeacherView({ studentsData = [], onAddStudent, onRemoveStudent }) {
   const [isStudentListCollapsed, setIsStudentListCollapsed] = useState(false);
   

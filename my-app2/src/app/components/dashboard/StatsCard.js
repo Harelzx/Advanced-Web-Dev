@@ -1,3 +1,4 @@
+// A reusable card component for displaying statistics.
 export default function StatsCard({ 
   title, 
   subtitle, 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
+// A modal for teachers/parents to search for and add students/children to their list.
 export default function AddStudentModal({ isOpen, onClose, userRole, userId, onStudentAdded }) {
   const [availableStudents, setAvailableStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
