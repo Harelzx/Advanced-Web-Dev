@@ -7,6 +7,7 @@ import { doc, getDoc, collection, getDocs, setDoc, updateDoc, serverTimestamp } 
 
 import ProtectedRoute from '../components/ProtectedRoute';
 import Study from '../components/Study';
+import { useStudyLogic } from '../hooks/useStudyLogic';
 
 async function getFirstQuizScores(userId) {
     const scores = {};
@@ -121,6 +122,18 @@ const difficultyMap = {
     1: 'קל', 2: 'קל', 3: 'קל',
     4: 'בינוני', 5: 'בינוני', 6: 'בינוני',
     7: 'קשה', 8: 'קשה', 9: 'קשה'
+};
+
+const StudyController = ({ practiceSets, onQuizComplete, sessionNumber, onHome }) => {
+    const studyState = useStudyLogic(practiceSets, onQuizComplete, sessionNumber);
+    
+    return (
+        <Study 
+            {...studyState} 
+            onHome={onHome}
+            sessionNumber={sessionNumber}
+        />
+    );
 };
 
 export default function InterStudyPage() {
@@ -397,10 +410,11 @@ export default function InterStudyPage() {
     return (
         <ProtectedRoute allowedRoles={['student']}>
             <div className="container mx-auto p-4" dir="rtl">
-                <Study 
+                <StudyController 
                     practiceSets={practiceSets} 
                     onQuizComplete={handleQuizComplete}
                     sessionNumber={trainingProgress.currentSession}
+                    onHome={() => router.push('/Main_Page')}
                 />
             </div>
         </ProtectedRoute>
