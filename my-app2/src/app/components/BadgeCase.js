@@ -62,10 +62,6 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
 
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow">
-      <div className="mb-6 text-center text-stone-700">
-        <div className="font-semibold text-lg">Full name: <span className="font-normal">{fullName}</span></div>
-        <div className="font-semibold text-lg">School: <span className="font-normal">{school}</span></div>
-      </div>
       <h3 className="text-xl font-bold mb-6 text-stone-800 text-center">Badges Earned</h3>
       <div className="grid grid-cols-3 gap-6 p-4">
         {allBadges.map((badge) => {

@@ -16,12 +16,7 @@ import {
 } from '../firebase/trainingService';
 import SessionStartScreen from '../components/interstudy-ui/SessionStartScreen';
 import SessionSummaryScreen from '../components/interstudy-ui/SessionSummaryScreen';
-
-const difficultyMap = {
-    1: 'קל', 2: 'קל', 3: 'קל',
-    4: 'בינוני', 5: 'בינוני', 6: 'בינוני',
-    7: 'קשה', 8: 'קשה', 9: 'קשה'
-};
+import { difficultyMap } from '@/utils/constants';
 
 const StudyController = ({ practiceSets, onQuizComplete, sessionNumber, onHome }) => {
     const studyState = useStudyLogic(practiceSets, onQuizComplete, sessionNumber);
