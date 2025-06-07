@@ -1,54 +1,36 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaHome } from "react-icons/fa";
-import QuizModal from "./StudyModal";
 import QuizHeader from "./StudyHeader";
 import QuizQuestion from "./StudyQuestion";
 import QuizActions from "./StudyActions";
 import QuizExplanation from "./StudyExplanation";
 import QuizResults from "./StudyResults";
 
-export default function Quiz({
-  questions,
-  title = "חידון מתמטיקה",
-  icon = "🧮",
+// Renamed from Quiz to Study and props are adapted for the training program
+export default function Study({
+  practiceSets, // e.g., { easy: [questions] }
+  sessionNumber,
+  onQuizComplete, // Renamed from onComplete
   onHome,
   difficultyConfigs = {
     easy: {
-      color:
-        "from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700",
-      bgColor: "bg-emerald-50",
-      borderColor: "border-emerald-200",
-      textColor: "text-emerald-800",
+      color: "from-emerald-500 to-teal-600",
       icon: "🌱",
-      title: "קל",
-      description: "נוסחאות בסיסיות ותרגילים מהירים",
-      timeLabel: "זמן מוגבל לכל שאלה",
+      title: "רמה קלה",
     },
     moderate: {
-      color:
-        "from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700",
-      bgColor: "bg-amber-50",
-      borderColor: "border-amber-200",
-      textColor: "text-amber-800",
+      color: "from-amber-500 to-orange-600",
       icon: "🔥",
-      title: "בינוני",
-      description: "שאלות מורכבות יותר ונושאים מתקדמים",
-      timeLabel: "זמן מוגבל מותאם",
+      title: "רמה בינונית",
     },
     hard: {
-      color: "from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700",
-      bgColor: "bg-rose-50",
-      borderColor: "border-rose-200",
-      textColor: "text-rose-800",
+      color: "from-rose-500 to-red-600",
       icon: "⚡",
-      title: "קשה",
-      description: "שאלות מבגרות (שאלון 581) - אתגר אמיתי",
-      timeLabel: "ללא הגבלת זמן",
+      title: "רמה קשה",
     },
   },
 }) {
-  const [showModal, setShowModal] = useState(true);
   const [difficulty, setDifficulty] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -58,27 +40,27 @@ export default function Quiz({
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [startTime, setStartTime] = useState(null); // To calculate total time
 
-  // Timer effect
+  // Automatically start the quiz when the component mounts
   useEffect(() => {
-    if (timeLeft > 0 && !isAnswered) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isAnswered) {
-      handleTimeUp();
+    if (practiceSets && typeof practiceSets === 'object') {
+      // Find the difficulty level that actually has questions
+      const difficultyLevel = Object.keys(practiceSets).find(key => practiceSets[key] && practiceSets[key].length > 0);
+      
+      if (difficultyLevel) {
+        const questions = practiceSets[difficultyLevel];
+        setDifficulty(difficultyLevel);
+        setSelectedQuestions(questions);
+        setUserAnswers(new Array(questions.length).fill(null));
+        setCurrentQuestion(0);
+        setTimeLeft(null); // No time limit
+        setIsLoading(false);
+        setStartTime(Date.now()); // Start the timer
+      }
     }
-  }, [timeLeft, isAnswered]);
-
-  const startQuiz = (selectedDifficulty) => {
-    setDifficulty(selectedDifficulty);
-    const difficultyQuestions =
-      questions[selectedDifficulty]?.slice(0, 5) || [];
-    setSelectedQuestions(difficultyQuestions);
-    setUserAnswers(new Array(difficultyQuestions.length).fill(null));
-    setCurrentQuestion(0);
-    setTimeLeft(difficultyQuestions[0]?.timeLimit || null);
-    setShowModal(false);
-  };
+  }, [practiceSets]);
 
   const handleAnswer = (answerIndex) => {
     if (isAnswered) return;
@@ -105,52 +87,47 @@ export default function Quiz({
       setCurrentQuestion(currentQuestion + 1);
       setIsAnswered(false);
       setShowExplanation(false);
-      setTimeLeft(selectedQuestions[currentQuestion + 1].timeLimit || null);
+      setTimeLeft(null); // No time limit
     } else {
       setQuizCompleted(true);
+      
+      if (onQuizComplete) {
+        const timeSpent = startTime ? Math.ceil((Date.now() - startTime) / (1000 * 60)) : 0; // in minutes
+        const results = {
+          score: score,
+          totalQuestions: selectedQuestions.length,
+          answers: userAnswers.map((answer, index) => ({
+            questionId: selectedQuestions[index].id,
+            userAnswer: answer,
+            correct: selectedQuestions[index].correct,
+            isCorrect: answer === selectedQuestions[index].correct
+          })),
+          difficulty: difficulty,
+          timeSpent: timeSpent
+        };
+        onQuizComplete(results);
+      }
     }
   };
 
+  // The reset function might not be needed in this flow, but keeping it for now
   const resetQuiz = () => {
-    setShowModal(true);
-    setDifficulty(null);
-    setCurrentQuestion(0);
-    setSelectedQuestions([]);
-    setUserAnswers([]);
-    setShowExplanation(false);
-    setTimeLeft(null);
-    setIsAnswered(false);
-    setScore(0);
-    setQuizCompleted(false);
+    // This would need to trigger a re-fetch in the parent component
+    // For now, it's best handled by navigating away and back.
+    if(onHome) onHome();
   };
 
   const getDifficultyConfig = (diff) => {
     return (
       difficultyConfigs[diff] || {
         color: "from-gray-500 to-gray-600",
-        bgColor: "bg-gray-50",
-        borderColor: "border-gray-200",
-        textColor: "text-gray-800",
         icon: "📚",
-        title: "רגיל",
-        description: "שאלות רגילות",
-        timeLabel: "זמן רגיל",
+        title: "אימון",
       }
     );
   };
 
-  // Show modal for difficulty selection
-  if (showModal) {
-    return (
-      <QuizModal
-        onClose={onHome || (() => (window.location.href = "/"))}
-        onStartQuiz={startQuiz}
-        difficultyConfigs={difficultyConfigs}
-        title={title}
-        icon={icon}
-      />
-    );
-  }
+  // No longer need the difficulty selection modal
 
   // Show results screen
   if (quizCompleted) {
@@ -158,19 +135,20 @@ export default function Quiz({
       <QuizResults
         score={score}
         totalQuestions={selectedQuestions.length}
-        onRestart={resetQuiz}
-        onHome={onHome || (() => (window.location.href = "/"))}
+        onRestart={onHome} // Restarting now goes home
+        onHome={onHome}
+        sessionNumber={sessionNumber}
       />
     );
   }
 
-  // Show loading if no questions
-  if (selectedQuestions.length === 0) {
+  // Show loading if questions are not yet processed
+  if (isLoading || selectedQuestions.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin text-6xl mb-4">⚡</div>
-          <p className="text-xl text-gray-600">טוען שאלות...</p>
+          <div className="animate-spin text-6xl mb-4">🧠</div>
+          <p className="text-xl text-gray-600">מכין עבורך אימון מותאם אישית...</p>
         </div>
       </div>
     );
@@ -193,13 +171,14 @@ export default function Quiz({
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="max-w-4xl w-full">
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-            {/* Header */}
+            {/* Header - now also receives sessionNumber */}
             <QuizHeader
               currentQuestion={currentQuestion}
               totalQuestions={selectedQuestions.length}
               difficulty={difficulty}
               difficultyConfig={diffConfig}
               timeLeft={timeLeft}
+              sessionNumber={sessionNumber} // Pass session number to header
             />
 
             {/* Question Content */}
@@ -211,19 +190,27 @@ export default function Quiz({
             />
 
             {/* Action Buttons */}
-            <QuizActions
-              isAnswered={isAnswered}
-              showExplanation={showExplanation}
-              onToggleExplanation={() => setShowExplanation(!showExplanation)}
-              onNext={nextQuestion}
-              isLastQuestion={currentQuestion === selectedQuestions.length - 1}
-            />
-
-            {/* Explanation */}
-            <QuizExplanation
-              explanation={question.explanation}
-              show={showExplanation}
-            />
+            {isAnswered && (
+              <>
+                <QuizExplanation
+                  explanation={question.explanation}
+                  show={showExplanation}
+                />
+                <div className="mt-6 flex justify-center w-full">
+                  <button
+                    onClick={nextQuestion}
+                    disabled={!isAnswered}
+                    className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform ${
+                      !isAnswered 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg'
+                    }`}
+                  >
+                    {currentQuestion === selectedQuestions.length - 1 ? 'סיים תרגול' : 'השאלה הבאה'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

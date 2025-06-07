@@ -7,7 +7,10 @@ export default function QuizHeader({
   difficulty,
   difficultyConfig,
   timeLeft,
+  sessionNumber,
 }) {
+  const difficultyText = difficultyConfig.title || "אימון";
+
   return (
     <div
       className={`${difficultyConfig.bgColor} border-b ${difficultyConfig.borderColor} p-6`}
@@ -20,15 +23,13 @@ export default function QuizHeader({
               <div className="text-lg font-bold text-gray-800">
                 שאלה {currentQuestion + 1} מתוך {totalQuestions}
               </div>
-              <div
-                className={`text-sm ${difficultyConfig.textColor} font-medium`}
-              >
-                {difficulty === "easy"
-                  ? "רמה קלה"
-                  : difficulty === "moderate"
-                  ? "רמה בינונית"
-                  : "רמה קשה"}
-              </div>
+              {sessionNumber && (
+                <div
+                  className={`text-sm font-semibold bg-gradient-to-r ${difficultyConfig.color} text-transparent bg-clip-text`}
+                >
+                  אימון {sessionNumber} מתוך 9 - {difficultyText}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
-import {collection, getDocs, doc, setDoc,} from 'firebase/firestore';
+import {collection, getDocs, doc, setDoc, serverTimestamp} from 'firebase/firestore';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const FirstQuiz = () => {
@@ -21,6 +21,7 @@ const FirstQuiz = () => {
     // Initialize userId from sessionStorage on client side
     if (typeof window !== 'undefined') {
       const uid = sessionStorage.getItem('uid');
+      console.log('User ID from sessionStorage in useEffect:', uid); // Debug log
       setUserId(uid || '');
     }
 
@@ -95,51 +96,69 @@ const FirstQuiz = () => {
   };
 
   const finishTest = async () => {
+    setSubmitting(true);
+    console.log('--- Starting finishTest (Nested Collection Logic) ---');
+    
     if (!userId) {
-      console.error('No user ID available');
+      console.error('No user ID available, aborting save.');
+      alert('שגיאה: לא זוהה משתמש. אנא התחבר ונסה שוב.');
+      setSubmitting(false);
       return;
     }
+    console.log('Current User ID:', userId);
     
-    setSubmitting(true);
     try {
-      const results = {};
+      console.log('Processing answers and grouping by subject...');
+      const resultsBySubject = {};
       questions.forEach((q) => {
         const userAns = userAnswers[q.id];
         const isCorrect = userAns && userAns.trim().toLowerCase() === q.Answer.trim().toLowerCase();
-        if (!results[q.subject]) {
-          results[q.subject] = { total: 0, correct: 0, wrongIds: [] };
+        
+        if (!resultsBySubject[q.subject]) {
+          resultsBySubject[q.subject] = { total: 0, correct: 0, wrongIds: [] };
         }
 
-        results[q.subject].total += 1;
+        resultsBySubject[q.subject].total += 1;
         if (isCorrect) {
-          results[q.subject].correct += 1;
+          resultsBySubject[q.subject].correct += 1;
         } else {
-          results[q.subject].wrongIds.push(q.id);
+          resultsBySubject[q.subject].wrongIds.push(q.id);
         }
       });
 
-      for (const subject in results) {
-        const { total, correct, wrongIds } = results[subject];
+      console.log('Aggregated results:', resultsBySubject);
+
+      for (const subject in resultsBySubject) {
+        const { total, correct, wrongIds } = resultsBySubject[subject];
         const grade = (correct / total) * 100;
 
-        // Save grade
+        console.log(`Saving data for subject: ${subject}`);
+        
+        // Save grade to users/{userId}/results/{subject}
         const resultRef = doc(db, 'users', userId, 'results', subject);
         await setDoc(resultRef, { grade });
+        console.log(`SUCCESS: Saved grade for ${subject}`);
 
-        // Save wrong question IDs
-        const exerciseRef = doc(db, 'users', userId, 'exercises', subject);
-        await setDoc(exerciseRef, { wrongQuestions: wrongIds });
+        // Save wrong question IDs to users/{userId}/exercises/{subject}
+        if (wrongIds.length > 0) {
+          const exerciseRef = doc(db, 'users', userId, 'exercises', subject);
+          await setDoc(exerciseRef, { wrongQuestions: wrongIds });
+          console.log(`SUCCESS: Saved ${wrongIds.length} wrong questions for ${subject}`);
+        }
       }
 
+      console.log('--- finishTest complete. Navigating... ---');
       router.push('/Main_Page');
+
     } catch (error) {
-      console.error('Error saving results:', error);
+      console.error('--- ERROR IN finishTest ---:', error);
+      alert('אירעה שגיאה קריטית בשמירת התוצאות. בדוק את ה-console לפרטים.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const totalAnswered = Object.keys(answeredQuestions).length;
+  const totalAnswered = Object.keys(userAnswers).length;
   const totalQuestions = questions.length;
 
   return (
