@@ -8,115 +8,12 @@ import { doc, getDoc, collection, getDocs, setDoc, updateDoc, serverTimestamp } 
 import ProtectedRoute from '../components/ProtectedRoute';
 import Study from '../components/Study';
 import { useStudyLogic } from '../hooks/useStudyLogic';
-
-async function getFirstQuizScores(userId) {
-    const scores = {};
-    const resultsCollectionRef = collection(db, 'users', userId, 'results');
-    const querySnapshot = await getDocs(resultsCollectionRef);
-
-    if (querySnapshot.empty) {
-        console.warn(`No result documents found for user ${userId}`);
-        return {};
-    }
-
-    querySnapshot.forEach(docSnap => {
-        // The document ID is the subject name in Hebrew
-        const subject = docSnap.id;
-        const data = docSnap.data();
-        if (data && typeof data.grade !== 'undefined') {
-            scores[subject] = data.grade;
-        }
-    });
-    
-    return scores;
-}
-
-async function getPracticeQuestions() {
-    const questionsCollection = collection(db, 'practice_questions');
-    const querySnapshot = await getDocs(questionsCollection);
-    const questions = [];
-    querySnapshot.forEach(doc => {
-        const data = doc.data();
-        const { question_text, question, questionText, correct_answer, incorrect_answers, explanation, ...rest } = data;
-
-        // Combine possible question text fields
-        const text = question_text || question || questionText || "No question text found";
-
-        // Combine answers into a single options array and find the correct index
-        const correctAnswer = correct_answer;
-        const allOptions = [correctAnswer, ...incorrect_answers];
-
-        // Shuffle options
-        for (let i = allOptions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
-        }
-        
-        const correctIndex = allOptions.findIndex(opt => opt === correctAnswer);
-
-        questions.push({ 
-            id: doc.id,
-            question: text,
-            options: allOptions,
-            correct: correctIndex,
-            explanation: explanation || "No explanation available.",
-            ...rest 
-        });
-    });
-    return questions;
-}
-
-function buildPracticeSession(trainingProgress, firstQuizScores, allQuestions) {
-    const { currentSession } = trainingProgress;
-    const sessionQuestions = [];
-    const subjectsByWeakness = Object.entries(firstQuizScores)
-        .sort(([, scoreA], [, scoreB]) => scoreA - scoreB)
-        .map(([subject]) => subject);
-
-    console.log("--- Building Practice Session ---");
-    console.log("Subjects sorted by weakness (lowest score first):", subjectsByWeakness);
-
-    const questionDistribution = [4, 3, 2, 1];
-    let questionCount = 0;
-
-    const sessionComposition = {};
-
-    for (let i = 0; i < subjectsByWeakness.length && questionCount < 10; i++) {
-        const subject = subjectsByWeakness[i];
-        const numQuestions = questionDistribution[i] || 1;
-        
-        const filteredQuestions = allQuestions.filter(q =>
-            q.subject === subject
-        );
-
-        const questionsToAdd = filteredQuestions.slice(0, numQuestions);
-        console.log(`- Subject: "${subject}", Requested: ${numQuestions}, Found: ${questionsToAdd.length}`);
-        
-        if(questionsToAdd.length > 0) {
-            sessionComposition[subject] = questionsToAdd.length;
-        }
-
-        sessionQuestions.push(...questionsToAdd);
-        questionCount += questionsToAdd.length;
-    }
-
-    if (sessionQuestions.length < 10) {
-        const remainingNeeded = 10 - sessionQuestions.length;
-        console.log(`Session has ${sessionQuestions.length}/10 questions. Filling with ${remainingNeeded} random questions.`);
-        const remainingQuestions = allQuestions.filter(q =>
-            !sessionQuestions.some(sq => sq.id === q.id)
-        );
-        const questionsToAdd = remainingQuestions.slice(0, remainingNeeded);
-        sessionQuestions.push(...questionsToAdd);
-        sessionComposition["General (Fill)"] = questionsToAdd.length;
-    }
-    
-    console.log("Final session composition:", sessionComposition);
-    console.log(`Total questions in session: ${sessionQuestions.length}`);
-    console.log("---------------------------------");
-    
-    return sessionQuestions.slice(0, 10);
-}
+import { 
+    getFirstQuizScores, 
+    getPracticeQuestions, 
+    buildPracticeSession,
+    saveSessionResults
+} from '../firebase/trainingService';
 
 const difficultyMap = {
     1: 'קל', 2: 'קל', 3: 'קל',
@@ -156,7 +53,6 @@ export default function InterStudyPage() {
         setSessionCompleted(false);
 
         try {
-            // Step 1: Always fetch the latest scores from the definitive source.
             const firstQuizScores = await getFirstQuizScores(userId);
             if (Object.keys(firstQuizScores).length === 0 || Object.values(firstQuizScores).every(s => s === 0)) {
                 setError("לא נמצאו תוצאות מבחן ראשוני. אנא השלם את המבחן הראשון כדי להתחיל.");
@@ -164,7 +60,6 @@ export default function InterStudyPage() {
                 return;
             }
 
-            // Step 2: Get or create the training progress document (without scores).
             const progressRef = doc(db, 'training_progress', userId);
             let progressSnap = await getDoc(progressRef);
             let progressData;
@@ -188,7 +83,6 @@ export default function InterStudyPage() {
                 return;
             }
 
-            // Step 3: Build the session using the freshly fetched scores.
             const allQuestions = await getPracticeQuestions();
             const sessionQuestions = buildPracticeSession(progressData, firstQuizScores, allQuestions);
             
@@ -216,55 +110,13 @@ export default function InterStudyPage() {
         if (!user || !trainingProgress) return;
         
         setIsLoading(true);
-        const { uid: userId } = user;
-        const { currentSession } = trainingProgress;
-        const difficulty = results.difficulty;
-
-        const subjectBreakdown = {};
-        const mistakes = [];
-
-        results.answers.forEach(answer => {
-            const question = practiceSets[difficulty].find(q => q.id === answer.questionId);
-            if (!question) return;
-
-            const subject = question.subject;
-            if (!subjectBreakdown[subject]) {
-                subjectBreakdown[subject] = { questions: 0, correct: 0 };
-            }
-            subjectBreakdown[subject].questions++;
-
-            if (answer.isCorrect) {
-                subjectBreakdown[subject].correct++;
-            } else {
-                mistakes.push({
-                    questionId: answer.questionId,
-                    userAnswer: answer.userAnswer
-                });
-            }
-        });
-
         try {
-            const sessionData = {
-                studentId: userId,
-                sessionNumber: currentSession,
-                timeSpent: results.timeSpent || 0,
-                subjectBreakdown,
-                mistakes,
-                completedAt: serverTimestamp()
-            };
-            
-            const practiceDocRef = doc(db, "daily_practice", `${userId}_session_${currentSession}`);
-            await setDoc(practiceDocRef, sessionData);
-
-            const updatedProgress = {
-                currentSession: currentSession + 1,
-                completedSessions: currentSession,
-                status: currentSession + 1 > 9 ? 'completed' : 'in_progress',
-                lastActivity: serverTimestamp()
-            };
-
-            const progressRef = doc(db, 'training_progress', userId);
-            await updateDoc(progressRef, updatedProgress);
+            const updatedProgress = await saveSessionResults(
+                user.uid, 
+                trainingProgress.currentSession, 
+                results, 
+                practiceSets
+            );
             
             setLastSessionResults(results);
             setTrainingProgress(prev => ({...prev, ...updatedProgress}));
