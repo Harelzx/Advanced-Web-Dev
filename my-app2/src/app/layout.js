@@ -5,13 +5,13 @@ import AppShell from './components/AppShell';
 import { usePathname } from 'next/navigation';
 import ChatbotSidebar from './components/chatbot/ChatbotSidebar';
 
+//list of pages where we don't want to show the chatbot
+const noChatbotPages = ['/login', '/sign-up', '/FirstQuiz', '/dashboard', '/'];
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
   
-  //list of pages where we don't want to show the chatbot
-  const pagesWithoutChat = ['/', '/sign-up'];
-  const shouldShowChat = !pagesWithoutChat.includes(pathname);
+  const shouldShowChat = !noChatbotPages.includes(pathname);
 
   return (
     <html lang="en">

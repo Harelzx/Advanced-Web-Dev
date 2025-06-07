@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
 import { doc, getDoc, collection, getDocs, query, where, updateDoc, arrayRemove } from 'firebase/firestore';
+import { getPracticeQuestions } from '../firebase/trainingService';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import TeacherView from '../components/dashboard/TeacherView';
 import ParentView from '../components/dashboard/ParentView';
@@ -123,6 +124,50 @@ const Dashboard = () => {
       const resultsRef = collection(db, `users/${studentId}/results`);
       const resultsSnapshot = await getDocs(resultsRef);
       
+      // --- New Dynamic Performance Logic based on subjectBreakdown ---
+      const practicePerformanceData = {};
+      let totalTime = 0;
+      let sessionCount = 0;
+
+      const sessionsQuery = query(collection(db, 'daily_practice'), where("studentId", "==", studentId));
+      const sessionsSnap = await getDocs(sessionsQuery);
+
+      sessionsSnap.forEach(doc => {
+          const sessionData = doc.data();
+          if (sessionData.timeSpent) {
+              totalTime += sessionData.timeSpent;
+              sessionCount++;
+          }
+          if (sessionData.subjectBreakdown) {
+            Object.entries(sessionData.subjectBreakdown).forEach(([subject, data]) => {
+                if (!practicePerformanceData[subject]) {
+                    practicePerformanceData[subject] = { correct: 0, total: 0 };
+                }
+                practicePerformanceData[subject].correct += data.correct;
+                practicePerformanceData[subject].total += data.questions;
+            });
+          }
+      });
+      const averageTimeSpent = sessionCount > 0 ? totalTime / sessionCount : 0;
+      
+      const practicePerformance = Object.entries(practicePerformanceData).reduce((acc, [subject, data]) => {
+          if (data.total > 0) {
+            acc[subject] = (data.correct / data.total) * 100;
+          } else {
+            acc[subject] = 0;
+          }
+          return acc;
+      }, {});
+      // --- End of New Logic ---
+
+      // Get training progress
+      const progressRef = doc(db, 'training_progress', studentId);
+      const progressSnap = await getDoc(progressRef);
+      let trainingProgress = { completedSessions: 0, status: 'not_started' };
+      if (progressSnap.exists()) {
+        trainingProgress = progressSnap.data();
+      }
+
       const grades = {};
       const wrongQuestions = {};
       
@@ -142,6 +187,9 @@ const Dashboard = () => {
         }
       });
       
+      // Combine initial grades with practice performance. Practice data takes precedence.
+      const combinedPerformance = { ...grades, ...practicePerformance };
+      
       return {
         id: studentId,
         name: studentInfo.fullName || studentInfo.email || 'Unknown Student',
@@ -149,7 +197,10 @@ const Dashboard = () => {
         wrongQuestions,
         averageGrade: Object.values(grades).length > 0 
           ? Object.values(grades).reduce((a, b) => a + b, 0) / Object.values(grades).length 
-          : 0
+          : 0,
+        trainingProgress,
+        averageTimeSpent,
+        practicePerformance: combinedPerformance,
       };
     } catch (error) {
       console.error('Error fetching student results:', error);
@@ -158,7 +209,10 @@ const Dashboard = () => {
         name: studentInfo.fullName || 'Unknown Student',
         grades: {},
         wrongQuestions: {},
-        averageGrade: 0
+        averageGrade: 0,
+        trainingProgress: { completedSessions: 0, status: 'not_started' },
+        averageTimeSpent: 0,
+        practicePerformance: {},
       };
     }
   };
