@@ -3,7 +3,6 @@
 export default function StudyHeader({
   currentQuestion,
   totalQuestions,
-  difficulty,
   difficultyConfig,
   sessionNumber,
 }) {

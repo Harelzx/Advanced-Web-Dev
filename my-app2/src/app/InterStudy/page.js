@@ -17,7 +17,10 @@ import SessionStartScreen from '../components/interstudy-ui/SessionStartScreen';
 import SessionSummaryScreen from '../components/interstudy-ui/SessionSummaryScreen';
 import { difficultyMap } from '@/utils/constants';
 
-// A simple controller component that wraps the Study UI with the study logic hook.
+/**
+ * A simple controller component that wraps the Study UI with the study logic hook.
+ * This helps to keep the main page component cleaner.
+ */
 const StudyController = ({ practiceSets, onQuizComplete, sessionNumber, onHome }) => {
     const studyState = useStudyLogic(practiceSets, onQuizComplete, sessionNumber);
 
@@ -30,40 +33,53 @@ const StudyController = ({ practiceSets, onQuizComplete, sessionNumber, onHome }
     );
 };
 
-// The main page component for the interactive study session.
-// It acts as a controller, managing the overall state of a training session.
+/**
+ * The main page component for the interactive study feature.
+ * It acts as a controller, managing the overall state of a training session,
+ * including data loading, session state, and rendering the appropriate UI.
+ */
 export default function InterStudyPage() {
     const [user, authLoading] = useAuthState(auth);
     const router = useRouter();
 
+    // State for managing UI feedback (loading and errors)
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    
+    // State for holding the core training data
     const [trainingProgress, setTrainingProgress] = useState(null);
     const [practiceSets, setPracticeSets] = useState({ easy: [], medium: [], hard: [] });
-
+    
+    // State for managing the session flow (start, completion)
     const [sessionStarted, setSessionStarted] = useState(false);
     const [sessionCompleted, setSessionCompleted] = useState(false);
     const [lastSessionResults, setLastSessionResults] = useState(null);
 
-    // Loads all necessary data for the training session, including user progress and questions.
+    /**
+     * Loads all necessary data for the training session from Firestore.
+     * This includes user's initial scores and their current training progress.
+     * It also builds the question set for the current session.
+     */
     const loadTrainingData = useCallback(async (userId) => {
         setIsLoading(true);
         setError(null);
         setSessionCompleted(false);
 
         try {
+            // Prerequisite: Check if the user has completed the initial quiz.
             const firstQuizScores = await getFirstQuizScores(userId);
             if (Object.keys(firstQuizScores).length === 0 || Object.values(firstQuizScores).every(s => s === 0)) {
                 router.push('/FirstQuiz');
                 return;
             }
 
+            // Fetch or create the user's training progress document.
             const progressRef = doc(db, 'users', userId, 'training_progress', 'plan_1');
             let progressSnap = await getDoc(progressRef);
             let progressData;
 
             if (!progressSnap.exists()) {
+                // If no progress exists, create the initial document.
                 progressData = {
                     currentSession: 1,
                     completedSessions: 0,
@@ -76,24 +92,27 @@ export default function InterStudyPage() {
                 progressData = progressSnap.data();
             }
 
+            // If the user has completed the entire program, do nothing further.
             if (progressData.status === 'completed') {
                 setTrainingProgress(progressData);
                 setIsLoading(false);
                 return;
             }
 
+            // Fetch all questions and build a personalized session.
             const allQuestions = await getPracticeQuestions();
             const sessionQuestions = buildPracticeSession(progressData, firstQuizScores, allQuestions);
-
+            
             if (sessionQuestions.length === 0) {
                 setError(`לא נמצאו שאלות מתאימות עבורך לסשן ${progressData.currentSession}. ייתכן שסיימת את כל השאלות הזמינות.`);
                 setIsLoading(false);
                 return;
             }
-
+            
+            // Determine the difficulty for the current session and set the questions.
             const difficultyLevels = { 1: 'easy', 2: 'easy', 3: 'easy', 4: 'medium', 5: 'medium', 6: 'medium', 7: 'hard', 8: 'hard', 9: 'hard' };
             const difficultyKey = difficultyLevels[progressData.currentSession];
-
+            
             setPracticeSets({ easy: [], medium: [], hard: [], [difficultyKey]: sessionQuestions });
             setTrainingProgress(progressData);
 
@@ -105,19 +124,24 @@ export default function InterStudyPage() {
         }
     }, [router]);
 
-    // Handles the completion of a quiz session, saving results and updating progress.
+    /**
+     * Callback function triggered when a quiz session is completed.
+     * It saves the session results and updates the user's progress.
+     */
     const handleQuizComplete = useCallback(async (results) => {
         if (!user || !trainingProgress) return;
-
+        
         setIsLoading(true);
         try {
+            // Call the service function to save data to Firestore.
             const updatedProgress = await saveSessionResults(
                 user.uid,
                 trainingProgress.currentSession,
                 results,
                 practiceSets
             );
-
+            
+            // Update local state to reflect the new progress and show the summary screen.
             setLastSessionResults(results);
             setTrainingProgress(prev => ({...prev, ...updatedProgress}));
             setSessionCompleted(true);
@@ -130,12 +154,15 @@ export default function InterStudyPage() {
         }
     }, [user, trainingProgress, practiceSets]);
 
-    // Effect to load data when the user is authenticated.
+    // Effect to trigger data loading once the user is authenticated.
     useEffect(() => {
         if (user) {
             loadTrainingData(user.uid);
         }
     }, [user, authLoading, loadTrainingData]);
+
+    // --- Render Logic ---
+    // The following section determines which UI to show based on the current state.
 
     if (isLoading || authLoading) {
         return (
@@ -152,7 +179,7 @@ export default function InterStudyPage() {
             </div>
         );
     }
-
+    
     if (!user) {
         return (
              <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-800 p-4" dir="rtl">
@@ -176,6 +203,7 @@ export default function InterStudyPage() {
         );
     }
 
+    // Render flow for a logged-in user with loaded progress.
     if (trainingProgress.status === 'completed') {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 text-green-800 p-4">
@@ -184,7 +212,7 @@ export default function InterStudyPage() {
             </div>
         );
     }
-
+    
     if (sessionCompleted && lastSessionResults) {
         return (
             <SessionSummaryScreen
@@ -205,6 +233,7 @@ export default function InterStudyPage() {
         );
     }
 
+    // Default case: The session is active, show the main study UI.
     return (
         <div className="container mx-auto p-4" dir="rtl">
             <StudyController

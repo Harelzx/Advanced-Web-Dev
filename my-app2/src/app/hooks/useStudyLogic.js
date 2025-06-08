@@ -1,7 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 
-// Custom hook for managing the logic of a study/practice session.
+/**
+ * A custom hook to manage the state and logic of a practice session.
+ * This hook encapsulates all the business logic for the quiz, 
+ * making the UI components cleaner and focused on presentation.
+ * @param {object} practiceSets - The sets of questions, organized by difficulty.
+ * @param {function} onQuizComplete - Callback function to execute when the quiz is finished.
+ * @param {number} sessionNumber - The current session number.
+ * @returns {object} - An object containing state and functions for the UI to use.
+ */
 export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
     // State for managing the quiz flow and data
     const [difficulty, setDifficulty] = useState(null);
@@ -14,27 +22,33 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
     const [isLoading, setIsLoading] = useState(true);
     const [startTime, setStartTime] = useState(null);
 
-    // Effect to initialize the quiz when practice sets are provided.
+    // Effect to initialize or reset the quiz state when new practice sets are provided.
     useEffect(() => {
         if (practiceSets && typeof practiceSets === 'object') {
+            // Determine the difficulty level for the current session.
             const difficultyLevel = Object.keys(practiceSets).find(key => practiceSets[key] && practiceSets[key].length > 0);
             
             if (difficultyLevel) {
                 const questions = practiceSets[difficultyLevel];
                 setDifficulty(difficultyLevel);
                 setSelectedQuestions(questions);
+                // Reset answers and score for the new session.
                 setUserAnswers(new Array(questions.length).fill(null));
+                setScore(0);
                 setCurrentQuestion(0);
+                setIsAnswered(false);
+                setQuizCompleted(false);
                 setIsLoading(false);
-                setStartTime(Date.now());
+                setStartTime(Date.now()); // Mark the start time for the session.
             }
         }
     }, [practiceSets]);
 
-    // Effect to handle quiz completion logic.
+    // Effect to handle the completion of the quiz.
+    // This triggers the onQuizComplete callback with the final results.
     useEffect(() => {
         if (quizCompleted && onQuizComplete) {
-            const timeSpent = startTime ? Math.ceil((Date.now() - startTime) / (1000 * 60)) : 0;
+            const timeSpent = startTime ? Math.ceil((Date.now() - startTime) / (1000 * 60)) : 0; // in minutes
             const results = {
                 score: score,
                 totalQuestions: selectedQuestions.length,
@@ -52,21 +66,28 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
         }
     }, [quizCompleted, onQuizComplete, score, selectedQuestions, userAnswers, difficulty, startTime, sessionNumber]);
 
-    // Handles the user's answer submission for the current question.
+    /**
+     * Handles the user's answer submission for the current question.
+     * It records the answer, updates the score, and prevents further answers.
+     * @param {number} answerIndex - The index of the selected answer.
+     */
     const handleAnswer = (answerIndex) => {
-        if (isAnswered) return;
+        if (isAnswered) return; // Prevent changing the answer.
 
         const newAnswers = [...userAnswers];
         newAnswers[currentQuestion] = answerIndex;
         setUserAnswers(newAnswers);
         setIsAnswered(true);
 
+        // Update score if the answer is correct.
         if (answerIndex === selectedQuestions[currentQuestion].correct) {
             setScore(score + 1);
         }
     };
 
-    // Moves to the next question or completes the quiz.
+    /**
+     * Moves to the next question or marks the quiz as completed if it's the last question.
+     */
     const nextQuestion = () => {
         if (currentQuestion < selectedQuestions.length - 1) {
             setCurrentQuestion(currentQuestion + 1);
@@ -76,11 +97,11 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
         }
     };
 
-    // Derived state for the current question and answer
+    // Derived state: these values are calculated on each render based on the core state.
     const question = selectedQuestions.length > 0 ? selectedQuestions[currentQuestion] : null;
     const userAnswer = userAnswers.length > 0 ? userAnswers[currentQuestion] : null;
 
-    // The API returned by the hook for the component to use.
+    // The public API of the hook, returned for the component to use.
     return {
         isLoading,
         quizCompleted,

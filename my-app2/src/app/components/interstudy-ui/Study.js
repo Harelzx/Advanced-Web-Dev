@@ -73,7 +73,6 @@ export default function Study({
             <StudyHeader
               currentQuestion={currentQuestion}
               totalQuestions={totalQuestions}
-              difficulty={difficulty}
               difficultyConfig={diffConfig}
               sessionNumber={sessionNumber}
             />
