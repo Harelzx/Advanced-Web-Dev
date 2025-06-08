@@ -26,90 +26,87 @@ export default function PersonalizedPath() {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+useEffect(() => {
+  async function fetchLearningPath() {
+    const userId = typeof window !== 'undefined' ? sessionStorage.getItem('uid') : null;
 
-  useEffect(() => {
-    async function fetchLearningPath() {
-      try {
-        /*
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          console.log('No user is currently logged in');
-          setTimeout(() => setLoading(false), 2000); 
-          return;
-        }
-
-        const userId = currentUser.uid;
-        */
- 
-        const userId = 'l7twdmv3SeSB3HHGM53gbOI9EMu1';  // Replace with actual user ID or fetch dynamically
-        // בדיקה אם כבר שמור מסלול
-        const pathRef = collection(db, 'users', userId, 'learningPath');
-        const pathSnapshot = await getDocs(pathRef);
-
-        if (!pathSnapshot.empty) {
-          const existingPath = pathSnapshot.docs.map(doc => doc.data());
-          setLearningPath(existingPath);
-          console.log('Loaded saved learning path from Firestore');
-          setTimeout(() => setLoading(false), 2000);
-          return;
-        }
-
-        // שליפת תוצאות אבחון
-        const resultsRef = collection(db, 'users', userId, 'results');
-        const resultDocs = await getDocs(resultsRef);
-
-        const quizResults = [];
-        resultDocs.forEach(docSnap => {
-          const subject = docSnap.id;
-          const data = docSnap.data();
-          if (typeof data.grade === 'number' && data.grade < 100) {
-            quizResults.push({
-              topic: subject,
-              grade: data.grade
-            });
-          }
-        });
-
-        if (quizResults.length === 0) {
-          setLearningPath([]);
-          setTimeout(() => setLoading(false), 2000);
-          return;
-        }
-
-        // שליחת הבקשה ל־API
-        const result = await fetch('/api/generatePath', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quizResults }),
-        });
-
-        if (!result.ok) {
-          throw new Error(`API returned ${result.status}`);
-        }
-
-        const generatedPath = await result.json();
-        setLearningPath(generatedPath);
-
-        // שמירת המסלול החדש
-        await Promise.all(
-          generatedPath.map((item, index) =>
-            setDoc(doc(pathRef, String(index)), {
-              ...item,
-              createdAt: new Date()
-            })
-          )
-        );
-
-        setTimeout(() => setLoading(false), 2000);
-      } catch (err) {
-        console.error("Error in fetchLearningPath:", err);
-        setLearningPath([]);
-        setTimeout(() => setLoading(false), 2000);
-      }
+    if (!userId) {
+      console.log("No user ID found in session storage.");
+      setLoading(false);
+      return;
     }
 
-    fetchLearningPath();
-  }, []);
+    try {
+      // בדיקה אם כבר שמור מסלול
+      const pathRef = collection(db, 'users', userId, 'learningPath');
+      const pathSnapshot = await getDocs(pathRef);
+
+      if (!pathSnapshot.empty) {
+        const existingPath = pathSnapshot.docs.map(doc => doc.data());
+        setLearningPath(existingPath);
+        console.log('Loaded saved learning path from Firestore');
+        setTimeout(() => setLoading(false), 2000);
+        return;
+      }
+
+      // שליפת תוצאות אבחון
+      const resultsRef = collection(db, 'users', userId, 'results');
+      const resultDocs = await getDocs(resultsRef);
+
+      const quizResults = [];
+      resultDocs.forEach(docSnap => {
+        const subject = docSnap.id;
+        const data = docSnap.data();
+        if (typeof data.grade === 'number' && data.grade < 100) {
+          quizResults.push({
+            topic: subject,
+            grade: data.grade
+          });
+        }
+      });
+
+      if (quizResults.length === 0) {
+        setLearningPath([]);
+        setTimeout(() => setLoading(false), 2000);
+        return;
+      }
+
+      // שליחת הבקשה ל־API
+      const result = await fetch('/api/generatePath', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizResults }),
+      });
+
+      if (!result.ok) {
+        throw new Error(`API returned ${result.status}`);
+      }
+
+      const generatedPath = await result.json();
+      setLearningPath(generatedPath);
+
+
+      // שמירת המסלול החדש
+      await Promise.all(
+        generatedPath.map((item, index) =>
+          setDoc(doc(pathRef, String(index)), {
+            ...item,
+            createdAt: new Date()
+          })
+        )
+      );
+
+      setTimeout(() => setLoading(false), 2000);
+    } catch (err) {
+      console.error("Error in fetchLearningPath:", err);
+      setLearningPath([]);
+      setTimeout(() => setLoading(false), 2000);
+    }
+  }
+
+  fetchLearningPath();
+}, []);
+
 
   // Load completed steps from localStorage
   useEffect(() => {
