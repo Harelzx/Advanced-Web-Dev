@@ -86,73 +86,77 @@ export default function MainPage() {
     fetchData();
   }, []);
 
-  return (
-    <main className="p-4 space-y-6" dir="rtl">
-      <div className="bg-white p-6 border rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">לוח הבקרה שלי</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Training Progress Components */}
-          {trainingProgress && (
-            <>
-              <div>
-                <NextPracticeCard sessionNumber={trainingProgress.currentSession} />
-              </div>
-              <div>
-                <OverallProgress completedSessions={trainingProgress.completedSessions} />
-              </div>
-            </>
-          )}
+    return (
+      <main className="p-4 space-y-6" dir="rtl">
+        <div className="bg-white p-6 border rounded-lg shadow-lg">
+          <div className="mb-4">
+            <p className="text-2xl font-bold text-gray-800 mb-4">ברוך הבא, {user.fullName}</p>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">לוח הבקרה שלי</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Training Progress Components */}
+            {trainingProgress && (
+              <>
+                <div>
+                  <NextPracticeCard sessionNumber={trainingProgress.currentSession} />
+                </div>
+                <div>
+                  <OverallProgress completedSessions={trainingProgress.completedSessions} />
+                </div>
+              </>
+            )}
 
-          {/* Quiz Grades by Subject */}
-          <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <span role="img" aria-label="quiz">📊</span>
-              תוצאות בחינה ראשונה
-            </h3>
-            <ul className="space-y-4">
-              {Object.keys(grades).length === 0 ? (
-                <li>No grades available.</li>
-              ) : (
-                Object.entries(grades).map(([subject, grade]) => {
-                  let barColor = "bg-red-400";
-                  if (grade >= 90) barColor = "bg-green-500";
-                  else if (grade >= 75) barColor = "bg-yellow-400";
-                  else if (grade >= 50) barColor = "bg-blue-400";
+            {/* Quiz Grades by Subject */}
+            <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <span role="img" aria-label="quiz">📊</span>
+                תוצאות בחינה ראשונה
+              </h3>
+              <ul className="space-y-4">
+                {Object.keys(grades).length === 0 ? (
+                  <li>אין תוצאות זמינות.</li>
+                ) : (
+                  Object.entries(grades)
+                    .filter(([subject]) => subject && subject !== "undefined") // Filter out undefined subjects
+                    .map(([subject, grade]) => {
+                      let barColor = "bg-red-400";
+                      if (grade >= 90) barColor = "bg-green-500";
+                      else if (grade >= 75) barColor = "bg-yellow-400";
+                      else if (grade >= 50) barColor = "bg-blue-400";
 
-                  return (
-                    <li key={subject} className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <span className={`font-bold ${grade >= 90 ? "text-green-600" : grade >= 75 ? "text-yellow-600" : grade >= 50 ? "text-blue-600" : "text-red-600"}`}>
-                          {grade}%
-                        </span>
-                        <span className="font-medium text-gray-700">{subject}</span>
-                      </div>
-                      <div className="w-full bg-gray-300 rounded-full h-3">
-                        <div
-                          className={`${barColor} h-3 rounded-full transition-all`}
-                          style={{ width: `${grade}%` }}
-                        ></div>
-                      </div>
-                    </li>
-                  );
-                })
-              )}
-            </ul>
+                      return (
+                        <li key={subject} className="flex flex-col gap-1">
+                          <div className="flex justify-between items-center">
+                            <span className={`font-bold ${grade >= 90 ? "text-green-600" : grade >= 75 ? "text-yellow-600" : grade >= 50 ? "text-blue-600" : "text-red-600"}`}>
+                              {grade}%
+                            </span>
+                            <span className="font-medium text-gray-700">{subject}</span>
+                          </div>
+                          <div className="w-full bg-gray-300 rounded-full h-3">
+                            <div
+                              className={`${barColor} h-3 rounded-full transition-all`}
+                              style={{ width: `${grade}%` }}
+                            ></div>
+                          </div>
+                        </li>
+                      );
+                    })
+                )}
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="bg-white p-6 border rounded-lg shadow-lg">
-        <BadgeCase
-          earnedBadges={earnedBadges}
-          fullName={user.fullName}
-          school={user.school}
+        <div className="bg-white p-6 border rounded-lg shadow-lg">
+          <BadgeCase
+            earnedBadges={earnedBadges}
+            fullName={user.fullName}
+            school={user.school}
+          />
+        </div>
+        <BadgeNotificationModal
+          show={showBadgeModal}
+          onClose={() => setShowBadgeModal(false)}
         />
-      </div>
-      <BadgeNotificationModal
-        show={showBadgeModal}
-        onClose={() => setShowBadgeModal(false)}
-      />
-    </main>
-  );
+      </main>
+    );
 }

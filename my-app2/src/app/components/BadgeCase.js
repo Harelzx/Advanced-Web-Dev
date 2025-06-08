@@ -50,7 +50,6 @@ const allBadges = [
 ];
 
 export default function BadgeCase({ earnedBadges = [], fullName, school }) {
-  // Format date for display (e.g., "June 1, 2025")
   const formatDate = (dateString) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -63,8 +62,6 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow">
       <div className="mb-6 text-center text-stone-700">
-        <div className="font-semibold text-lg">Full name: <span className="font-normal">{fullName}</span></div>
-        <div className="font-semibold text-lg">School: <span className="font-normal">{school}</span></div>
       </div>
       <h3 className="text-xl font-bold mb-6 text-stone-800 text-center">Badges Earned</h3>
       <div className="grid grid-cols-3 gap-6 p-4">
@@ -72,7 +69,6 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
           const earnedBadge = earnedBadges.find(b => b.label === badge.label);
           const earned = !!earnedBadge;
           const dateEarned = earnedBadge?.dateEarned;
-
           return (
             <div
               key={badge.label}
@@ -93,7 +89,6 @@ export default function BadgeCase({ earnedBadges = [], fullName, school }) {
                   Earned: {formatDate(dateEarned)}
                 </span>
               )}
-              {/* Tooltip */}
               <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-300 bottom-full mb-2 w-40 p-2 bg-black text-white text-xs rounded-lg shadow-lg text-center z-10">
                 {badge.description}
                 {earned && dateEarned && (
