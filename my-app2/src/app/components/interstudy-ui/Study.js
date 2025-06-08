@@ -1,5 +1,4 @@
 "use client";
-import { FaHome } from "react-icons/fa";
 import StudyHeader from "./StudyHeader";
 import StudyQuestion from "./StudyQuestion";
 import StudyResults from "./StudyResults";
@@ -60,13 +59,6 @@ export default function Study({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
-      <button
-        onClick={onHome || (() => (window.location.href = "/"))}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4 rounded-full font-semibold shadow-2xl z-50 transition-all duration-300 transform hover:scale-110 group"
-      >
-        <FaHome size={20} className="group-hover:animate-pulse" />
-      </button>
-
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="max-w-4xl w-full">
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
