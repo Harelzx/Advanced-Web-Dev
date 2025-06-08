@@ -66,7 +66,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
       // Check if student is already added
       if (currentChildren.includes(studentId)) {
-        setErrorMessage(`This ${userRole === 'teacher' ? 'student' : 'child'} is already added to your list.`);
+        setErrorMessage(`ה${userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'} הזה/זו כבר קיים/ת ברשימה שלך.`);
         return;
       }
 
@@ -88,13 +88,13 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
       }
       
       // Show success message briefly then close modal
-      setSuccessMessage(`${userRole === 'teacher' ? 'Student' : 'Child'} added successfully!`);
+      setSuccessMessage(`${userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'} נוסף/ה בהצלחה!`);
       setTimeout(() => {
         onClose();
       }, 1500);
           } catch (error) {
         console.error('Error adding student:', error);
-        setErrorMessage(`Failed to add ${userRole === 'teacher' ? 'student' : 'child'}. Please try again.`);
+        setErrorMessage(`נכשל בהוספת ${userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}. אנא נסה/י שוב.`);
       } finally {
       setAdding(false);
     }
@@ -108,11 +108,11 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-800">
-            Add {userRole === 'teacher' ? 'Student' : 'Child'}
+            הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}
           </h3>
           <button
             onClick={onClose}
@@ -151,16 +151,16 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
         {/* Search Input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Search for {userRole === 'teacher' ? 'student' : 'child'}:
+          <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+            חפש אחר {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}:
           </label>
           <input
             type="text"
-            placeholder="Enter name or email..."
+            placeholder="הזן שם או אימייל..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoFocus
-            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 bg-white"
+            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 bg-white text-right"
             style={{ color: '#111827', backgroundColor: '#ffffff' }}
           />
         </div>
@@ -169,7 +169,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
         <div className="max-h-64 overflow-y-auto">
           {loading ? (
             <div className="text-center py-4">
-              <div className="text-gray-600">Loading students...</div>
+              <div className="text-gray-600">טוען תלמידים...</div>
             </div>
           ) : filteredStudents.length > 0 ? (
             <div className="space-y-2">
@@ -180,7 +180,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
                     <div className="text-sm text-gray-600">{student.email}</div>
                     {(student.parentId || student.teacherId) && (
                       <div className="text-xs text-orange-600">
-                        Already assigned to {student.parentId ? 'parent' : 'teacher'}
+                        כבר משוייך ל{student.parentId ? 'הורה' : 'מורה'}
                       </div>
                     )}
                   </div>
@@ -189,25 +189,25 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
                     disabled={adding}
                     className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
                   >
-                    {adding ? 'Adding...' : 'Add'}
+                    {adding ? 'מוסיף...' : 'הוסף'}
                   </button>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-4 text-gray-600">
-              {searchTerm ? 'No students found matching your search.' : 'No students available.'}
+              {searchTerm ? 'לא נמצאו תלמידים תואמים לחיפוש שלך.' : 'אין תלמידים זמינים.'}
             </div>
           )}
         </div>
 
         {/* Close Button */}
-        <div className="mt-4 text-right">
+        <div className="mt-4 text-left">
           <button
             onClick={onClose}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
           >
-            Close
+            סגור
           </button>
         </div>
       </div>
