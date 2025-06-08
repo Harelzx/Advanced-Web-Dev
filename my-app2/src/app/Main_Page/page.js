@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import BadgeCase from '@/app/components/BadgeCase';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { db } from '../firebase/config';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fetchBadges, hasBadge } from '../Logic/fetchBadges';
@@ -17,6 +18,7 @@ export default function MainPage() {
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,7 +26,7 @@ export default function MainPage() {
         const userId = sessionStorage.getItem('uid');
         if (!userId) {
           console.error('No user ID found in sessionStorage');
-          setUser({ fullName: 'אורח', school: 'Braude' });
+          router.push('/login');
           return;
         }
 
@@ -38,8 +40,10 @@ export default function MainPage() {
             school: "Braude"
           });
         } else {
-          console.log("No such user document!");
-          setUser({ fullName: 'משתמש לא נמצא', school: 'Braude' });
+          console.log("No such user document! Redirecting to login.");
+          sessionStorage.removeItem('uid');
+          router.push('/login');
+          return;
         }
 
         // Fetch training progress

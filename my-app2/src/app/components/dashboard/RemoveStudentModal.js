@@ -44,7 +44,7 @@ export default function RemoveStudentModal({
       onClose();
     } catch (error) {
       console.error('Error removing student:', error);
-      setErrorMessage(`Failed to remove ${userRole === 'teacher' ? 'student' : 'child'}. Please try again.`);
+      setErrorMessage(`נכשל בהסרת ה${userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}. אנא נסה/י שוב.`);
     } finally {
       setRemoving(false);
     }
@@ -53,11 +53,11 @@ export default function RemoveStudentModal({
   if (!isOpen || !student) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" dir="rtl">
       <div className="bg-white p-6 rounded-lg shadow-xl w-96">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-800">
-            Remove {userRole === 'teacher' ? 'Student' : 'Child'}
+            הסר {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}
           </h3>
           <button
             onClick={onClose}
@@ -68,14 +68,13 @@ export default function RemoveStudentModal({
         </div>
 
         {/* Student Info */}
-        <div className="mb-6">
+        <div className="mb-6 text-right">
           <div className="bg-gray-50 p-4 rounded-lg border">
-            <h4 className="font-semibold text-gray-800 mb-2">{student.name}</h4>
             
             {/* Student Stats */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Average Grade:</span>
+                <span className="text-gray-600">:ציון ממוצע</span>
                 <span className={`font-bold ${
                   student.averageGrade >= 80 ? "text-green-600" : 
                   student.averageGrade >= 60 ? "text-yellow-600" : "text-red-600"
@@ -86,8 +85,8 @@ export default function RemoveStudentModal({
               
               {Object.keys(student.grades || {}).length > 0 && (
                 <div>
-                  <span className="text-gray-600">Subjects:</span>
-                  <div className="ml-2 mt-1">
+                  <span className="text-gray-600">:מקצועות</span>
+                  <div className="mr-2 mt-1">
                     {Object.entries(student.grades).map(([subject, grade]) => (
                       <div key={subject} className="flex justify-between">
                         <span className="text-gray-500">{subject}:</span>
@@ -111,12 +110,12 @@ export default function RemoveStudentModal({
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <span className="text-red-600 mr-2">❌</span>
+                <span className="text-red-600 ml-2">❌</span>
                 <span className="text-red-800 font-medium">{errorMessage}</span>
               </div>
               <button
                 onClick={() => setErrorMessage('')}
-                className="text-red-600 hover:text-red-800 ml-2"
+                className="text-red-600 hover:text-red-800 mr-2"
               >
                 ×
               </button>
@@ -125,14 +124,14 @@ export default function RemoveStudentModal({
         )}
 
         {/* Warning Message */}
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-right">
           <div className="flex items-center mb-2">
-            <span className="text-red-600 mr-2">⚠️</span>
-            <span className="text-red-800 font-medium">Warning</span>
+            <span className="text-red-600 ml-2">⚠️</span>
+            <span className="text-red-800 font-medium">אזהרה</span>
           </div>
           <p className="text-red-700 text-sm">
-            Are you sure you want to remove this {userRole === 'teacher' ? 'student' : 'child'}? 
-            This will disconnect them from your account and you will no longer be able to track their progress.
+            האם את/ה בטוח/ה שברצונך להסיר את ה{userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'} הזה/זו?
+            פעולה זו תנתק אותם מחשבונך ולא תהיה לך עוד אפשרות לעקוב אחר התקדמותם.
           </p>
         </div>
 
@@ -143,14 +142,14 @@ export default function RemoveStudentModal({
             disabled={removing}
             className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded disabled:opacity-50"
           >
-            Cancel
+            ביטול
           </button>
           <button
             onClick={removeStudent}
             disabled={removing}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50"
           >
-            {removing ? 'Removing...' : `Remove ${userRole === 'teacher' ? 'Student' : 'Child'}`}
+            {removing ? 'מסיר...' : `הסר ${userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}`}
           </button>
         </div>
       </div>
