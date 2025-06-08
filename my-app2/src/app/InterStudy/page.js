@@ -101,18 +101,24 @@ export default function InterStudyPage() {
 
             // Fetch all questions and build a personalized session.
             const allQuestions = await getPracticeQuestions();
-            const sessionQuestions = buildPracticeSession(progressData, firstQuizScores, allQuestions);
+            const difficultyLevels = { 1: 'easy', 2: 'easy', 3: 'easy', 4: 'medium', 5: 'medium', 6: 'medium', 7: 'hard', 8: 'hard', 9: 'hard' };
+            const difficultyKey = difficultyLevels[progressData.currentSession];
+            
+            // Map the string difficulty to its corresponding number for filtering.
+            const difficultyToNumberMap = { 'easy': 1, 'medium': 2, 'hard': 3 };
+            const difficultyNumber = difficultyToNumberMap[difficultyKey];
+
+            console.log(`[InterStudy] Loading session: ${progressData.currentSession}, Difficulty: ${difficultyKey} (number: ${difficultyNumber})`);
+            
+            const sessionQuestions = buildPracticeSession(progressData, firstQuizScores, allQuestions, difficultyNumber);
             
             if (sessionQuestions.length === 0) {
-                setError(`לא נמצאו שאלות מתאימות עבורך לסשן ${progressData.currentSession}. ייתכן שסיימת את כל השאלות הזמינות.`);
+                setError(`לא נמצאו שאלות מתאימות עבורך ברמת קושי "${difficultyKey}" לסשן ${progressData.currentSession}. ייתכן שסיימת את כל השאלות הזמינות ברמה זו.`);
                 setIsLoading(false);
                 return;
             }
             
             // Determine the difficulty for the current session and set the questions.
-            const difficultyLevels = { 1: 'easy', 2: 'easy', 3: 'easy', 4: 'medium', 5: 'medium', 6: 'medium', 7: 'hard', 8: 'hard', 9: 'hard' };
-            const difficultyKey = difficultyLevels[progressData.currentSession];
-            
             setPracticeSets({ easy: [], medium: [], hard: [], [difficultyKey]: sessionQuestions });
             setTrainingProgress(progressData);
 

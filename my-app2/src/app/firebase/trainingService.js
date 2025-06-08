@@ -69,7 +69,17 @@ export async function getPracticeQuestions() {
  * Builds a personalized 10-question practice session for the user.
  * It prioritizes questions from the user's weakest subjects.
  */
-export function buildPracticeSession(trainingProgress, firstQuizScores, allQuestions) {
+export function buildPracticeSession(trainingProgress, firstQuizScores, allQuestions, difficultyNumber) {
+    console.log(`[buildPracticeSession] Building session for difficulty number: ${difficultyNumber}`);
+    
+    // First, filter all questions by the required difficulty number.
+    const questionsOfDifficulty = allQuestions.filter(q => q.difficulty === difficultyNumber);
+
+    if (questionsOfDifficulty.length === 0) {
+        console.warn(`[buildPracticeSession] No questions found for difficulty number: ${difficultyNumber}. Session will be empty.`);
+        return [];
+    }
+
     const sessionQuestions = [];
     // Sort subjects from weakest to strongest based on initial quiz scores.
     const subjectsByWeakness = Object.entries(firstQuizScores)
@@ -83,18 +93,29 @@ export function buildPracticeSession(trainingProgress, firstQuizScores, allQuest
         const subject = subjectsByWeakness[i];
         const numQuestions = questionDistribution[i] || 1;
         
-        const filteredQuestions = allQuestions.filter(q => q.subject === subject);
+        // Now, filter the already difficulty-filtered questions by subject.
+        const filteredQuestions = questionsOfDifficulty.filter(q => q.subject === subject && !sessionQuestions.some(sq => sq.id === q.id));
         const questionsToAdd = filteredQuestions.slice(0, numQuestions);
         
+        // Log each question being added to verify its difficulty
+        questionsToAdd.forEach(q => {
+            console.log(`  -> Adding question ${q.id}, subject: ${q.subject}, difficulty: ${q.difficulty}`);
+        });
+
         sessionQuestions.push(...questionsToAdd);
         questionCount += questionsToAdd.length;
     }
 
-    // If we still don't have 10 questions, fill the rest with random questions.
+    // If we still don't have 10 questions, fill with any remaining questions of the correct difficulty.
     if (sessionQuestions.length < 10) {
         const remainingNeeded = 10 - sessionQuestions.length;
-        const remainingQuestions = allQuestions.filter(q => !sessionQuestions.some(sq => sq.id === q.id));
-        sessionQuestions.push(...remainingQuestions.slice(0, remainingNeeded));
+        const remainingQuestions = questionsOfDifficulty.filter(q => !sessionQuestions.some(sq => sq.id === q.id));
+        
+        const questionsToAdd = remainingQuestions.slice(0, remainingNeeded);
+        questionsToAdd.forEach(q => {
+            console.log(`  -> (Fill) Adding question ${q.id}, subject: ${q.subject}, difficulty: ${q.difficulty}`);
+        });
+        sessionQuestions.push(...questionsToAdd);
     }
     
     return sessionQuestions.slice(0, 10);
