@@ -15,7 +15,7 @@ import {
 } from '../firebase/trainingService';
 import SessionStartScreen from '../components/interstudy-ui/SessionStartScreen';
 import SessionSummaryScreen from '../components/interstudy-ui/SessionSummaryScreen';
-import { difficultyMap } from '@/utils/constants';
+import { SESSION_CONFIG } from '@/utils/constants';
 
 /**
  * A simple controller component that wraps the Study UI with the study logic hook.
@@ -99,26 +99,28 @@ export default function InterStudyPage() {
                 return;
             }
 
-            // Fetch all questions and build a personalized session.
+            // Fetch all questions and build a personalized session using the centralized config.
             const allQuestions = await getPracticeQuestions();
-            const difficultyLevels = { 1: 'easy', 2: 'easy', 3: 'easy', 4: 'medium', 5: 'medium', 6: 'medium', 7: 'hard', 8: 'hard', 9: 'hard' };
-            const difficultyKey = difficultyLevels[progressData.currentSession];
+            const sessionConfig = SESSION_CONFIG[progressData.currentSession];
             
-            // Map the string difficulty to its corresponding number for filtering.
-            const difficultyToNumberMap = { 'easy': 1, 'medium': 2, 'hard': 3 };
-            const difficultyNumber = difficultyToNumberMap[difficultyKey];
+            if (!sessionConfig) {
+                setError(`הגדרות אימון לא נמצאו עבור סשן מספר ${progressData.currentSession}.`);
+                setIsLoading(false);
+                return;
+            }
 
+            const { key: difficultyKey, value: difficultyNumber, name: difficultyName } = sessionConfig;
             console.log(`[InterStudy] Loading session: ${progressData.currentSession}, Difficulty: ${difficultyKey} (number: ${difficultyNumber})`);
             
             const sessionQuestions = buildPracticeSession(progressData, firstQuizScores, allQuestions, difficultyNumber);
             
             if (sessionQuestions.length === 0) {
-                setError(`לא נמצאו שאלות מתאימות עבורך ברמת קושי "${difficultyKey}" לסשן ${progressData.currentSession}. ייתכן שסיימת את כל השאלות הזמינות ברמה זו.`);
+                setError(`לא נמצאו שאלות מתאימות עבורך ברמת קושי "${difficultyName}" לסשן ${progressData.currentSession}. ייתכן שסיימת את כל השאלות הזמינות ברמה זו.`);
                 setIsLoading(false);
                 return;
             }
             
-            // Determine the difficulty for the current session and set the questions.
+            // Set the questions for the current session, using the correct difficulty key.
             setPracticeSets({ easy: [], medium: [], hard: [], [difficultyKey]: sessionQuestions });
             setTrainingProgress(progressData);
 
@@ -233,7 +235,7 @@ export default function InterStudyPage() {
         return (
             <SessionStartScreen
                 sessionNumber={trainingProgress.currentSession}
-                difficulty={difficultyMap[trainingProgress.currentSession] || 'מתחילים'}
+                difficulty={SESSION_CONFIG[trainingProgress.currentSession]?.name || 'מתחילים'}
                 onStart={() => setSessionStarted(true)}
             />
         );
