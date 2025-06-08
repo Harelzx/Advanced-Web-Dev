@@ -1,7 +1,5 @@
 import { TextServiceClient } from "@google-ai/generativelanguage";
 
-const client = new TextServiceClient({apiKey: process.env.GEMINI_API_KEY,});
-{/*DEMO*/}
 function generatePromptMath(grade, weakTopics, mathUnit) {
     return `אתה מורה פרטי חכם. התלמיד לומד בכיתה ${grade}, ויש לו פערים בנושאים: ${weakTopics.join(", ")}.
   הוא לומד ברמת ${mathUnit} יחידות . צור מסלול למידה אישי של כמות ימים הגיונית לחומר הדרוש. כל יום צריך לכלול:

@@ -9,7 +9,7 @@ import { FaCheckCircle, FaRunning, FaFlagCheckered } from 'react-icons/fa';
  */
 export default function OverallProgress({ completedSessions = 0, totalSessions = 9 }) {
   // Ensure completedSessions is not greater than totalSessions
-  const validCompletedSessions = Math.min(completedSessions, totalSessions);
+  const validCompletedSessions = Math.min(totalSessions, completedSessions);
   const progressPercentage = totalSessions > 0 ? (validCompletedSessions / totalSessions) * 100 : 0;
 
   const getStatus = () => {
@@ -32,7 +32,7 @@ export default function OverallProgress({ completedSessions = 0, totalSessions =
         <div className="flex items-center justify-between mb-2 text-gray-600">
           <span className="font-semibold">{status.text}</span>
           <span className="font-bold text-lg text-indigo-600">
-            {validCompletedSessions} / {totalSessions}
+            {totalSessions} / {validCompletedSessions}
           </span>
         </div>
 

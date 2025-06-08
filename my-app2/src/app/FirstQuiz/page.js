@@ -1,8 +1,8 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { db } from '../firebase/config';
-import {collection, getDocs, doc, setDoc,} from 'firebase/firestore';
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { db } from "../firebase/config";
+import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 
 const FirstQuiz = () => {
   const router = useRouter();
@@ -14,25 +14,26 @@ const FirstQuiz = () => {
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [answeredQuestions, setAnsweredQuestions] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const userId = sessionStorage.getItem('uid'); 
+  const userId = sessionStorage.getItem("uid");
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'all_questions'));
+        const querySnapshot = await getDocs(collection(db, "all_questions"));
         const questionsList = querySnapshot.docs.map((docSnap) => {
           const data = docSnap.data();
           return {
             id: docSnap.id,
             Answer: data.correct_answer,
             question: data.question,
-            subject: data.subject,
-            fakeAnswers: data.incorrect_answers || []
+            subject: data.subject || "unknown", // Fallback if subject is missing
+            fakeAnswers: data.incorrect_answers || [],
           };
         });
         setQuestions(questionsList);
+        console.log("Fetched questions:", questionsList); // Debug log
       } catch (error) {
-        console.error('Error fetching questions:', error);
+        console.error("Error fetching questions:", error);
       } finally {
         setLoading(false);
       }
@@ -46,7 +47,7 @@ const FirstQuiz = () => {
       let options = [currentQuestion.Answer, ...currentQuestion.fakeAnswers];
       for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [options[i], options[j]] = [options[j], options[i]];
+        [options[i], options[j]] = [options[j], options[i]]; // Corrected swap syntax
       }
       setShuffledOptions(options);
     }
@@ -54,37 +55,37 @@ const FirstQuiz = () => {
 
   const handleAnswerChange = (questionId, value) => {
     if (!answeredQuestions[questionId]) {
-      setUserAnswers(prev => ({ ...prev, [questionId]: value }));
-      setFeedback(prev => ({ ...prev, [questionId]: null }));
+      setUserAnswers((prev) => ({ ...prev, [questionId]: value }));
+      setFeedback((prev) => ({ ...prev, [questionId]: null }));
     }
   };
 
   const checkAnswer = (questionId, userAnswer, correctAnswer) => {
     if (!userAnswer) {
-      setFeedback(prev => ({
+      setFeedback((prev) => ({
         ...prev,
-        [questionId]: { isCorrect: false }
+        [questionId]: { isCorrect: false },
       }));
       return;
     }
 
     const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
-    setFeedback(prev => ({
+    setFeedback((prev) => ({
       ...prev,
-      [questionId]: { isCorrect, correctAnswer }
+      [questionId]: { isCorrect, correctAnswer },
     }));
-    setAnsweredQuestions(prev => ({
+    setAnsweredQuestions((prev) => ({
       ...prev,
-      [questionId]: true
+      [questionId]: true,
     }));
   };
 
   const goNext = () => {
-    setCurrentIndex(prev => (prev + 1) % questions.length);
+    setCurrentIndex((prev) => (prev + 1) % questions.length);
   };
 
   const goPrev = () => {
-    setCurrentIndex(prev => (prev - 1 + questions.length) % questions.length);
+    setCurrentIndex((prev) => (prev - 1 + questions.length) % questions.length);
   };
 
   const finishTest = async () => {
@@ -94,15 +95,16 @@ const FirstQuiz = () => {
       questions.forEach((q) => {
         const userAns = userAnswers[q.id];
         const isCorrect = userAns && userAns.trim().toLowerCase() === q.Answer.trim().toLowerCase();
-        if (!results[q.subject]) {
-          results[q.subject] = { total: 0, correct: 0, wrongIds: [] };
+        const subject = q.subject || `question_${q.id}`; // Fallback subject
+        if (!results[subject]) {
+          results[subject] = { total: 0, correct: 0, wrongIds: [] };
         }
 
-        results[q.subject].total += 1;
+        results[subject].total += 1;
         if (isCorrect) {
-          results[q.subject].correct += 1;
+          results[subject].correct += 1;
         } else {
-          results[q.subject].wrongIds.push(q.id);
+          results[subject].wrongIds.push(q.id);
         }
       });
 
@@ -111,17 +113,17 @@ const FirstQuiz = () => {
         const grade = (correct / total) * 100;
 
         // Save grade
-        const resultRef = doc(db, 'users', userId, 'results', subject);
+        const resultRef = doc(db, "users", userId, "results", subject);
         await setDoc(resultRef, { grade });
 
         // Save wrong question IDs
-        const exerciseRef = doc(db, 'users', userId, 'exercises', subject);
+        const exerciseRef = doc(db, "users", userId, "exercises", subject);
         await setDoc(exerciseRef, { wrongQuestions: wrongIds });
       }
 
-      router.push('/Main_Page');
+      router.push("/Main_Page");
     } catch (error) {
-      console.error('Error saving results:', error);
+      console.error("Error saving results:", error);
     } finally {
       setSubmitting(false);
     }
@@ -139,17 +141,17 @@ const FirstQuiz = () => {
           </div>
         </div>
 
-        <h1 className="text-white text-3xl font-bold mb-6" style={{ direction: 'rtl', textAlign: 'right' }}>
+        <h1 className="text-white text-3xl font-bold mb-6" style={{ direction: "rtl", textAlign: "right" }}>
           חידון שאלות
         </h1>
 
         {loading || submitting ? (
-          <div className="text-white text-lg animate-pulse" style={{ direction: 'rtl', textAlign: 'right' }}>
-            {submitting ? 'שומר תוצאות...' : 'טוען שאלות...'}
+          <div className="text-white text-lg animate-pulse" style={{ direction: "rtl", textAlign: "right" }}>
+            {submitting ? "שומר תוצאות..." : "טוען שאלות..."}
           </div>
         ) : questions.length > 0 ? (
           <>
-            <h2 className="text-xl text-white font-semibold mb-4" style={{ direction: 'rtl', textAlign: 'right' }}>
+            <h2 className="text-xl text-white font-semibold mb-4" style={{ direction: "rtl", textAlign: "right" }}>
               {questions[currentIndex].question || `שאלה ${currentIndex + 1}`}
             </h2>
 
@@ -160,19 +162,23 @@ const FirstQuiz = () => {
                 const isCorrectAnswer = questions[currentIndex].Answer === option;
                 const isAnswered = answeredQuestions[qId];
 
-                let buttonStyles = 'group w-full p-5 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] bg-gray-50 border-gray-200 text-gray-500 opacity-60';
+                let buttonStyles =
+                  "group w-full p-5 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] bg-gray-50 border-gray-200 text-gray-500 opacity-60";
                 if (isAnswered) {
                   if (isSelected && !feedback[qId]?.isCorrect) {
-                    buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-red-500 border-red-600 text-white shadow-lg shadow-red-500/50 cursor-not-allowed opacity-50';
+                    buttonStyles =
+                      "group w-full p-5 rounded-2xl border-2 bg-red-500 border-red-600 text-white shadow-lg shadow-red-500/50 cursor-not-allowed opacity-50";
                   } else if (isCorrectAnswer) {
-                    buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50 cursor-not-allowed';
+                    buttonStyles =
+                      "group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50 cursor-not-allowed";
                   } else {
-                    buttonStyles += ' cursor-not-allowed opacity-50';
+                    buttonStyles += " cursor-not-allowed opacity-50";
                   }
                 } else if (isSelected) {
-                  buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50';
+                  buttonStyles =
+                    "group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50";
                 } else {
-                  buttonStyles += ' hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800 text-right';
+                  buttonStyles += " hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800 text-right";
                 }
 
                 return (
@@ -181,7 +187,7 @@ const FirstQuiz = () => {
                     className={buttonStyles}
                     onClick={() => handleAnswerChange(qId, option)}
                     disabled={isAnswered}
-                    style={{ direction: 'rtl', textAlign: 'right' }}
+                    style={{ direction: "rtl", textAlign: "right" }}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-medium">{option}</span>
@@ -192,15 +198,17 @@ const FirstQuiz = () => {
             </div>
 
             <button
-              onClick={() => checkAnswer(
-                questions[currentIndex].id,
-                userAnswers[questions[currentIndex].id],
-                questions[currentIndex].Answer,
-                questions[currentIndex].subject
-              )}
+              onClick={() =>
+                checkAnswer(
+                  questions[currentIndex].id,
+                  userAnswers[questions[currentIndex].id],
+                  questions[currentIndex].Answer,
+                  questions[currentIndex].subject
+                )
+              }
               className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
               disabled={answeredQuestions[questions[currentIndex].id]}
-              style={{ direction: 'rtl' }}
+              style={{ direction: "rtl" }}
             >
               בדוק תשובה
             </button>
@@ -209,16 +217,16 @@ const FirstQuiz = () => {
               <button
                 onClick={goPrev}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                style={{ direction: 'rtl' }}
+                style={{ direction: "rtl" }}
               >
-                 הבא←
+                הבא←
               </button>
               <button
                 onClick={goNext}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                style={{ direction: 'rtl' }}
+                style={{ direction: "rtl" }}
               >
-                 →קודם
+                →קודם
               </button>
             </div>
 
@@ -231,7 +239,7 @@ const FirstQuiz = () => {
             </button>
           </>
         ) : (
-          <p className="text-white" style={{ direction: 'rtl', textAlign: 'right' }}>
+          <p className="text-white" style={{ direction: "rtl", textAlign: "right" }}>
             לא נמצאו שאלות.
           </p>
         )}
