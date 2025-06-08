@@ -33,7 +33,6 @@ const Login = () => {
             const role = userData.role;
             sessionStorage.setItem('user', true);
             sessionStorage.setItem('uid', user.user.uid);
-            sessionStorage.setItem('Name', userData.name);
             setEmail('');
             setPassword('');
             if (role === 'teacher') {
