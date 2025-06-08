@@ -8,12 +8,15 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fetchBadges, hasBadge } from '../Logic/fetchBadges';
 import { saveBadge } from '../Logic/saveBadge';
 import BadgeNotificationModal from '../components/BadgeNotificationModal';
+import OverallProgress from '../components/mainpage-ui/OverallProgress';
+import NextPracticeCard from '../components/mainpage-ui/NextPracticeCard';
 
 export default function MainPage() {
   const [user, setUser] = useState({ fullName: 'טוען...', school: 'Braude' });
   const [grades, setGrades] = useState({});
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [trainingProgress, setTrainingProgress] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +40,16 @@ export default function MainPage() {
         } else {
           console.log("No such user document!");
           setUser({ fullName: 'משתמש לא נמצא', school: 'Braude' });
+        }
+
+        // Fetch training progress
+        const progressRef = doc(db, 'users', userId, 'training_progress', 'plan_1');
+        const progressSnap = await getDoc(progressRef);
+        if (progressSnap.exists()) {
+          setTrainingProgress(progressSnap.data());
+        } else {
+          // If no progress, set a default state to indicate the user can start session 1
+          setTrainingProgress({ currentSession: 1, completedSessions: 0 });
         }
 
         // Fetch grades
@@ -70,30 +83,26 @@ export default function MainPage() {
   }, []);
 
   return (
-    <main className="p-4 space-y-6">
+    <main className="p-4 space-y-6" dir="rtl">
       <div className="bg-white p-6 border rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Tracker Dashboard</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">לוח הבקרה שלי</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Progress Overview */}
-          <div className="bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-700">Overall Progress</h3>
-            <p className="text-gray-600">Completion Rate: <span className="font-bold text-green-600">75%</span></p>
-            <div className="w-full bg-gray-200 rounded-full h-4 mt-2">
-              <div className="bg-green-500 h-4 rounded-full" style={{ width: "75%" }}></div>
-            </div>
-          </div>
-          {/* Module Completion */}
-          <div className="bg-gray-100 p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-700">Completed Modules</h3>
-            <ul className="text-gray-600">
-              <li>Math Basics - <span className="font-bold text-green-600">Completed</span></li>
-              <li>Science Foundations - <span className="font-bold text-yellow-600">In Progress</span></li>
-              <li>Reading Skills - <span className="font-bold text-red-600">Not Started</span></li>
-            </ul>
-          </div>
+          
+          {/* Training Progress Components */}
+          {trainingProgress && (
+            <>
+              <div>
+                <NextPracticeCard sessionNumber={trainingProgress.currentSession} />
+              </div>
+              <div>
+                <OverallProgress completedSessions={trainingProgress.completedSessions} />
+              </div>
+            </>
+          )}
+
           {/* Quiz Grades by Subject */}
           <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2 justify-end">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
               <span role="img" aria-label="quiz">📊</span>
               תוצאות בחינה ראשונה
             </h3>
@@ -126,16 +135,6 @@ export default function MainPage() {
                 })
               )}
             </ul>
-          </div>
-          {/* Next Steps */}
-          <div className="bg-gray-100 p-4 rounded-lg shadow md:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-700">Next Steps</h3>
-            <p className="text-gray-600">Complete Science Foundations module by May 28, 2025.</p>
-            <Link href="/StudyModules">
-              <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                Continue Learning
-              </button>
-            </Link>
           </div>
         </div>
       </div>
