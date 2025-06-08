@@ -30,8 +30,16 @@ export function useDashboardLogic() {
             const resultsRef = collection(db, `users/${studentId}/results`);
             const resultsSnapshot = await getDocs(resultsRef);
             
-            // Calculate dynamic performance from practice sessions
+            const grades = {};
+            resultsSnapshot.forEach((doc) => {
+                const subject = doc.id;
+                const data = doc.data();
+                grades[subject] = data.grade || 0;
+            });
+
+            // Calculate dynamic performance and wrong questions from practice sessions
             const practicePerformanceData = {};
+            const wrongQuestionsData = {};
             let totalTime = 0;
             let sessionCount = 0;
 
@@ -53,46 +61,44 @@ export function useDashboardLogic() {
                         practicePerformanceData[subject].total += data.questions;
                     });
                 }
+                 if(sessionData.wrongQuestions) {
+                    Object.entries(sessionData.wrongQuestions).forEach(([subject, questions]) => {
+                        if (!wrongQuestionsData[subject]) {
+                            wrongQuestionsData[subject] = [];
+                        }
+                        wrongQuestionsData[subject].push(...questions);
+                    });
+                }
             });
             const averageTimeSpent = sessionCount > 0 ? totalTime / sessionCount : 0;
             
             const practicePerformance = Object.entries(practicePerformanceData).reduce((acc, [subject, data]) => {
-                if (data.total > 0) {
-                    acc[subject] = (data.correct / data.total) * 100;
-                } else {
-                    acc[subject] = 0;
-                }
+                acc[subject] = data.total > 0 ? (data.correct / data.total) * 100 : 0;
                 return acc;
             }, {});
 
             // Fetch overall training progress
-            const progressRef = doc(db, 'training_progress', studentId);
+            const progressRef = doc(db, 'users', studentId, 'training_progress', 'plan_1');
             const progressSnap = await getDoc(progressRef);
-            let trainingProgress = { completedSessions: 0, status: 'not_started' };
+            let trainingProgress = { completedSessions: 0, currentSession: 1 };
             if (progressSnap.exists()) {
                 trainingProgress = progressSnap.data();
             }
 
-            const grades = {};
-            resultsSnapshot.forEach((doc) => {
-                const subject = doc.id;
-                const data = doc.data();
-                grades[subject] = data.grade || 0;
-            });
-            
-            // Combine initial grades with practice data, giving precedence to practice results
+            // Combine initial grades with practice data for a full performance picture
             const combinedPerformance = { ...grades, ...practicePerformance };
             
             return {
                 id: studentId,
                 name: studentInfo.fullName || studentInfo.email || 'Unknown Student',
-                grades,
+                grades, // Keep initial test grades separate for detailed view
                 averageGrade: Object.values(grades).length > 0 
                     ? Object.values(grades).reduce((a, b) => a + b, 0) / Object.values(grades).length 
                     : 0,
                 trainingProgress,
                 averageTimeSpent,
-                practicePerformance: combinedPerformance,
+                practicePerformance: combinedPerformance, // Use combined data for summary
+                wrongQuestions: wrongQuestionsData,
             };
         } catch (error) {
             console.error('Error fetching student results:', error);
@@ -101,9 +107,10 @@ export function useDashboardLogic() {
                 name: studentInfo.fullName || 'Unknown Student',
                 grades: {},
                 averageGrade: 0,
-                trainingProgress: { completedSessions: 0, status: 'not_started' },
+                trainingProgress: { completedSessions: 0, currentSession: 1 },
                 averageTimeSpent: 0,
                 practicePerformance: {},
+                wrongQuestions: {},
             };
         }
     }, []);

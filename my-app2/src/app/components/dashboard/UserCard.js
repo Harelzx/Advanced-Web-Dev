@@ -12,9 +12,8 @@ export default function UserCard({ user, role, onRemove }) {
 
   // Common data
   const { name, averageGrade, grades, trainingProgress, practicePerformance, averageTimeSpent, wrongQuestions } = user;
-  const isTeacherView = role === 'teacher';
 
-  // Parent-specific data processing
+  // Data processing for progress bar and strengths/weaknesses
   const totalSessions = 9;
   const completionPercentage = trainingProgress?.completedSessions
     ? Math.round((trainingProgress.completedSessions / totalSessions) * 100)
@@ -38,7 +37,7 @@ export default function UserCard({ user, role, onRemove }) {
       <button
         onClick={() => onRemove(user)}
         className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs flex-shrink-0"
-        title={`הסר ${isTeacherView ? 'תלמיד/ה' : 'ילד/ה'}`}
+        title={`הסר ${role === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}`}
       >
         הסר
       </button>
@@ -48,8 +47,8 @@ export default function UserCard({ user, role, onRemove }) {
   return (
     <StatsCard title={title}>
       <div className="space-y-4">
-        {/* Training Progress (Parent View) */}
-        {!isTeacherView && trainingProgress && (
+        {/* Training Progress */}
+        {trainingProgress && (
           <div>
             <p className="font-medium text-gray-700 mb-2">התקדמות באימון</p>
             <ProgressBar percentage={completionPercentage} color="bg-blue-500" />
@@ -65,7 +64,7 @@ export default function UserCard({ user, role, onRemove }) {
           </div>
         )}
 
-        {/* Average Grade (Both Views) */}
+        {/* Average Grade */}
         <div>
           <p className="font-medium text-gray-700 mb-1">ממוצע מבחן ראשוני</p>
           <div className="flex justify-between items-center">
@@ -78,8 +77,8 @@ export default function UserCard({ user, role, onRemove }) {
           </div>
         </div>
         
-        {/* Strengths & Weaknesses (Parent View) */}
-        {!isTeacherView && (practicePerformance || averageTimeSpent > 0) && (
+        {/* Strengths, Weaknesses and Avg Time */}
+        {(practicePerformance || averageTimeSpent > 0) && (
             <div className="flex flex-wrap justify-around text-center border-t pt-4">
                 {strong && (
                   <div className="px-2">
@@ -101,8 +100,16 @@ export default function UserCard({ user, role, onRemove }) {
                 )}
             </div>
         )}
+        
+        {/* Wrong Questions Count */}
+        {wrongQuestions && Object.keys(wrongQuestions).length > 0 && (
+           <div className="mt-2 text-sm text-gray-600 border-t pt-3">
+             <span className="font-medium">שאלות שגויות: </span>
+             {Object.values(wrongQuestions).reduce((total, questions) => total + (Array.isArray(questions) ? questions.length : 0), 0)} סה"כ
+           </div>
+        )}
 
-        {/* Detailed Grades (Collapsible - Both views) */}
+        {/* Detailed Subjects Breakdown (Collapsible) */}
         {showDetails && (
           <div className="text-sm border-t pt-3 mt-3 text-right">
             <p className="font-semibold text-gray-700 mb-2">ציוני מבחן ראשוני:</p>
@@ -115,14 +122,6 @@ export default function UserCard({ user, role, onRemove }) {
               </div>
             ))}
           </div>
-        )}
-        
-        {/* Wrong Questions Count (Teacher View) */}
-        {isTeacherView && wrongQuestions && (
-           <div className="mt-2 text-sm text-gray-600 border-t pt-3">
-             <span className="font-medium">שאלות שגויות: </span>
-             {Object.values(wrongQuestions).reduce((total, questions) => total + (Array.isArray(questions) ? questions.length : 0), 0)} סה"כ
-           </div>
         )}
       </div>
     </StatsCard>
