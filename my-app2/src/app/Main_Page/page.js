@@ -4,17 +4,13 @@ import Link from 'next/link';
 import BadgeCase from '@/app/components/BadgeCase';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fetchBadges, hasBadge } from '../Logic/fetchBadges';
 import { saveBadge } from '../Logic/saveBadge';
 import BadgeNotificationModal from '../components/BadgeNotificationModal';
 
-const user = {
-  fullName: sessionStorage.getItem('Name'),
-  school: "Braude"
-};
-
 export default function MainPage() {
+  const [user, setUser] = useState({ fullName: 'טוען...', school: 'Braude' });
   const [grades, setGrades] = useState({});
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
@@ -25,7 +21,22 @@ export default function MainPage() {
         const userId = sessionStorage.getItem('uid');
         if (!userId) {
           console.error('No user ID found in sessionStorage');
+          setUser({ fullName: 'אורח', school: 'Braude' });
           return;
+        }
+
+        // Fetch user data
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUser({
+            fullName: userData.fullName || 'משתמש',
+            school: "Braude"
+          });
+        } else {
+          console.log("No such user document!");
+          setUser({ fullName: 'משתמש לא נמצא', school: 'Braude' });
         }
 
         // Fetch grades
