@@ -1,18 +1,30 @@
 "use client";
-import { FaCheck, FaTimes as FaX } from "react-icons/fa";
+import { FaCheck, FaTimes } from "react-icons/fa";
 
-export default function QuizQuestion({
+export default function StudyQuestion({
   question,
   isAnswered,
   userAnswer,
   onAnswer,
 }) {
+  // הגנה למקרה של שאלה לא תקינה
+  if (!question || !question.options || !Array.isArray(question.options) || question.options.length === 0) {
+    return (
+      <div className="p-8">
+        <div className="text-center bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="text-red-600 text-xl mb-2">⚠️ שגיאה בשאלה</div>
+          <div className="text-red-500 text-sm">השאלה לא מכילה אפשרויות תקינות</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Question */}
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-6 leading-relaxed whitespace-pre-line text-right text-gray-800 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text">
-          {question.question}
+          {question.question || 'שאלה ללא טקסט'}
         </h3>
 
         {/* Answer Options */}
@@ -55,7 +67,7 @@ export default function QuizQuestion({
                       index === userAnswer &&
                       index !== question.correct && (
                         <div className="bg-red-500 text-white rounded-full p-2 ml-3 animate-pulse">
-                          <FaX size={16} />
+                          <FaTimes size={16} />
                         </div>
                       )}
                   </div>

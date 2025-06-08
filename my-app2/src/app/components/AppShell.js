@@ -2,6 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Navbar from './Navbar';
+import ChatbotSidebar from './chatbot/ChatbotSidebar';
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
@@ -13,12 +14,15 @@ export default function AppShell({ children }) {
 
   if (!mounted) return null;
 
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/FirstQuiz') || pathname.startsWith('/sign-up');
+  // Pages where the Navbar and Chatbot should be hidden
+  const hideOnPages = ['/login', '/FirstQuiz', '/sign-up', '/dashboard'];
+  const shouldHideUI = hideOnPages.some(p => pathname.startsWith(p));
 
   return (
         <div className="min-h-screen flex">
-          {!hideNavbar && <Navbar />}
+          {!shouldHideUI && <Navbar />}
           <main className="flex-grow">{children}</main>
+          {!shouldHideUI && <ChatbotSidebar />}
         </div>
   );
 }

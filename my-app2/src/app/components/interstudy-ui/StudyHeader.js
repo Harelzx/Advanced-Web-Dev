@@ -1,16 +1,16 @@
 "use client";
-import { FaClock } from "react-icons/fa";
 
-export default function QuizHeader({
+export default function StudyHeader({
   currentQuestion,
   totalQuestions,
-  difficulty,
   difficultyConfig,
-  timeLeft,
+  sessionNumber,
 }) {
+  const difficultyText = difficultyConfig.title || "אימון";
+
   return (
     <div
-      className={`${difficultyConfig.bgColor} border-b ${difficultyConfig.borderColor} p-6`}
+      className="border-b border-gray-200/50 p-6"
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-4">
@@ -20,31 +20,16 @@ export default function QuizHeader({
               <div className="text-lg font-bold text-gray-800">
                 שאלה {currentQuestion + 1} מתוך {totalQuestions}
               </div>
-              <div
-                className={`text-sm ${difficultyConfig.textColor} font-medium`}
-              >
-                {difficulty === "easy"
-                  ? "רמה קלה"
-                  : difficulty === "moderate"
-                  ? "רמה בינונית"
-                  : "רמה קשה"}
-              </div>
+              {sessionNumber && (
+                <div
+                  className={`text-sm font-semibold bg-gradient-to-r ${difficultyConfig.color} text-transparent bg-clip-text`}
+                >
+                  אימון {sessionNumber} מתוך 9 - {difficultyText}
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {timeLeft !== null && (
-          <div
-            className={`flex items-center space-x-3 px-4 py-2 rounded-2xl ${
-              timeLeft <= 10
-                ? "bg-red-100 text-red-600 animate-pulse"
-                : "bg-blue-100 text-blue-600"
-            } transition-all duration-300`}
-          >
-            <FaClock className={timeLeft <= 10 ? "animate-spin" : ""} />
-            <span className="font-bold text-lg">{timeLeft}s</span>
-          </div>
-        )}
       </div>
 
       {/* Enhanced Progress Bar */}

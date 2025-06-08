@@ -172,7 +172,7 @@ const FirstQuiz = () => {
                 } else if (isSelected) {
                   buttonStyles = 'group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50';
                 } else {
-                  buttonStyles += ' hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800';
+                  buttonStyles += ' hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800 text-right';
                 }
 
                 return (
@@ -181,7 +181,7 @@ const FirstQuiz = () => {
                     className={buttonStyles}
                     onClick={() => handleAnswerChange(qId, option)}
                     disabled={isAnswered}
-                    style={{ direction: 'ltr', textAlign: 'left' }}
+                    style={{ direction: 'rtl', textAlign: 'right' }}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-medium">{option}</span>

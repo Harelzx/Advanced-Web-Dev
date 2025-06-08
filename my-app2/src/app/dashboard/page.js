@@ -1,85 +1,122 @@
 'use client'
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { db } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
+import { useState } from 'react';
+import { useDashboardLogic } from '../hooks/useDashboardLogic';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import TeacherView from '../components/dashboard/TeacherView';
+import ParentView from '../components/dashboard/ParentView';
+import AddStudentModal from '../components/dashboard/AddStudentModal';
+import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
 
+/**
+ * The main component for the Dashboard page.
+ * This component is responsible for the UI and layout of the dashboard.
+ * It uses the useDashboardLogic hook to handle all business logic and data fetching,
+ * keeping this component lean and focused on presentation.
+ */
 const Dashboard = () => {
-  const router = useRouter();
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // --- Logic Layer ---
+  // The hook provides all necessary data and functions.
+  const { 
+    userRole, 
+    userName, 
+    studentsData, 
+    currentUserId, 
+    loading, 
+    error, 
+    refreshData 
+  } = useDashboardLogic();
+  
+  // --- UI State Management ---
+  // State for managing the visibility of modals.
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [studentToRemove, setStudentToRemove] = useState(null);
 
-  useEffect(() => {
-    // Check if user is logged in
-    if (typeof window !== 'undefined') {
-      const isLoggedIn = sessionStorage.getItem('user');
-      if (!isLoggedIn) {
-        router.replace('/login');
-        return;
-      }
-      
-      // Fetch questions from Firestore
-      const fetchQuestions = async () => {
-        try {
-          const querySnapshot = await getDocs(collection(db, "Question"));
-          const questionsList = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setQuestions(questionsList);
-        } catch (error) {
-          console.error("Error fetching questions:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      
-      fetchQuestions();
-    }
-  }, [router]);
+  // --- Modal Handlers ---
+  const openRemoveModal = (student) => {
+    setStudentToRemove(student);
+    setShowRemoveModal(true);
+  };
 
-  return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-gray-800 p-6 rounded-lg shadow-xl mb-6">
-          <h1 className="text-white text-2xl font-bold mb-4">Questions Dashboard</h1>
+  const closeRemoveModal = () => {
+    setStudentToRemove(null);
+    setShowRemoveModal(false);
+  };
+
+  // --- Render Loading State ---
+  if (loading) {
+    return (
+      <main className="p-4 space-y-6" dir="rtl">
+        <div className="bg-white p-6 border rounded-lg shadow-lg text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-700">טוען את לוח הבקרה...</p>
         </div>
-        
-        {loading ? (
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
-            <div className="animate-pulse text-white">Loading questions...</div>
+      </main>
+    );
+  }
+
+  // --- Render Error State ---
+  if (error) {
+    return (
+      <main className="p-4 space-y-6" dir="rtl">
+        <div className="bg-white p-6 border rounded-lg shadow-lg text-center">
+          <div className="text-red-600 mb-4">
+            <span className="text-4xl">⚠️</span>
           </div>
-        ) : questions.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {questions.map(question => (
-              <div key={question.id} className="bg-gray-800 p-6 rounded-lg shadow-xl">
-                <h2 className="text-xl text-white font-semibold mb-2">
-                  {question.title || `Document ID: ${question.id}`}
-                </h2>
-                <p className="text-gray-300 mb-3">
-                  {question.description || 'No description provided'}
-                </p>
-                <div className="text-sm text-gray-400">
-                  {Object.entries(question)
-                    .filter(([key]) => !['title', 'description', 'id'].includes(key))
-                    .map(([key, value]) => (
-                      <div key={key} className="mb-1">
-                        <span className="font-medium">{key}: </span>
-                        <span>{typeof value === 'object' ? JSON.stringify(value) : value.toString()}</span>
-                      </div>
-                    ))
-                  }
-                </div>
-              </div>
-            ))}
-          </div>
+          <p className="text-red-700 font-medium mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            נסה שוב
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // --- Main Render ---
+  return (
+    <main className="p-4 space-y-6" dir="rtl">
+      <DashboardHeader userRole={userRole} userName={userName} />
+      
+      <div className="bg-white p-6 border rounded-lg shadow-lg">
+        {userRole === 'teacher' ? (
+          <TeacherView 
+            studentsData={studentsData} 
+            onAddStudent={() => setShowAddModal(true)}
+            onRemoveStudent={openRemoveModal}
+          />
+        ) : userRole === 'parent' ? (
+          <ParentView 
+            studentsData={studentsData}
+            onAddChild={() => setShowAddModal(true)}
+            onRemoveChild={openRemoveModal}
+          />
         ) : (
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
-            <p className="text-white">No questions found in the database.</p>
+          <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
+            <p className="text-gray-700">טוען את לוח הבקרה...</p>
           </div>
         )}
       </div>
-    </div>
+      
+      {/* Modals for adding/removing students */}
+      <AddStudentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        userRole={userRole}
+        userId={currentUserId}
+        onStudentAdded={refreshData}
+      />
+      <RemoveStudentModal
+        isOpen={showRemoveModal}
+        onClose={closeRemoveModal}
+        student={studentToRemove}
+        userRole={userRole}
+        userId={currentUserId}
+        onStudentRemoved={refreshData}
+      />
+    </main>
   );
 };
 
