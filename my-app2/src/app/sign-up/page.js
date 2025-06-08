@@ -10,6 +10,7 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
+  const [fullName, setFullName] = useState('');
   const [
     createUserWithEmailAndPassword,
     user,
@@ -28,6 +29,7 @@ const SignUp = () => {
       try {
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: userCredential.user.email,
+          fullName: fullName,
           role: role,
           createdAt: new Date()
         });
@@ -43,6 +45,7 @@ const SignUp = () => {
       sessionStorage.setItem('user', true);
       setEmail('');
       setPassword('');
+      setFullName('');
       setRole('student');
       router.push('/login');
     }
@@ -59,6 +62,13 @@ const SignUp = () => {
           →
         </Link>
         <h1 className="text-black text-2xl mb-5 text-right">הרשמה</h1>
+        <input
+          type="text"
+          placeholder="שם מלא"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
+        />
         <input
           type="email"
           placeholder="מייל"
@@ -80,6 +90,7 @@ const SignUp = () => {
         >
           <option value="student">תלמיד</option>
           <option value="teacher">מורה</option>
+          <option value="parent">הורה</option>
         </select>
         <button
           onClick={handleSignUp}
