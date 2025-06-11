@@ -5,6 +5,7 @@ import { auth, db } from '@/app/firebase/config';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import LoadingWheel from '../components/LoadingWheel';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -22,9 +23,9 @@ const Login = () => {
   useEffect(() => {
     const checkRoleAndRedirect = async () => {
       if (user && user.user) {
-        setRedirectLoading(true); //loading
+        setRedirectLoading(true); // Start loading
         try {
-          //get user data from firebase
+          // Get user data from Firestore
           const userDocRef = doc(db, 'users', user.user.uid);
           const userDocSnap = await getDoc(userDocRef);
 
@@ -38,20 +39,20 @@ const Login = () => {
             if (role === 'teacher' || role === 'parent') {
               router.push('/dashboard');
             } else if (role === 'student') {
-              //check if collection results exists for firstquiz
+              // Check if results collection exists for FirstQuiz
               try {
                 const resultsRef = collection(db, `users/${user.user.uid}/results`);
                 const resultsSnapshot = await getDocs(resultsRef);
                 if (resultsSnapshot.empty) {
-                  // collection doesnt exist redirect to firstquiz
+                  // Collection doesn't exist, redirect to FirstQuiz
                   router.push('/FirstQuiz');
                 } else {
-                  // results exist then go to main
+                  // Results exist, go to Main Page
                   router.push('/Main_Page');
                 }
               } catch (resultsError) {
                 console.error('Error checking results collection:', resultsError);
-                // default main-page(incase of errors etc)
+                // Default to Main Page in case of errors
                 router.push('/Main_Page');
               }
             } else {
@@ -73,23 +74,15 @@ const Login = () => {
     checkRoleAndRedirect();
   }, [user, router]);
 
-  // login click
+  // Handle login click
   const handleLogin = () => {
     setRoleError('');
     signInWithEmailAndPassword(email, password);
   };
 
-  //loading screen when redirecting
+  // Show loading wheel when redirecting
   if (redirectLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="bg-gray-800 p-10 rounded-lg shadow-xl w-96 text-center" dir="rtl">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <h2 className="text-white text-xl">מכין את החשבון שלך...</h2>
-          <p className="text-gray-300 mt-2">אנא המתן בזמן שאנו מפנים אותך.</p>
-        </div>
-      </div>
-    );
+    return <LoadingWheel title="מכין את החשבון שלך..." message="אנא המתן בזמן שאנו מפנים אותך." />;
   }
 
   return (

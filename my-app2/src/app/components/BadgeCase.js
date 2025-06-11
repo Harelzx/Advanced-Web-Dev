@@ -3,7 +3,8 @@
 import dynamic from "next/dynamic";
 import bookAnim from "../animations/book.json";
 import calendarAnim from "../animations/calendar.json";
-import mathAnim from "../animations/math.json";
+import streak from "../animations/Streak.json";
+import Explorer from "../animations/explorer.json";
 import puzzleAnim from "../animations/puzzle.json";
 import trophyAnim from "../animations/trophy.json";
 import { FaLock } from "react-icons/fa";
@@ -12,10 +13,10 @@ const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 const allBadges = [
   { 
-    label: "Math Master", 
+    label: "Explorer", 
     color: "bg-green-500", 
-    anim: mathAnim,
-    description: "Complete 10 math quizzes with a score of 90% or higher"
+    anim: Explorer,
+    description: "Explore every page in the platform"
   },
   { 
     label: "First login", 
@@ -26,26 +27,26 @@ const allBadges = [
   { 
     label: "Daily Login", 
     color: "bg-yellow-500", 
-    anim: calendarAnim,
-    description: "Log in for 7 consecutive days"
+    anim: streak,
+    description: "Log in for 3 consecutive days"
   },
   { 
-    label: "Book Worm", 
+    label: "Coming soon (Bookworm)", 
     color: "bg-purple-500", 
     anim: bookAnim,
-    description: "Read 20 articles or books in the library"
+    description: "Coming soon! Stay tuned for updates"
   },
   { 
-    label: "Champion", 
+    label: "Coming soon (Calendar Master)", 
     color: "bg-red-500", 
     anim: trophyAnim,
-    description: "Win 3 competitions in any subject"
+    description: "Coming soon! Stay tuned for updates"
   },
   { 
-    label: "Puzzle Solver", 
+    label: "Coming soon (Puzzle Master)", 
     color: "bg-pink-500", 
     anim: puzzleAnim,
-    description: "Solve 15 puzzles with no hints"
+    description: "Coming soon! Stay tuned for updates"
   },
 ];
 
