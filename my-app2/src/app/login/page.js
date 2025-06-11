@@ -82,7 +82,7 @@ const Login = () => {
 
   // Show loading wheel when redirecting
   if (redirectLoading) {
-    return <LoadingWheel title="מכין את החשבון שלך..." message="אנא המתן בזמן שאנו מפנים אותך." />;
+    return <LoadingWheel title="מכין את החשבון שלך..." message="אנא המתן בסבלנות." />;
   }
 
   return (
@@ -94,18 +94,18 @@ const Login = () => {
           placeholder="מייל" 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder:text-right ltr text-left"
         />
         <input 
           type="password" 
           placeholder="סיסמא" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder:text-right ltr text-left"
         />
         <button 
           onClick={handleLogin}
-          className="w-full p-3 bg-green-600 rounded text-white hover:bg-green-600"
+          className="roup relative flex-mid w-full p-3 bg-green-600 rounded text-white hover:bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? 'מתחבר...' : 'התחבר'}
@@ -122,6 +122,12 @@ const Login = () => {
             הרשמה
           </Link>
         </p>
+           <p className="text-black mt-3 text-sm text-right">
+            שכחת סיסמא?{' '}
+           <Link href="/ForgotPassword" className="text-indigo-400 hover:text-indigo-300">
+           שחזור
+           </Link>
+         </p>
       </div>
     </div>
   );

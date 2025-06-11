@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { db, auth } from '../firebase/config';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { recordPageVisit} from '../components/Badge/BadgeSystem';
 
 import Study from '../components/interstudy-ui/Study';
 import { useStudyLogic } from '../hooks/useStudyLogic';
@@ -66,6 +67,9 @@ export default function InterStudyPage() {
         setSessionCompleted(false);
 
         try {
+            // Record visit to InterStudy page
+            await recordPageVisit(userId, "InterStudy");
+
             // Prerequisite: Check if the user has completed the initial quiz.
             const firstQuizScores = await getFirstQuizScores(userId);
             if (Object.keys(firstQuizScores).length === 0 || Object.values(firstQuizScores).every(s => s === 0)) {
@@ -162,7 +166,7 @@ export default function InterStudyPage() {
         }
     }, [user, trainingProgress, practiceSets]);
 
-    // Effect to trigger data loading once the user is authenticated.
+    // Effect to trigger data loading and page visit recording once the user is authenticated.
     useEffect(() => {
         if (user) {
             loadTrainingData(user.uid);
@@ -174,15 +178,16 @@ export default function InterStudyPage() {
 
     if (isLoading || authLoading) {
         return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex justify-center items-center h-screen" dir="rtl">
                 <div className="loader"></div>
+                <p className="mr-4">טוען...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex justify-center items-center h-screen text-red-500 bg-red-50 p-4 rounded-lg">
+            <div className="flex justify-center items-center h-screen text-red-500 bg-red-50 p-4 rounded-lg" dir="rtl">
                 <p>{error}</p>
             </div>
         );
@@ -204,9 +209,9 @@ export default function InterStudyPage() {
 
     if (!trainingProgress) {
          return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex justify-center items-center h-screen" dir="rtl">
                  <div className="loader"></div>
-                 <p className="ml-4">טוען נתוני אימון...</p>
+                 <p className="mr-4">טוען נתוני אימון...</p>
             </div>
         );
     }
@@ -214,7 +219,7 @@ export default function InterStudyPage() {
     // Render flow for a logged-in user with loaded progress.
     if (trainingProgress.status === 'completed') {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 text-green-800 p-4">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 text-green-800 p-4" dir="rtl">
                 <h2 className="text-3xl font-bold mb-4">כל הכבוד!</h2>
                 <p>סיימת בהצלחה את כל תוכנית האימונים.</p>
             </div>

@@ -15,7 +15,7 @@ export default function AppShell({ children }) {
   if (!mounted) return null;
 
   // Pages where the Navbar and Chatbot should be hidden
-  const hideOnPages = ['/login', '/FirstQuiz', '/sign-up', '/dashboard'];
+  const hideOnPages = ['/login', '/FirstQuiz', '/sign-up', '/dashboard', '/ForgotPassword'];
   const shouldHideUI = hideOnPages.some(p => pathname.startsWith(p));
 
   return (

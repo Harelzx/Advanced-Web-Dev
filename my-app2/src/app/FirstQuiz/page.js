@@ -10,10 +10,8 @@ const FirstQuiz = () => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userAnswers, setUserAnswers] = useState({});
-  const [feedback, setFeedback] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffledOptions, setShuffledOptions] = useState([]);
-  const [answeredQuestions, setAnsweredQuestions] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const userId = sessionStorage.getItem("uid");
 
@@ -55,33 +53,16 @@ const FirstQuiz = () => {
   }, [currentIndex, questions]);
 
   const handleAnswerChange = (questionId, value) => {
-    if (!answeredQuestions[questionId]) {
-      setUserAnswers((prev) => ({ ...prev, [questionId]: value }));
-      setFeedback((prev) => ({ ...prev, [questionId]: null }));
-    }
-  };
-
-  const checkAnswer = (questionId, userAnswer, correctAnswer) => {
-    if (!userAnswer) {
-      setFeedback((prev) => ({
-        ...prev,
-        [questionId]: { isCorrect: false },
-      }));
-      return;
-    }
-
-    const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
-    setFeedback((prev) => ({
-      ...prev,
-      [questionId]: { isCorrect, correctAnswer },
-    }));
-    setAnsweredQuestions((prev) => ({
-      ...prev,
-      [questionId]: true,
-    }));
+    setUserAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
   const finishTest = async () => {
+    // Validate all questions are answered
+    if (Object.keys(userAnswers).length < questions.length) {
+      alert("אנא ענה על כל השאלות לפני סיום המבחן");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const results = {};
@@ -124,7 +105,7 @@ const FirstQuiz = () => {
     setCurrentIndex(index);
   };
 
-  const totalAnswered = Object.keys(answeredQuestions).length;
+  const totalAnswered = Object.keys(userAnswers).length;
   const totalQuestions = questions.length;
 
   if (submitting) {
@@ -137,8 +118,8 @@ const FirstQuiz = () => {
         {/* Question Navigation Grid (Left Side) */}
         <div className="w-1/4 bg-gray-200 p-4 rounded-l-xl flex flex-col items-center">
           <h2 className="text-blue-700 text-xl font-bold mb-4" style={{ direction: "rtl" }}>
-           מפת שאלות 
-            </h2>
+            מפת שאלות
+          </h2>
           <div className="grid grid-cols-5 gap-2">
             {Array.from({ length: totalQuestions }, (_, i) => (
               <button
@@ -147,8 +128,8 @@ const FirstQuiz = () => {
                 className={`w-12 h-12 border-2 rounded flex items-center justify-center ${
                   currentIndex === i
                     ? "bg-blue-500 text-white border-blue-700"
-                    : answeredQuestions[questions[i]?.id]
-                    ? "bg-gray-500 text-white border-gray-700"
+                    : userAnswers[questions[i]?.id]
+                    ? "bg-green-500 text-white border-green-600"
                     : "bg-white text-black border-gray-300"
                 }`}
                 style={{ direction: "rtl" }}
@@ -183,34 +164,18 @@ const FirstQuiz = () => {
                 {shuffledOptions.map((option, index) => {
                   const qId = questions[currentIndex].id;
                   const isSelected = userAnswers[qId] === option;
-                  const isCorrectAnswer = questions[currentIndex].Answer === option;
-                  const isAnswered = answeredQuestions[qId];
 
-                  let buttonStyles =
-                    "group w-full p-5 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] bg-gray-50 border-gray-200 text-gray-500 opacity-60";
-                  if (isAnswered) {
-                    if (isSelected && !feedback[qId]?.isCorrect) {
-                      buttonStyles =
-                        "group w-full p-5 rounded-2xl border-2 bg-red-500 border-red-600 text-white shadow-lg shadow-red-500/50 cursor-not-allowed opacity-50";
-                    } else if (isCorrectAnswer) {
-                      buttonStyles =
-                        "group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50 cursor-not-allowed";
-                    } else {
-                      buttonStyles += " cursor-not-allowed opacity-50";
-                    }
-                  } else if (isSelected) {
-                    buttonStyles =
-                      "group w-full p-5 rounded-2xl border-2 bg-emerald-500 border-emerald-600 text-white shadow-lg shadow-emerald-500/50";
-                  } else {
-                    buttonStyles += " hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-800 text-right";
-                  }
+                  const buttonStyles = `group w-full p-5 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] text-right ${
+                    isSelected
+                      ? "bg-green-100 border-green-600 text-green-800 shadow-lg shadow-green-500/50"
+                      : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-green-50 hover:border-green-400 hover:text-green-800"
+                  }`;
 
                   return (
                     <button
                       key={index}
                       className={buttonStyles}
                       onClick={() => handleAnswerChange(qId, option)}
-                      disabled={isAnswered}
                       style={{ direction: "rtl", textAlign: "right" }}
                     >
                       <div className="flex items-center justify-between">
@@ -220,22 +185,6 @@ const FirstQuiz = () => {
                   );
                 })}
               </div>
-
-              <button
-                onClick={() =>
-                  checkAnswer(
-                    questions[currentIndex].id,
-                    userAnswers[questions[currentIndex].id],
-                    questions[currentIndex].Answer,
-                    questions[currentIndex].subject
-                  )
-                }
-                className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
-                disabled={answeredQuestions[questions[currentIndex].id]}
-                style={{ direction: "rtl" }}
-              >
-                בדוק תשובה
-              </button>
 
               <button
                 onClick={finishTest}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { db, auth } from '../firebase/config';
 import { doc, getDoc, updateDoc, collection, getDocs, setDoc } from 'firebase/firestore';
+import { recordPageVisit} from '../components/Badge/BadgeSystem';
 import loadingAnimation from "../animations/Loading.json";
 import dynamic from 'next/dynamic';
 
@@ -26,86 +27,89 @@ export default function PersonalizedPath() {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-useEffect(() => {
-  async function fetchLearningPath() {
-    const userId = typeof window !== 'undefined' ? sessionStorage.getItem('uid') : null;
 
-    if (!userId) {
-      console.log("No user ID found in session storage.");
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    async function fetchLearningPath() {
+      const userId = typeof window !== 'undefined' ? sessionStorage.getItem('uid') : null;
 
-    try {
-      // בדיקה אם כבר שמור מסלול
-      const pathRef = collection(db, 'users', userId, 'learningPath');
-      const pathSnapshot = await getDocs(pathRef);
-
-      if (!pathSnapshot.empty) {
-        const existingPath = pathSnapshot.docs.map(doc => doc.data());
-        setLearningPath(existingPath);
-        console.log('Loaded saved learning path from Firestore');
-        setTimeout(() => setLoading(false), 2000);
+      if (!userId) {
+        console.log("No user ID found in session storage.");
+        setLoading(false);
         return;
       }
 
-      // שליפת תוצאות אבחון
-      const resultsRef = collection(db, 'users', userId, 'results');
-      const resultDocs = await getDocs(resultsRef);
+      try {
+        // Record visit to PersonalizedPath page
+        await recordPageVisit(userId, "PersonalizedPath");
 
-      const quizResults = [];
-      resultDocs.forEach(docSnap => {
-        const subject = docSnap.id;
-        const data = docSnap.data();
-        if (typeof data.grade === 'number' && data.grade < 100) {
-          quizResults.push({
-            topic: subject,
-            grade: data.grade
-          });
+        // בדיקה אם כבר שמור מסלול
+        const pathRef = collection(db, 'users', userId, 'learningPath');
+        const pathSnapshot = await getDocs(pathRef);
+
+        if (!pathSnapshot.empty) {
+          const existingPath = pathSnapshot.docs.map(doc => doc.data());
+          setLearningPath(existingPath);
+          console.log('Loaded saved learning path from Firestore');
+          setTimeout(() => setLoading(false), 2000);
+          return;
         }
-      });
 
-      if (quizResults.length === 0) {
+        // שליפת תוצאות אבחון
+        const resultsRef = collection(db, 'users', userId, 'results');
+        const resultDocs = await getDocs(resultsRef);
+
+        const quizResults = [];
+        resultDocs.forEach(docSnap => {
+          const subject = docSnap.id;
+          const data = docSnap.data();
+          if (typeof data.grade === 'number' && data.grade < 100) {
+            quizResults.push({
+              topic: subject,
+              grade: docSnap.data().grade
+            });
+          }
+        });
+
+        if (quizResults.length === 0) {
+          setLearningPath([]);
+          setTimeout(() => setLoading(false), 2000);
+          return;
+        }
+
+        // שליחת הבקשה ל־API
+        const result = await fetch('/api/generatePath', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quizResults }),
+        });
+
+        if (!result.ok) {
+          throw new Error(`API returned ${result.status}`);
+        }
+
+        const generatedPath = await result.json();
+        setLearningPath(generatedPath);
+
+        // שמירת המסלול החדש
+        await Promise.all(
+          generatedPath.map((item, index) =>
+            setDoc(doc(pathRef, String(index)), {
+              ...item,
+              createdAt: new Date()
+            })
+          )
+        );
+
+        setTimeout(() => setLoading(false), 2000);
+      } catch (err) {
+        console.error("Error in fetchLearningPath:", err);
         setLearningPath([]);
         setTimeout(() => setLoading(false), 2000);
-        return;
       }
-
-      // שליחת הבקשה ל־API
-      const result = await fetch('/api/generatePath', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizResults }),
-      });
-
-      if (!result.ok) {
-        throw new Error(`API returned ${result.status}`);
-      }
-
-      const generatedPath = await result.json();
-      setLearningPath(generatedPath);
-
-
-      // שמירת המסלול החדש
-      await Promise.all(
-        generatedPath.map((item, index) =>
-          setDoc(doc(pathRef, String(index)), {
-            ...item,
-            createdAt: new Date()
-          })
-        )
-      );
-
-      setTimeout(() => setLoading(false), 2000);
-    } catch (err) {
-      console.error("Error in fetchLearningPath:", err);
-      setLearningPath([]);
-      setTimeout(() => setLoading(false), 2000);
     }
-  }
 
-  fetchLearningPath();
-}, []);
+    fetchLearningPath();
+  }, []);
 
 
   // Load completed steps from localStorage
@@ -140,7 +144,7 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6" dir="rtl">
         <div className="bg-gray-50 rounded-3xl shadow-lg p-8 text-center max-w-md w-full">
           <div className="w-32 h-32 mb-6 mx-auto">
             <Lottie animationData={loadingAnimation} loop={true} autoplay={true} />
@@ -154,8 +158,8 @@ useEffect(() => {
 
   return (
     <>
-      <div className="min-h-screen bg-white">
-        <main className="max-w-6xl mx-auto p-6 space-y-8" dir="rtl">
+      <div className="min-h-screen bg-white" dir="rtl">
+        <main className="max-w-6xl mx-auto p-6 space-y-8">
           {/* Header Section */}
           <div className="text-center py-12">
 
@@ -348,7 +352,7 @@ useEffect(() => {
         {showScrollTop && (
           <button
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
+            className="fixed bottom-8 left-8 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
             aria-label="חזור למעלה"
           >
             ↑
