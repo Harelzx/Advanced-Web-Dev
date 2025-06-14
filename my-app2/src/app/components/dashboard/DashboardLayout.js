@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import Button from "../Button";
 
 const DashboardLayout = ({ children, userName, headerText, layoutType = "default", showRole = true, showRefreshButton = true, roleLabel = "תפקיד" }) => {
   // Define layout classes based on layoutType
@@ -38,9 +40,9 @@ const DashboardLayout = ({ children, userName, headerText, layoutType = "default
             </div>
           )}
           {showRefreshButton && (
-            <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+            <Button>
               ← רענן נתונים
-            </button>
+            </Button>
           )}
         </div>
         {children}

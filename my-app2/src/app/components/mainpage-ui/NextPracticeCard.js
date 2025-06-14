@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
 import { SESSION_CONFIG } from '@/utils/constants';
+import Button from '../Button';
 
 /**
  * A card that shows the user's next practice session and a button to start it.
@@ -29,10 +30,10 @@ export default function NextPracticeCard({ sessionNumber }) {
       </p>
       
       <Link href="/InterStudy">
-        <button className="w-full bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600 transition-transform transform hover:scale-105 duration-300 flex items-center justify-center gap-2">
+        <Button className="font-bold transition-transform transform hover:scale-105 duration-300 gap-2">
           <span>להתחלת התרגול</span>
           <FaArrowLeft />
-        </button>
+        </Button>
       </Link>
     </div>
   );

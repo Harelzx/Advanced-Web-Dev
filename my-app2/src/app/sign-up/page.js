@@ -1,10 +1,12 @@
-'use client'
+'use client';
 import { useState, useEffect } from 'react';
 import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/app/firebase/config';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Button from '../components/Button';
+import Input from '../components/Input'; 
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +17,7 @@ const SignUp = () => {
     createUserWithEmailAndPassword,
     user,
     loading,
-    error
+    error,
   ] = useCreateUserWithEmailAndPassword(auth);
 
   const router = useRouter();
@@ -31,7 +33,7 @@ const SignUp = () => {
           email: userCredential.user.email,
           fullName: fullName,
           role: role,
-          createdAt: new Date()
+          createdAt: new Date(),
         });
       } catch (err) {
         console.error("שגיאה בהוספת נתוני משתמש: ", err);
@@ -58,30 +60,31 @@ const SignUp = () => {
     <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
       <div className="bg-white p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
         {/* Back to login arrow */}
-        <Link href="/" className="absolute right-4 top-4 text-black text-2xl hover:text-indigo-400" aria-label="חזרה להתחברות">
+        <Link
+          href="/"
+          className="absolute right-4 top-4 text-black text-2xl hover:text-indigo-400"
+          aria-label="חזרה להתחברות"
+        >
           →
         </Link>
         <h1 className="text-black text-2xl mb-5 text-right">הרשמה</h1>
-        <input
+        <Input
           type="text"
           placeholder="שם מלא"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
         />
-        <input
+        <Input
           type="email"
           placeholder="מייל"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
         />
-        <input
+        <Input
           type="password"
           placeholder="סיסמא"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 text-right"
         />
         <select
           value={role}
@@ -92,13 +95,9 @@ const SignUp = () => {
           <option value="teacher">מורה</option>
           <option value="parent">הורה</option>
         </select>
-        <button
-          onClick={handleSignUp}
-          className="roup relative flex-mid w-full p-3 bg-green-600 rounded text-white hover:bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-          disabled={loading}
-        >
+        <Button onClick={handleSignUp} loading={loading} className="w-full">
           {loading ? 'נרשם...' : 'הירשם'}
-        </button>
+        </Button>
         {error && (
           <p className="text-red-400 mt-2 text-right">{error.message}</p>
         )}

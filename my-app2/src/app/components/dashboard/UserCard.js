@@ -53,7 +53,7 @@ export default function UserCard({ user, role, onRemove }) {
             <p className="font-medium text-gray-700 mb-2">התקדמות באימון</p>
             <ProgressBar percentage={completionPercentage} color="bg-blue-500" />
             <div className="flex justify-between items-center mt-1 text-sm text-gray-600">
-              <span>{trainingProgress.completedSessions || 0} / {totalSessions} מפגשים</span>
+              <span>{totalSessions || 0} / {trainingProgress.completedSessions} מפגשים</span>
               <span className="font-bold text-blue-600">{completionPercentage}%</span>
             </div>
             {lastActivityDate && (
