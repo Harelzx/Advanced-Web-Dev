@@ -20,3 +20,4 @@ export const db = getFirestore(app);
 export default app;
 
 export const GEMINI_API_KEY = "AIzaSyAlg1yOw7XYs7vT2UtWMWu5CvAGPjiE2V4";
+export const YOUTUBE_API_KEY = "AIzaSyA1oPMrqyK8JhF09MkMGtE_0v-I-2STeDI";
