@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import ChatbotSidebar from './chatbot/ChatbotSidebar';
+import FloatingThemeToggle from './ThemeToggle';
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
@@ -19,10 +20,11 @@ export default function AppShell({ children }) {
   const shouldHideUI = hideOnPages.some(p => pathname.startsWith(p));
 
   return (
-        <div className="min-h-screen flex">
-          {!shouldHideUI && <Navbar />}
-          <main className="flex-grow">{children}</main>
-          {!shouldHideUI && <ChatbotSidebar />}
-        </div>
+    <div className="min-h-screen flex">
+      {!shouldHideUI && <Navbar />}
+      <main className="flex-grow">{children}</main>
+      {!shouldHideUI && <ChatbotSidebar />}
+      <FloatingThemeToggle />
+    </div>
   );
 }

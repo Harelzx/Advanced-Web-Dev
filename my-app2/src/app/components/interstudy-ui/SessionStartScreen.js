@@ -3,7 +3,7 @@
 export default function SessionStartScreen({ sessionNumber, difficulty, onStart }) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4" dir="rtl">
-            <div className="max-w-2xl w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">
+            <div className="max-w-2xl w-full panels/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">
                 <div className="text-5xl mb-4">🚀</div>
                 <h1 className="text-4xl font-bold text-gray-800 mb-2">תרגול מספר {sessionNumber}</h1>
                 <p className="text-xl text-gray-600 mb-6">רמת קושי: <span className="font-semibold text-indigo-600">{difficulty}</span></p>

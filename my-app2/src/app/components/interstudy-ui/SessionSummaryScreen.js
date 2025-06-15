@@ -7,7 +7,7 @@ export default function SessionSummaryScreen({ results, completedSessions, nextS
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4" dir="rtl">
-            <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">
+            <div className="max-w-md w-full panels/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">
                 <div className="text-6xl mb-4">🎉</div>
                 <h2 className="text-3xl font-bold mb-4 text-gray-800">כל הכבוד!</h2>
                 <p className="text-lg text-gray-700 mb-6">

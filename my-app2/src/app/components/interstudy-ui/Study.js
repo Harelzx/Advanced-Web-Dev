@@ -61,7 +61,7 @@ export default function Study({
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="max-w-4xl w-full">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="panels/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
             <StudyHeader
               currentQuestion={currentQuestion}
               totalQuestions={totalQuestions}

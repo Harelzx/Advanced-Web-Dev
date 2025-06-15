@@ -12,7 +12,7 @@ import Button from '../Button';
 export default function NextPracticeCard({ sessionNumber }) {
   if (!sessionNumber || sessionNumber > 9) {
     return (
-      <div className="bg-gray-100 p-4 rounded-lg shadow w-full h-full flex flex-col items-center justify-center text-center" dir="rtl">
+      <div className="panels p-4 rounded-lg shadow w-full h-full flex flex-col items-center justify-center text-center" dir="rtl">
         <h3 className="text-lg font-semibold text-gray-700 mb-2">סיימת את כל התרגולים!</h3>
         <p className="text-gray-600">כל הכבוד על ההתמדה וההישג המרשים.</p>
       </div>
@@ -23,7 +23,7 @@ export default function NextPracticeCard({ sessionNumber }) {
   const difficultyName = config?.name || 'לא ידוע';
   
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow w-full h-full flex flex-col" dir="rtl">
+    <div className="panels p-4 rounded-lg shadow w-full h-full flex flex-col border border-gray-200 dark:border-black" dir="rtl">
       <h3 className="text-lg font-semibold text-gray-700 mb-2">התרגול הבא שלך</h3>
       <p className="text-gray-600 mb-4 flex-grow">
         תרגול מספר <span className="font-bold">{sessionNumber}</span> - רמת קושי: <span className="font-bold">{difficultyName}</span>

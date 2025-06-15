@@ -37,11 +37,11 @@ export default function TeacherView({ studentsData = [], onAddStudent, onRemoveS
         {/* Students List */}
         <div className="md:col-span-2">
           <StatsCard>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold text-gray-700">ביצועי תלמידים</h3>
+            <div className="panels flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold panels">ביצועי תלמידים</h3>
               <button
                 onClick={() => setIsStudentListCollapsed(!isStudentListCollapsed)}
-                className="flex items-center gap-2 px-3 py-1 text-sm bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors text-gray-800"
+                className="flex items-center gap-2 px-3 py-1 text-sm panels border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors text-gray-800"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff', borderColor: '#d1d5db' }}
               >
                 <span>{isStudentListCollapsed ? 'הרחב' : 'כווץ'}</span>
@@ -66,7 +66,7 @@ export default function TeacherView({ studentsData = [], onAddStudent, onRemoveS
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">עדיין לא שויכו תלמידים.</p>
+                    <p className="panels mb-4">עדיין לא שויכו תלמידים.</p>
                     <button
                       onClick={onAddStudent}
                       className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"

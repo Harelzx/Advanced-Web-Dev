@@ -143,7 +143,7 @@ const ChatInput = ({ onSendMessage, isLoading, onToggleMathKeyboard, isMathKeybo
   };
 
   return (
-    <div className={`border-t border-gray-200 p-4 bg-white ${isMathKeyboardOpen ? 'absolute bottom-0 w-96' : 'relative'}`}>
+    <div className={`border-t border-gray-200 p-4 panels ${isMathKeyboardOpen ? 'absolute bottom-0 w-96' : 'relative'}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex gap-2">
           <button
@@ -167,7 +167,7 @@ const ChatInput = ({ onSendMessage, isLoading, onToggleMathKeyboard, isMathKeybo
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="שאל שאלה במתמטיקה..."
-            className="flex-1 min-h-[40px] max-h-[120px] p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
+            className="flex-1 min-h-[40px] max-h-[120px] p-3 border panels rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
             dir="rtl"
             disabled={isLoading}
           />
@@ -194,7 +194,7 @@ const ChatInput = ({ onSendMessage, isLoading, onToggleMathKeyboard, isMathKeybo
                   className={`px-3 py-1 text-xs rounded-md whitespace-nowrap transition-colors ${
                     activeCategory === key
                       ? 'bg-blue-500 text-white'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                      : 'panels text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   {category.name}
@@ -208,7 +208,7 @@ const ChatInput = ({ onSendMessage, isLoading, onToggleMathKeyboard, isMathKeybo
                   key={index}
                   type="button"
                   onClick={() => insertMathSymbol(item.insert, item.cursorOffset)}
-                  className="p-2 bg-white hover:bg-blue-50 hover:border-blue-300 rounded border text-sm font-mono transition-colors min-h-[40px] flex items-center justify-center"
+                  className="p-2 panels hover:bg-blue-50 hover:border-blue-300 rounded border text-sm font-mono transition-colors min-h-[40px] flex items-center justify-center"
                   title={item.symbol}
                 >
                   <span className="text-lg">{item.display}</span>

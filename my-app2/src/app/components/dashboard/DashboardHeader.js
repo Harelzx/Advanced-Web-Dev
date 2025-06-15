@@ -17,7 +17,7 @@ export default function DashboardHeader({ userRole, userName }) {
   };
 
   return (
-    <div className="bg-white p-6 border rounded-lg shadow-lg" dir="rtl">
+    <div className="panels p-6 border-white rounded-lg shadow-lg" dir="rtl">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">

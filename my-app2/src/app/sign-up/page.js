@@ -58,7 +58,7 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
-      <div className="bg-white p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
+      <div className="panels p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
         {/* Back to login arrow */}
         <Link
           href="/"

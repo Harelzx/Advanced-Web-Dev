@@ -89,7 +89,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
-      <div className="bg-white p-10 rounded-lg shadow-xl w-96" dir="rtl">
+      <div className="panels p-10 rounded-lg shadow-xl w-96" dir="rtl">
         <h1 className="text-black text-2xl mb-5 text-right">התחברות</h1>
         <Input
           type="email"

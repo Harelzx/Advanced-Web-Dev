@@ -237,7 +237,7 @@ const ChatbotSidebar = () => {
         <div className="fixed inset-0 bg-transparent z-40 pointer-events-none" />
       )}
 
-      <div className={`fixed top-0 right-0 h-[calc(100vh-48px)] w-96 bg-white shadow-xl z-50 transform transition-transform duration-300 ${
+      <div className={`fixed top-0 right-0 h-[calc(100vh-48px)] w-96 panels shadow-xl z-50 transform transition-transform duration-300 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="flex items-center justify-between p-4 mt-4 bg-blue-500 rounded-t-lg mx-2 border-b border-gray-200" dir="rtl">
@@ -271,7 +271,7 @@ const ChatbotSidebar = () => {
               <div className="text-4xl mb-4">🎓</div>
               <p className="text-lg font-medium mb-2">ברוך הבא למורה המתמטיקה המתקדם!</p>
               <p className="text-sm mb-2">שאל שאלות במתמטיקה ברמת 3 יחידות</p>
-              <div className="text-xs text-gray-400 bg-gray-50 rounded p-2 mt-4">
+              <div className="text-xs panels rounded p-2 mt-4">
                 <p className="mb-1">🔍 הבוט מזהה שגיאות הקלדה אוטומטית</p>
                 <p className="mb-1">📊 מנתח רמת קושי וסוג שאלות</p>
                 <p>🧠 זוכר הקשר קודם לתשובות מדויקות יותר</p>

@@ -113,7 +113,7 @@ const FirstQuiz = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white-900 flex items-center justify-center p-6">
+    <div className="min-h-screen panels-900 flex items-center justify-center p-6">
       <div className="flex w-full max-w-6xl">
         {/* Question Navigation Grid (Left Side) */}
         <div className="w-1/4 bg-gray-200 p-4 rounded-l-xl flex flex-col items-center">
@@ -130,7 +130,7 @@ const FirstQuiz = () => {
                     ? "bg-blue-500 text-white border-blue-700"
                     : userAnswers[questions[i]?.id]
                     ? "bg-green-500 text-white border-green-600"
-                    : "bg-white text-black border-gray-300"
+                    : "panels text-black border-gray-300"
                 }`}
                 style={{ direction: "rtl" }}
               >

@@ -109,7 +109,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
+      <div className="panels p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-800">
             הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}
@@ -160,7 +160,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoFocus
-            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 bg-white text-right"
+            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 panels text-right"
             style={{ color: '#111827', backgroundColor: '#ffffff' }}
           />
         </div>

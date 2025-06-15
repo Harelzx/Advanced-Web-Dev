@@ -144,7 +144,7 @@ export default function PersonalizedPath() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6" dir="rtl">
+      <div className="min-h-screen panels flex flex-col items-center justify-center p-6" dir="rtl">
         <div className="bg-gray-50 rounded-3xl shadow-lg p-8 text-center max-w-md w-full">
           <div className="w-32 h-32 mb-6 mx-auto">
             <Lottie animationData={loadingAnimation} loop={true} autoplay={true} />
@@ -158,7 +158,7 @@ export default function PersonalizedPath() {
 
   return (
     <>
-      <div className="min-h-screen bg-white" dir="rtl">
+      <div className="min-h-screen panels" dir="rtl">
         <main className="max-w-6xl mx-auto p-6 space-y-8">
           {/* Header Section */}
           <div className="text-center py-12">
@@ -174,7 +174,7 @@ export default function PersonalizedPath() {
           {learningPath && learningPath.length > 0 ? (
             <div className="space-y-8">
               {/* Progress Bar */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div className="panels rounded-2xl p-6 shadow-lg border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800">התקדמות במסלול</h3>
                   <div className="flex items-center space-x-4 space-x-reverse">
@@ -207,7 +207,7 @@ export default function PersonalizedPath() {
                 return (
                 <div 
                   key={index} 
-                  className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border ${
+                  className={`group relative panels rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border ${
                     isCompleted ? 'border-green-300 bg-green-50' : 'border-gray-100'
                   }`}
                 >
@@ -217,7 +217,7 @@ export default function PersonalizedPath() {
                     className={`absolute top-6 left-6 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all z-10 ${
                       isCompleted 
                         ? 'bg-green-500 border-green-500 text-white' 
-                        : 'border-gray-300 hover:border-green-400 bg-white'
+                        : 'border-gray-300 hover:border-green-400 panels'
                     }`}
                   >
                     {isCompleted && <span className="text-sm">✓</span>}
@@ -333,7 +333,7 @@ export default function PersonalizedPath() {
             </div>
           ) : (
             <div className="text-center py-20">
-              <div className="bg-white rounded-2xl shadow-xl p-12 max-w-md mx-auto">
+              <div className="panels rounded-2xl shadow-xl p-12 max-w-md mx-auto">
                 <div className="text-6xl mb-6">🔍</div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">לא נמצא מסלול למידה</h3>
                 <p className="text-gray-600 mb-6">נראה שעדיין לא ביצעת את מבחני האבחון הנדרשים</p>

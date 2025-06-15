@@ -48,7 +48,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <main className="p-4 space-y-6" dir="rtl">
-        <div className="bg-white p-6 border rounded-lg shadow-lg text-center">
+        <div className="panels p-6 border rounded-lg shadow-lg text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-700">טוען את לוח הבקרה...</p>
         </div>
@@ -60,7 +60,7 @@ const Dashboard = () => {
   if (error) {
     return (
       <main className="p-4 space-y-6" dir="rtl">
-        <div className="bg-white p-6 border rounded-lg shadow-lg text-center">
+        <div className="panels p-6 border rounded-lg shadow-lg text-center">
           <div className="text-red-600 mb-4">
             <span className="text-4xl">⚠️</span>
           </div>
@@ -81,7 +81,7 @@ const Dashboard = () => {
     <main className="p-4 space-y-6" dir="rtl">
       <DashboardHeader userRole={userRole} userName={userName} />
       
-      <div className="bg-white p-6 border rounded-lg shadow-lg">
+      <div className="panels p-6 border rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
           <TeacherView 
             studentsData={studentsData} 
@@ -95,7 +95,7 @@ const Dashboard = () => {
             onRemoveChild={openRemoveModal}
           />
         ) : (
-          <div className="bg-gray-100 p-4 rounded-lg shadow text-center">
+          <div className="panels p-4 rounded-lg shadow text-center">
             <p className="text-gray-700">טוען את לוח הבקרה...</p>
           </div>
         )}

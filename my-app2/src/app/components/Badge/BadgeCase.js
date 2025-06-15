@@ -61,7 +61,7 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
   };
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow" dir="rtl">
+    <div className="panels p-4 rounded-lg shadow" dir="rtl">
       <div className="mb-6 text-center text-stone-700">
       </div>
       <h3 className="text-xl font-bold mb-6 text-stone-800 text-center">תגים שהושגו</h3>

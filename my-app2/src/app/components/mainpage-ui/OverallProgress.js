@@ -25,7 +25,7 @@ export default function OverallProgress({ completedSessions = 0, totalSessions =
   const status = getStatus();
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow w-full h-full flex flex-col" dir="rtl">
+    <div className="panels p-4 rounded-lg shadow w-full h-full flex flex-col" dir="rtl">
       <h3 className="text-lg font-semibold text-gray-700 mb-4">ההתקדמות שלי</h3>
       
       <div className="flex-grow">

@@ -103,10 +103,10 @@ export default function UserCard({ user, role, onRemove }) {
         
         {/* Wrong Questions Count */}
         {wrongQuestions && Object.keys(wrongQuestions).length > 0 && (
-           <div className="mt-2 text-sm text-gray-600 border-t pt-3">
-             <span className="font-medium">שאלות שגויות: </span>
-             {Object.values(wrongQuestions).reduce((total, questions) => total + (Array.isArray(questions) ? questions.length : 0), 0)} סה"כ
-           </div>
+          <div className="mt-2 text-sm text-gray-600 border-t pt-3">
+            <span className="font-medium">שאלות שגויות: </span>
+            {Object.values(wrongQuestions).reduce((total, questions) => total + (Array.isArray(questions) ? questions.length : 0), 0)} {'סה"כ'}
+          </div>
         )}
 
         {/* Detailed Subjects Breakdown (Collapsible) */}

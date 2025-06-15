@@ -34,14 +34,14 @@ export default function StudyHeader({
 
       {/* Enhanced Progress Bar */}
       <div className="relative">
-        <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
+        <div className="w-full panels/50 rounded-full h-3 overflow-hidden">
           <div
             className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out relative"
             style={{
               width: `${((currentQuestion + 1) / totalQuestions) * 100}%`,
             }}
           >
-            <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+            <div className="absolute inset-0 panels/30 animate-pulse"></div>
           </div>
         </div>
         <div className="text-xs text-gray-600 mt-1 text-center">

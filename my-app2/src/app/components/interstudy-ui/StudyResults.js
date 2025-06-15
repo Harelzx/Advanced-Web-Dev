@@ -28,7 +28,7 @@ export default function QuizResults({
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+        <div className="panels/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
           <div className="text-center">
             <div className="text-8xl mb-6 animate-bounce">
               {getScoreEmoji()}

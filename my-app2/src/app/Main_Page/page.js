@@ -137,7 +137,7 @@ export default function MainPage() {
           </div>
         </div>
       </DashboardLayout>
-      <div className="bg-white p-4 border rounded-lg shadow-lg" style={{ minHeight: '500px', maxWidth: 'calc(100% - 15px)', margin: '20px auto' }}>
+      <div className="panels p-4 border rounded-lg shadow-lg" style={{ minHeight: '500px', maxWidth: 'calc(100% - 15px)', margin: '20px auto' }}>
         <BadgeCase earnedBadges={earnedBadges} fullName={user.fullName} school={user.school} />
       </div>
       <BadgeNotificationModal

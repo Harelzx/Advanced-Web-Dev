@@ -54,7 +54,7 @@ export default function RemoveStudentModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" dir="rtl">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-96">
+      <div className="panels p-6 rounded-lg shadow-xl w-96">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-800">
             הסר {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}

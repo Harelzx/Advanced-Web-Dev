@@ -11,7 +11,7 @@ export default function StatsCard({
   children 
 }) {
   return (
-    <div className={`bg-gray-100 p-4 rounded-lg shadow ${className}`}>
+    <div className={`panels p-4 rounded-lg shadow ${className}`}>
       <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
       {subtitle && (
         <p className="text-gray-600">
