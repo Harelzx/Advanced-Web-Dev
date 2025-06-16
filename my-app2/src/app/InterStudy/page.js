@@ -11,8 +11,10 @@ import { useStudyLogic } from "../hooks/useStudyLogic";
 import {
   getFirstQuizScores,
   getPracticeQuestions,
+  getBagrutQuestions,
   buildPracticeSession,
   saveSessionResults,
+  getQuestionImageUrl,
 } from "../firebase/trainingService";
 import SessionStartScreen from "../components/interstudy-ui/SessionStartScreen";
 import SessionSummaryScreen from "../components/interstudy-ui/SessionSummaryScreen";
@@ -220,7 +222,6 @@ export default function InterStudyPage() {
 
       setIsLoading(true);
       try {
-        const allQuestions = await getPracticeQuestions();
         const sessionConfig = SESSION_CONFIG[sessionNumber];
 
         if (!sessionConfig) {
@@ -230,6 +231,12 @@ export default function InterStudyPage() {
         }
 
         const { key: difficultyKey, value: difficultyNumber } = sessionConfig;
+        let allQuestions;
+        if (difficultyKey === "hard") {
+          allQuestions = await getBagrutQuestions();
+        } else {
+          allQuestions = await getPracticeQuestions();
+        }
         const sessionQuestions = buildPracticeSession(
           { currentSession: sessionNumber },
           await getFirstQuizScores(user.uid),
@@ -243,12 +250,23 @@ export default function InterStudyPage() {
           return;
         }
 
-        setPracticeSets({
-          easy: [],
-          medium: [],
-          hard: [],
-          [difficultyKey]: sessionQuestions,
-        });
+        if (difficultyKey === "hard") {
+          // Fetch image URLs for each question in parallel
+          const questionsWithImages = await Promise.all(
+            sessionQuestions.map(async (q) => {
+              const imageUrl = await getQuestionImageUrl(q.subject, q.imageRef);
+              return { ...q, imageUrl };
+            })
+          );
+          setPracticeSets({ easy: [], medium: [], hard: questionsWithImages });
+        } else {
+          setPracticeSets({
+            easy: [],
+            medium: [],
+            hard: [],
+            [difficultyKey]: sessionQuestions,
+          });
+        }
         setSelectedSession(sessionNumber);
         setIsLoading(false);
       } catch (e) {

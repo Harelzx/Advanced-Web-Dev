@@ -1,5 +1,6 @@
 "use client";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { useState, useEffect } from "react";
 
 export default function StudyQuestion({
   question,
@@ -7,13 +8,119 @@ export default function StudyQuestion({
   userAnswer,
   onAnswer,
 }) {
+  // Hard question (bagrut) progressive section logic
+  const [currentSection, setCurrentSection] = useState(0);
+  const [sectionAnswered, setSectionAnswered] = useState(false);
+  const [selectedSectionAnswer, setSelectedSectionAnswer] = useState(null);
+
+  useEffect(() => {
+    setCurrentSection(0);
+    setSectionAnswered(false);
+    setSelectedSectionAnswer(null);
+  }, [question]);
+
+  if (question && question.sections && Array.isArray(question.sections)) {
+    const section = question.sections[currentSection];
+    if (!section) {
+      return (
+        <div className="p-8">
+          <div className="text-center bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="text-red-600 text-xl mb-2">⚠️ שגיאה בשאלה</div>
+            <div className="text-red-500 text-sm">
+              התרגול לא מכיל סעיפים תקינים
+            </div>
+          </div>
+        </div>
+      );
+    }
+    const allAnswers = [
+      section.correct_answer,
+      ...(section.incorrect_answers || []),
+    ].sort(() => Math.random() - 0.5);
+
+    function handleSectionAnswer(ans) {
+      setSelectedSectionAnswer(ans);
+      setSectionAnswered(true);
+    }
+    function handleNextSection() {
+      setSectionAnswered(false);
+      setSelectedSectionAnswer(null);
+      if (currentSection < question.sections.length - 1) {
+        setCurrentSection(currentSection + 1);
+      } else {
+        // All sections done, call onAnswer to move to next question
+        if (onAnswer) onAnswer(null); // or pass a value if needed
+      }
+    }
+
+    return (
+      <div className="p-8">
+        {question.imageUrl && (
+          <div className="mb-4 flex justify-center">
+            <img
+              src={question.imageUrl}
+              alt="bagrut"
+              className="max-w-full max-h-96 rounded-lg shadow"
+            />
+          </div>
+        )}
+        <div className="mb-2 font-bold">
+          סעיף {currentSection + 1} מתוך {question.sections.length}
+        </div>
+        {/* If you have section text, display it here */}
+        <div className="mb-4">
+          {allAnswers.map((ans, idx) => (
+            <button
+              key={idx}
+              className={`block w-full my-2 p-2 rounded border ${
+                selectedSectionAnswer === ans ? "bg-blue-200" : "bg-white"
+              }`}
+              onClick={() => handleSectionAnswer(ans)}
+              disabled={sectionAnswered}
+            >
+              {ans}
+            </button>
+          ))}
+        </div>
+        {sectionAnswered && (
+          <div className="mb-4">
+            {selectedSectionAnswer === section.correct_answer ? (
+              <span className="text-green-600 font-bold">נכון!</span>
+            ) : (
+              <span className="text-red-600 font-bold">
+                לא נכון. התשובה הנכונה: {section.correct_answer}
+              </span>
+            )}
+          </div>
+        )}
+        {sectionAnswered && (
+          <button
+            className="bg-indigo-600 text-white px-4 py-2 rounded"
+            onClick={handleNextSection}
+          >
+            {currentSection < question.sections.length - 1
+              ? "המשך לסעיף הבא"
+              : "המשך לשאלה הבאה"}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   // הגנה למקרה של שאלה לא תקינה
-  if (!question || !question.options || !Array.isArray(question.options) || question.options.length === 0) {
+  if (
+    !question ||
+    !question.options ||
+    !Array.isArray(question.options) ||
+    question.options.length === 0
+  ) {
     return (
       <div className="p-8">
         <div className="text-center bg-red-50 border border-red-200 rounded-lg p-6">
           <div className="text-red-600 text-xl mb-2">⚠️ שגיאה בשאלה</div>
-          <div className="text-red-500 text-sm">השאלה לא מכילה אפשרויות תקינות</div>
+          <div className="text-red-500 text-sm">
+            השאלה לא מכילה אפשרויות תקינות
+          </div>
         </div>
       </div>
     );
@@ -24,7 +131,7 @@ export default function StudyQuestion({
       {/* Question */}
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-6 leading-relaxed whitespace-pre-line text-right text-gray-800 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text">
-          {question.question || 'שאלה ללא טקסט'}
+          {question.question || "שאלה ללא טקסט"}
         </h3>
 
         {/* Answer Options */}
