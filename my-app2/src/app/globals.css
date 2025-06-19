@@ -20,7 +20,7 @@
 }
 
 .panels {
-  background-color: #d0d0d0;
+  background-color: #eeecec;
   border: 1px solid var(--text-color); /* Black border in light mode */
   transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Include border transition */
 }

@@ -48,6 +48,7 @@ const getAvailableSessions = (completedSessions) => {
 
   // Unlocking logic
   if (completed.includes(1)) {
+    
     available.add(2); // session 2 easy
     available.add(4); // session 1 medium
   }

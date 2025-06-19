@@ -37,12 +37,11 @@ export default function TeacherView({ studentsData = [], onAddStudent, onRemoveS
         {/* Students List */}
         <div className="md:col-span-2">
           <StatsCard>
-            <div className="panels flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold panels">ביצועי תלמידים</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold">ביצועי תלמידים</h3>
               <button
                 onClick={() => setIsStudentListCollapsed(!isStudentListCollapsed)}
-                className="flex items-center gap-2 px-3 py-1 text-sm panels border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors text-gray-800"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff', borderColor: '#d1d5db' }}
+                className="flex items-center gap-2 px-3 py-1 text-sm panels border panels"
               >
                 <span>{isStudentListCollapsed ? 'הרחב' : 'כווץ'}</span>
                 <span className={`transform transition-transform ${isStudentListCollapsed ? 'rotate-180' : ''}`}>

@@ -35,8 +35,7 @@ export default function ParentView({ studentsData = [], onAddChild, onRemoveChil
                 <h3 className="text-lg font-semibold text-gray-700">סקירת ילדים</h3>
                 <button
                   onClick={() => setIsChildrenCardsCollapsed(!isChildrenCardsCollapsed)}
-                  className="flex items-center gap-2 px-3 py-1 text-sm panels border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors text-gray-800"
-                  style={{ color: '#1f2937', backgroundColor: '#ffffff', borderColor: '#d1d5db' }}
+                  className="flex items-center gap-2 px-3 py-1 text-sm panels border panels"
                 >
                   <span>{isChildrenCardsCollapsed ? 'הרחב' : 'כווץ'}</span>
                   <span className={`transform transition-transform ${isChildrenCardsCollapsed ? 'rotate-180' : ''}`}>

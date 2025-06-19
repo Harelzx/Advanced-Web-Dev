@@ -29,14 +29,14 @@ const DashboardLayout = ({ children, userName, headerText, layoutType = "default
 
   return (
     <main className={getLayoutClasses()} dir="rtl">
-      <div className="panels p-6 border rounded-lg shadow-lg">
+      <div className="panels p-6 rounded-lg shadow-lg">
         <div className="mb-4">
           <p className={`font-bold text-gray-800 ${getHeaderClasses()}`}>{headerText || `ברוך הבא, ${userName}`}</p>
         </div>
         <div className="flex justify-between items-center mb-4">
           {showRole && (
-            <div className="panels p-2 rounded-lg">
-              <span className="panels">{roleLabel}: {userName}</span>
+            <div className="p-2 rounded-lg">
+              <span>{roleLabel}: {userName}</span>
             </div>
           )}
           {showRefreshButton && (
