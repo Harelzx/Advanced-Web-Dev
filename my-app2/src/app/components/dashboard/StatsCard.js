@@ -1,3 +1,5 @@
+import Button from '../Button';
+
 // A reusable card component for displaying statistics.
 export default function StatsCard({ 
   title, 
@@ -21,12 +23,12 @@ export default function StatsCard({
       {children}
       {buttonText && (
         <div className="mt-2">
-          <button 
-            className={`text-white px-4 py-2 rounded ${buttonColor}`}
+          <Button 
+            className={buttonColor}
             onClick={onButtonClick}
           >
             {buttonText}
-          </button>
+          </Button>
         </div>
       )}
     </div>
