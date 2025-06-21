@@ -45,7 +45,7 @@ export default function ParentView({ studentsData = [], onAddChild, onRemoveChil
               </div>
               
               {!isChildrenCardsCollapsed && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 gap-3">
                   {/* Individual Children Cards */}
                   {children.map((child) => (
                     <UserCard 

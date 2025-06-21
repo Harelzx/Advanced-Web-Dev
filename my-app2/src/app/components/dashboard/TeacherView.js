@@ -53,7 +53,7 @@ export default function TeacherView({ studentsData = [], onAddStudent, onRemoveS
             {!isStudentListCollapsed && (
               <>
                 {studentsData.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3">
                     {studentsData.map((student) => (
                       <UserCard 
                         key={student.id} 
