@@ -1,79 +1,210 @@
-const { WebSocketServer } = require('ws');
-const admin = require('firebase-admin');
+const { WebSocketServer, WebSocket } = require('ws');
 
-// Firebase Admin configuration using existing project settings
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-  projectId: 'web2025-592b4'
+// Create WebSocket Server on port 8080 with text mode
+const wss = new WebSocketServer({ 
+  port: 8080,
+  perMessageDeflate: false
 });
-
-const db = admin.firestore();
-
-// Create WebSocket Server on port 8080
-const wss = new WebSocketServer({ port: 8080 });
 
 console.log('WebSocket server started on port 8080');
 
-// Function to save message to Firebase
-async function saveToFirebase(messageData) {
-  try {
-    const { teacherId, parentId, text, sender } = messageData;
-    const chatId = `${teacherId}_${parentId}`;
-    
-    await db.collection('chats')
-      .doc(chatId)
-      .collection('messages')
-      .add({
-        text,
-        sender,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        teacherId,
-        parentId
-      });
-    
-    console.log('Message saved to Firebase');
-  } catch (error) {
-    console.error('Error saving to Firebase:', error);
+// Store connected clients with their info
+const connectedClients = new Map();
+const onlineUsers = new Map(); // userId -> { name, role, lastSeen }
+
+// Debounce online users broadcast to prevent spam
+let broadcastTimeout = null;
+
+// Function to broadcast online users list (debounced)
+function broadcastOnlineUsers() {
+  // Clear existing timeout
+  if (broadcastTimeout) {
+    clearTimeout(broadcastTimeout);
   }
+  
+  // Set new timeout to batch broadcasts
+  broadcastTimeout = setTimeout(() => {
+    const onlineUsersList = Array.from(onlineUsers.entries()).map(([userId, info]) => ({
+      userId,
+      ...info
+    }));
+
+    const onlineMessage = JSON.stringify({
+      type: 'online_users',
+      users: onlineUsersList,
+      timestamp: new Date().toISOString()
+    });
+
+    console.log(`Broadcasting online users: ${onlineUsersList.length} users`);
+    
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        try {
+          client.send(onlineMessage, { binary: false });
+        } catch (error) {
+          console.error('Error broadcasting online users:', error);
+        }
+      }
+    });
+    
+    broadcastTimeout = null;
+  }, 100); // Wait 100ms before broadcasting to batch multiple updates
 }
 
 // WebSocket connection handler
 wss.on('connection', function connection(ws) {
   console.log('New WebSocket connection established');
   
+  // Set binary type to handle text properly
+  ws.binaryType = 'nodebuffer';
+  
+  // Generate unique client ID
+  const clientId = Math.random().toString(36).substr(2, 9);
+  connectedClients.set(clientId, { ws, userInfo: null });
+  
   // Handle incoming messages
   ws.on('message', function message(data) {
     try {
-      const messageData = JSON.parse(data);
-      console.log('Received message:', messageData);
+      // Ensure data is converted to string
+      let messageString;
+      if (Buffer.isBuffer(data)) {
+        messageString = data.toString('utf8');
+      } else if (typeof data === 'string') {
+        messageString = data;
+      } else {
+        messageString = String(data);
+      }
       
-      // Broadcast to all connected clients (real-time)
-      wss.clients.forEach(function each(client) {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(data);
+      console.log('Raw message string:', messageString);
+      const messageData = JSON.parse(messageString);
+      console.log('Parsed message:', messageData);
+      
+      // Store user info if it's a connection message
+      if (messageData.type === 'user_info') {
+        const clientInfo = connectedClients.get(clientId);
+        if (clientInfo) {
+          clientInfo.userInfo = messageData;
+          connectedClients.set(clientId, clientInfo);
         }
-      });
+        
+        // Check if user is already online to prevent duplicate broadcasts
+        const existingUser = onlineUsers.get(messageData.userId);
+        const now = new Date().toISOString();
+        
+        // Only update and broadcast if user is new or hasn't been seen recently
+        if (!existingUser || new Date(now) - new Date(existingUser.lastSeen) > 5000) {
+          // Update online users
+          onlineUsers.set(messageData.userId, {
+            name: messageData.name,
+            role: messageData.role,
+            lastSeen: now
+          });
+          
+          console.log(`User registered: ${messageData.userId} (${messageData.role})`);
+          
+          // Broadcast updated online users list (debounced)
+          broadcastOnlineUsers();
+        }
+        return;
+      }
       
-      // Save to Firebase (history)
-      saveToFirebase(messageData);
+      // Handle user going offline (chat closed)
+      if (messageData.type === 'user_offline') {
+        // Remove user from online list
+        onlineUsers.delete(messageData.userId);
+        console.log(`User manually went offline: ${messageData.userId}`);
+        
+        // Broadcast updated online users list (debounced)
+        broadcastOnlineUsers();
+        return;
+      }
+      
+      // Handle chat messages
+      if (messageData.type === 'chat') {
+        console.log('Broadcasting chat message to all clients');
+        console.log('Message content:', messageData.text);
+        console.log('Sender:', messageData.sender);
+        console.log('Number of connected clients:', wss.clients.size);
+        
+        // Create the message to broadcast as a string
+        const messageToSend = JSON.stringify(messageData);
+        console.log('Broadcasting message:', messageToSend);
+        
+        // Broadcast message to all connected clients (including sender)
+        let broadcastCount = 0;
+        wss.clients.forEach(function each(client) {
+          if (client.readyState === WebSocket.OPEN) {
+            try {
+              client.send(messageToSend, { binary: false });
+              broadcastCount++;
+              console.log(`Sent to client ${broadcastCount}`);
+            } catch (sendError) {
+              console.error('Error sending to client:', sendError);
+            }
+          }
+        });
+        
+        console.log(`Message broadcasted to ${broadcastCount} clients`);
+      }
       
     } catch (error) {
       console.error('Error processing message:', error);
+      console.error('Raw data:', data);
     }
   });
   
   // Handle connection close
   ws.on('close', function close() {
-    console.log('WebSocket connection closed');
+    const clientInfo = connectedClients.get(clientId);
+    if (clientInfo && clientInfo.userInfo) {
+      // Remove user from online list
+      onlineUsers.delete(clientInfo.userInfo.userId);
+      console.log(`User went offline: ${clientInfo.userInfo.userId}`);
+      
+      // Broadcast updated online users list (debounced)
+      broadcastOnlineUsers();
+    }
+    
+    connectedClients.delete(clientId);
+    console.log(`WebSocket connection closed (${clientId})`);
+    console.log(`Active connections: ${connectedClients.size}`);
   });
   
-  // Send welcome message
-  ws.send(JSON.stringify({
+  // Send welcome message as text
+  const welcomeMessage = JSON.stringify({
     type: 'system',
     text: 'Connected to chat server',
     timestamp: new Date().toISOString()
-  }));
+  });
+  
+  try {
+    ws.send(welcomeMessage, { binary: false });
+    console.log('Welcome message sent to client');
+  } catch (error) {
+    console.error('Error sending welcome message:', error);
+  }
+  
+  console.log(`Active connections: ${connectedClients.size}`);
 });
+
+// Periodic cleanup of inactive users (every 30 seconds)
+setInterval(() => {
+  const now = new Date();
+  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+  
+  let removedUsers = 0;
+  for (const [userId, userInfo] of onlineUsers.entries()) {
+    if (new Date(userInfo.lastSeen) < fiveMinutesAgo) {
+      onlineUsers.delete(userId);
+      removedUsers++;
+    }
+  }
+  
+  if (removedUsers > 0) {
+    console.log(`Cleaned up ${removedUsers} inactive users`);
+    broadcastOnlineUsers();
+  }
+}, 30000);
 
 // Graceful shutdown
 process.on('SIGINT', () => {

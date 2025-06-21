@@ -1,98 +1,230 @@
 'use client';
 
-import { useState } from 'react';
-import StatsCard from './StatsCard';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, query, where, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 import UserCard from './UserCard';
+import StatsCard from './StatsCard';
+import Button from '../Button';
+import useWebSocket from '../../hooks/useWebSocket';
 
 // Displays the parent's view of the dashboard.
-export default function ParentView({ studentsData = [], onAddChild, onRemoveChild, onOpenChat }) {
-  const [isChildrenCardsCollapsed, setIsChildrenCardsCollapsed] = useState(false);
+const ParentView = ({ 
+  studentsData, 
+  onAddChild, 
+  onRemoveChild, 
+  onOpenChat,
+  currentUserId,
+  connectionStatus,
+  onUnreadCountChange
+}) => {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [isChildrenListExpanded, setIsChildrenListExpanded] = useState(true);
+  const { onlineUsers } = useWebSocket();
 
-  // For parents, studentsData will contain their children's data
-  const children = studentsData;
-  
-  const totalChildren = children.length;
-  const averageGrade = children.length > 0 
-    ? (children.reduce((sum, child) => sum + child.averageGrade, 0) / children.length).toFixed(1)
+  // Calculate total children
+  const totalChildren = studentsData.length;
+
+  // Calculate children average
+  const childrenAverage = studentsData.length > 0 
+    ? studentsData.reduce((sum, child) => sum + child.averageGrade, 0) / studentsData.length
     : 0;
-  
-  return (
-    <div dir="rtl">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">התקדמות הילדים שלך</h2>
-        <button
-          onClick={onOpenChat}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          💬 צ'אט עם מורים
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Children Overview */}
-        <StatsCard
-          title="ילדים"
-          subtitle="סך כל הילדים:"
-          value={totalChildren}
-          valueColor="text-green-600"
-          buttonText="הוסף ילד/ה"
-          buttonColor="bg-green-500 hover:bg-green-600"
-          onButtonClick={onAddChild}
-        />
+
+  // Load unread messages count using real-time listeners like ChatPartnersList
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const loadPartnersAndUnreadCount = async () => {
+      try {
+
         
-        {/* Family Performance */}
-        <StatsCard
-          title="התקדמות משפחתית כוללת"
-          subtitle="ביצועים ממוצעים:"
-          value={`${averageGrade}%`}
-          valueColor={averageGrade >= 80 ? "text-green-600" : averageGrade >= 60 ? "text-yellow-600" : "text-red-600"}
-        />
+        // Get parent's children (same logic as ChatPartnersList)
+        const childrenQuery = query(
+          collection(db, 'users'),
+          where('role', '==', 'student'),
+          where('parentId', '==', currentUserId)
+        );
+        const childrenSnapshot = await getDocs(childrenQuery);
         
-        {/* Children List */}
-        <div className="md:col-span-2">
-          <StatsCard>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold text-gray-700">סקירת ילדים</h3>
-              <button
-                onClick={() => setIsChildrenCardsCollapsed(!isChildrenCardsCollapsed)}
-                className="flex items-center gap-2 px-3 py-1 text-sm panels border panels"
-              >
-                <span>{isChildrenCardsCollapsed ? 'הרחב' : 'כווץ'}</span>
-                <span className={`transform transition-transform ${isChildrenCardsCollapsed ? 'rotate-180' : ''}`}>
-                  ▼
-                </span>
-              </button>
-            </div>
+        // Get unique teacher IDs
+        const teacherIds = new Set();
+        childrenSnapshot.docs.forEach(doc => {
+          const childData = doc.data();
+          if (childData.teacherId) {
+            teacherIds.add(childData.teacherId);
+          }
+        });
+
+
+
+        if (teacherIds.size === 0) {
+          setUnreadCount(0);
+          return;
+        }
+
+        // Set up real-time listeners for each teacher
+        const unsubscribes = Array.from(teacherIds).map(teacherId => {
+          const messagesRef = collection(db, 'users', currentUserId, 'chats', teacherId, 'messages');
+          const unreadQuery = query(messagesRef, where('read', '==', false));
+          
+          return onSnapshot(unreadQuery, (snapshot) => {
+            // Filter out messages sent by current user
+            const unreadFromPartner = snapshot.docs.filter(doc => {
+              const messageData = doc.data();
+              return messageData.sender !== 'parent';
+            });
             
-            {!isChildrenCardsCollapsed && (
-              <>
-                {children.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-3">
-                    {children.map((child) => (
-                      <UserCard 
-                        key={child.id}
-                        user={child}
-                        role="parent"
-                        onRemove={onRemoveChild}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="panels mb-4">עדיין לא הוספת ילדים.</p>
-                    <button
-                      onClick={onAddChild}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                      הוסף את ילדך הראשון
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </StatsCard>
+            const currentPartnerUnread = unreadFromPartner.length;
+
+            
+            // Update counts per partner
+            setUnreadCounts(prev => ({
+              ...prev,
+              [teacherId]: currentPartnerUnread
+            }));
+          });
+        });
+
+        return () => {
+          unsubscribes.forEach(unsub => unsub());
+        };
+      } catch (error) {
+        console.error('Error loading unread count:', error);
+      }
+    };
+
+    const cleanup = loadPartnersAndUnreadCount();
+    
+    return () => {
+      if (cleanup && typeof cleanup.then === 'function') {
+        cleanup.then(cleanupFn => cleanupFn && cleanupFn());
+      }
+    };
+  }, [currentUserId]);
+
+  // Calculate total unread count whenever individual counts change
+  useEffect(() => {
+    const total = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
+    setUnreadCount(total);
+    if (onUnreadCountChange) {
+      onUnreadCountChange(total);
+    }
+  }, [unreadCounts, onUnreadCountChange]);
+
+  return (
+    <div className="space-y-6">
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatsCard 
+          title="מספר ילדים" 
+          value={totalChildren}
+        />
+        <StatsCard 
+          title="ציון ממוצע" 
+          value={`${Math.round(childrenAverage)}%`}
+        />
+      </div>
+
+      {/* Communication Section */}
+      <div className="panels p-4 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">מרכז התקשורת</h3>
+        <p className="text-gray-600 mb-4">שלח הודעות והתעדכן עם מורי הילדים</p>
+        
+        {/* Chat Statistics */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <div className="bg-green-50 p-3 rounded-lg text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {connectionStatus === 'Connected' ? '✓' : '✗'}
+            </div>
+            <div className="text-xs text-green-500">
+              {connectionStatus === 'Connected' ? 'צ\'אט פעיל' : 'צ\'אט לא פעיל'}
+            </div>
+          </div>
+          
+          <div className="bg-purple-50 p-3 rounded-lg text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              {onlineUsers.filter(user => user.role === 'teacher').length}
+            </div>
+            <div className="text-xs text-purple-500">מורים מחוברים</div>
+          </div>
+          
+          <div className="bg-blue-50 p-3 rounded-lg text-center">
+            <div className="text-2xl font-bold text-blue-600">{unreadCount}</div>
+            <div className="text-xs text-blue-500">הודעות חדשות</div>
+          </div>
         </div>
+        
+        {/* Connection Status */}
+        <div className="flex items-center space-x-2 space-x-reverse mb-4">
+          <div className={`w-2 h-2 rounded-full ${
+            connectionStatus === 'Connected' ? 'bg-green-500' : 'bg-red-500'
+          }`}></div>
+          <span className="text-xs text-gray-500">
+            {connectionStatus === 'Connected' ? 'שרת צ\'אט זמין' : 'שרת צ\'אט לא זמין'}
+          </span>
+        </div>
+        
+        <Button 
+          onClick={onOpenChat}
+          className="relative bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
+        >
+          💬 פתח צ'אט
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      {/* Children List */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">רשימת ילדים</h3>
+          <button
+            onClick={() => setIsChildrenListExpanded(!isChildrenListExpanded)}
+            className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <span>{isChildrenListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
+            <span className="transform transition-transform duration-200" style={{
+              transform: isChildrenListExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+            }}>
+              ▼
+            </span>
+          </button>
+        </div>
+        {isChildrenListExpanded && (
+          studentsData.length === 0 ? (
+            <div className="panels p-6 rounded-lg shadow text-center">
+              <p className="text-gray-600 mb-4">עדיין לא נוספו ילדים לחשבון שלך</p>
+              <p className="text-sm text-gray-500 mb-4">
+                כדי להתחיל לעקוב אחר התקדמות הילדים שלך, לחץ על הכפתור למטה להוספת ילד/ה
+              </p>
+              <Button onClick={onAddChild} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg">
+                הוסף ילד/ה ראשון/ה
+              </Button>
+              <div className="mt-4 text-xs text-gray-400">
+                Debug: studentsData.length = {studentsData.length}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {studentsData.map((child) => (
+                <UserCard
+                  key={child.id}
+                  student={child}
+                  userRole="parent"
+                  onRemove={() => onRemoveChild(child)}
+                />
+              ))}
+            </div>
+          )
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default ParentView;

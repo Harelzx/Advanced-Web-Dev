@@ -93,9 +93,7 @@ export function buildPracticeSession(
   allQuestions,
   difficultyNumber
 ) {
-  console.log(
-    `[buildPracticeSession] Building session for difficulty number: ${difficultyNumber}`
-  );
+
 
   // First, filter all questions by the required difficulty number.
   const questionsOfDifficulty = allQuestions.filter(
@@ -103,9 +101,6 @@ export function buildPracticeSession(
   );
 
   if (questionsOfDifficulty.length === 0) {
-    console.warn(
-      `[buildPracticeSession] No questions found for difficulty number: ${difficultyNumber}. Session will be empty.`
-    );
     return [];
   }
 
@@ -147,12 +142,7 @@ export function buildPracticeSession(
     );
     const questionsToAdd = filteredQuestions.slice(0, numQuestions);
 
-    // Log each question being added to verify its difficulty
-    questionsToAdd.forEach((q) => {
-      console.log(
-        `  -> Adding question ${q.id}, subject: ${q.subject}, difficulty: ${q.difficulty}`
-      );
-    });
+
 
     sessionQuestions.push(...questionsToAdd);
     questionCount += questionsToAdd.length;
@@ -166,11 +156,6 @@ export function buildPracticeSession(
     );
 
     const questionsToAdd = remainingQuestions.slice(0, remainingNeeded);
-    questionsToAdd.forEach((q) => {
-      console.log(
-        `  -> (Fill) Adding question ${q.id}, subject: ${q.subject}, difficulty: ${q.difficulty}`
-      );
-    });
     sessionQuestions.push(...questionsToAdd);
   }
 

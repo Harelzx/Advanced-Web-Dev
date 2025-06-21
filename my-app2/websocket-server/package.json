@@ -1,18 +1,16 @@
 {
-  "name": "websocket-server",
+  "name": "websocket-chat-server",
   "version": "1.0.0",
+  "description": "WebSocket server for real-time chat between teachers and parents",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node server.js"
   },
-  "keywords": ["websocket", "chat", "firebase"],
-  "author": "",
-  "license": "ISC",
-  "description": "WebSocket chat server with Firebase integration",
   "dependencies": {
-    "ws": "^8.14.2",
-    "firebase-admin": "^11.11.1"
-  }
+    "ws": "^8.14.2"
+  },
+  "keywords": ["websocket", "chat", "real-time"],
+  "author": "",
+  "license": "ISC"
 }

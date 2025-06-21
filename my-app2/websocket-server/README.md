@@ -1,56 +1,59 @@
 # WebSocket Chat Server
 
-WebSocket server for real-time communication between teachers and parents.
+## תיאור
+שרת WebSocket פשוט לצ'אט בזמן אמת בין מורים להורים. השרת מטפל בתקשורת בזמן אמת בלבד, ואילו השמירה ל-Firebase מתבצעת בצד הקליינט.
 
-## Architecture
+## מאפיינים
+- תקשורת WebSocket בזמן אמת
+- שידור הודעות לכל הלקוחות המחוברים
+- מעקב אחר לקוחות מחוברים
+- סגירה נקייה של השרת
 
-- **WebSocket**: Real-time communication
-- **Firebase Firestore**: Message history storage
-- **Hybrid approach**: Combines real-time messaging with persistent storage
+## התקנה והפעלה
 
-## Setup
-
-1. Install dependencies:
+### התקנת תלויות
 ```bash
 npm install
 ```
 
-2. Set up Firebase Admin credentials:
-```bash
-# Set the Google Application Credentials environment variable
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/service-account-key.json"
-```
-
-3. Start the server:
+### הפעלת השרת
 ```bash
 npm start
 ```
 
-## Message Format
+השרת יתחיל על פורט 8080.
 
+## כיצד זה עובד
+
+1. **חיבור לקוח**: כל לקוח שמתחבר מקבל ID ייחודי
+2. **הודעות מידע משתמש**: הלקוח יכול לשלוח מידע על עצמו (role, userId)
+3. **שידור הודעות**: הודעות נשלחות לכל הלקוחות המחוברים
+4. **השמירה**: מתבצעת בצד הקליינט (Next.js) ל-Firebase
+
+## הודעות נתמכות
+
+### הודעת מידע משתמש
 ```json
 {
-  "text": "Hello!",
-  "sender": "teacher", // or "parent"
-  "teacherId": "teacher_uid",
-  "parentId": "parent_uid",
-  "timestamp": "2024-01-01T00:00:00.000Z"
+  "type": "user_info",
+  "userId": "teacher-123",
+  "role": "teacher"
 }
 ```
 
-## Firebase Structure
-
-```
-/chats/{teacherId}_{parentId}/messages/{messageId}
+### הודעת צ'אט
+```json
 {
-  "text": "Message content",
-  "sender": "teacher|parent",
-  "timestamp": serverTimestamp(),
-  "teacherId": "...",
-  "parentId": "..."
+  "type": "chat",
+  "text": "הודעה לדוגמה",
+  "sender": "teacher",
+  "teacherId": "teacher-123",
+  "parentId": "parent-456"
 }
 ```
 
-## Usage
+## בדיקה
+אפשר לבדוק את השרת עם הקובץ `test.html` שכלול בפרויקט או דרך הצ'אט באפליקציה.
 
-Connect to `ws://localhost:8080` from your React client. 
+## סגירת השרת
+השתמש ב-Ctrl+C לסגירה נקייה של השרת. 

@@ -30,7 +30,6 @@ const FirstQuiz = () => {
           };
         });
         setQuestions(questionsList);
-        console.log("Fetched questions:", questionsList);
       } catch (error) {
         console.error("Error fetching questions:", error);
       } finally {

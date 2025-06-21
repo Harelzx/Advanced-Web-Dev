@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, writeBatch, doc, getDoc } from 'firebase/firestore';
 import useWebSocket from '../../hooks/useWebSocket';
+import useNotifications from '../../hooks/useNotifications';
 
 export default function ChatSidebar({ 
   isOpen, 
@@ -14,18 +15,48 @@ export default function ChatSidebar({
   chatPartnerName 
 }) {
   const [inputMessage, setInputMessage] = useState('');
-  const { messages, connectionStatus, sendMessage, setMessages } = useWebSocket();
+  const [firebaseMessages, setFirebaseMessages] = useState([]);
+  const { messages: webSocketMessages, connectionStatus, onlineUsers, sendMessage, sendUserInfo, sendUserOffline } = useWebSocket();
+  const { showChatNotification } = useNotifications();
+
+  // Send user info when component mounts and WebSocket connects
+  useEffect(() => {
+    if (connectionStatus === 'Connected' && currentUserId && currentUserRole) {
+      // Add a small delay to ensure the connection is fully established
+      const timer = setTimeout(async () => {
+        try {
+          // Get current user's name from Firebase
+          const userDocRef = doc(db, 'users', currentUserId);
+          const userDocSnap = await getDoc(userDocRef);
+          
+          let currentUserName = 'משתמש';
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            currentUserName = userData.fullName || userData.email || 'משתמש';
+          }
+          
+          sendUserInfo(currentUserId, currentUserRole, currentUserName);
+        } catch (error) {
+          console.error('Error fetching user name:', error);
+          // Fallback to email if name fetch fails
+          const currentUserEmail = sessionStorage.getItem('userEmail') || 'unknown';
+          sendUserInfo(currentUserId, currentUserRole, currentUserEmail);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [connectionStatus, currentUserId, currentUserRole, sendUserInfo]);
+
+  // Check if chat partner is online
+  const isPartnerOnline = onlineUsers.some(user => user.userId === chatPartnerId);
 
   // Load chat history from Firebase on component mount
   useEffect(() => {
     if (!currentUserId || !chatPartnerId) return;
 
-    const chatId = currentUserRole === 'teacher' 
-      ? `${currentUserId}_${chatPartnerId}`
-      : `${chatPartnerId}_${currentUserId}`;
-
-    // Listen to Firebase for message history
-    const messagesRef = collection(db, 'chats', chatId, 'messages');
+    // Save chat under current user's document
+    const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -34,25 +65,122 @@ export default function ChatSidebar({
         ...doc.data()
       }));
       
-      // Set initial messages from Firebase history
-      setMessages(historyMessages);
+      setFirebaseMessages(historyMessages);
     });
 
     return () => unsubscribe();
-  }, [currentUserId, chatPartnerId, currentUserRole, setMessages]);
+  }, [currentUserId, chatPartnerId, currentUserRole]);
+
+  // Show notification for new WebSocket messages (only when chat is closed)
+  useEffect(() => {
+    if (webSocketMessages.length > 0 && !isOpen) {
+      const lastMessage = webSocketMessages[webSocketMessages.length - 1];
+      
+      // Only show notification for messages from others
+      if (lastMessage.sender !== currentUserRole) {
+        const senderRole = lastMessage.sender;
+        showChatNotification(chatPartnerName, lastMessage.text, senderRole);
+      }
+    }
+  }, [webSocketMessages, isOpen, currentUserRole, chatPartnerName, showChatNotification]);
+
+  // Combine Firebase history with real-time WebSocket messages
+  // Remove duplicates by checking if message already exists in Firebase
+  const allMessages = [
+    ...firebaseMessages,
+    ...webSocketMessages.filter(wsMsg => 
+      !firebaseMessages.some(fbMsg => 
+        fbMsg.text === wsMsg.text && 
+        fbMsg.sender === wsMsg.sender &&
+        Math.abs(new Date(fbMsg.timestamp?.toDate?.() || fbMsg.timestamp) - new Date(wsMsg.timestamp)) < 5000
+      )
+    )
+  ].sort((a, b) => {
+    const timeA = new Date(a.timestamp?.toDate?.() || a.timestamp);
+    const timeB = new Date(b.timestamp?.toDate?.() || b.timestamp);
+    return timeA - timeB;
+  });
+
+  // Save message to Firebase under both users
+  const saveMessageToFirebase = async (messageData) => {
+    try {
+      // Add read status to message
+      const messageWithReadStatus = {
+        ...messageData,
+        read: false,
+        timestamp: serverTimestamp()
+      };
+
+      // Save under current user
+      const currentUserMessagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
+      await addDoc(currentUserMessagesRef, messageWithReadStatus);
+
+      // Also save under chat partner for their history
+      const partnerMessagesRef = collection(db, 'users', chatPartnerId, 'chats', currentUserId, 'messages');
+      await addDoc(partnerMessagesRef, messageWithReadStatus);
+
+
+    } catch (error) {
+      console.error('Error saving message to Firebase:', error);
+    }
+  };
+
+  // Mark messages as read when chat is opened
+  useEffect(() => {
+    if (!currentUserId || !chatPartnerId || !isOpen) return;
+
+    const markMessagesAsRead = async () => {
+      try {
+        const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
+        // Simplified query - only filter by read status, then filter sender in code
+        const unreadQuery = query(
+          messagesRef, 
+          where('read', '==', false)
+        );
+        
+        const unreadSnapshot = await getDocs(unreadQuery);
+        
+        // Filter messages not sent by current user and mark them as read
+        const batch = writeBatch(db);
+        let messagesToUpdate = 0;
+        
+        unreadSnapshot.docs.forEach(doc => {
+          const messageData = doc.data();
+          if (messageData.sender !== currentUserRole) {
+            batch.update(doc.ref, { read: true });
+            messagesToUpdate++;
+          }
+        });
+        
+        if (messagesToUpdate > 0) {
+          await batch.commit();
+        }
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    };
+
+    markMessagesAsRead();
+  }, [currentUserId, chatPartnerId, currentUserRole, isOpen]);
 
   // Handle sending message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
     const messageData = {
       text: inputMessage,
       sender: currentUserRole,
       teacherId: currentUserRole === 'teacher' ? currentUserId : chatPartnerId,
-      parentId: currentUserRole === 'parent' ? currentUserId : chatPartnerId
+      parentId: currentUserRole === 'parent' ? currentUserId : chatPartnerId,
+      timestamp: new Date().toISOString()
     };
 
+    // Send via WebSocket for real-time communication
     sendMessage(messageData);
+    
+    // Save to Firebase for persistence
+    await saveMessageToFirebase(messageData);
+    
     setInputMessage('');
   };
 
@@ -62,6 +190,109 @@ export default function ChatSidebar({
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // Handle closing chat
+  const handleCloseChat = () => {
+    // Send offline notification to server
+    if (currentUserId) {
+      sendUserOffline(currentUserId);
+    }
+    // Call the original onClose function
+    onClose();
+  };
+
+  // Format timestamp for display
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    
+    let date;
+    if (timestamp?.toDate) {
+      // Firebase Timestamp
+      date = timestamp.toDate();
+    } else {
+      // ISO string or Date object
+      date = new Date(timestamp);
+    }
+    
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    if (diffInMinutes < 1) {
+      return 'עכשיו';
+    } else if (diffInMinutes < 60) {
+      return `לפני ${diffInMinutes} דקות`;
+    } else if (diffInHours < 24) {
+      // For today's messages, show time
+      return date.toLocaleTimeString('he-IL', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } else if (diffInDays === 1) {
+      // For yesterday's messages, show time
+      return date.toLocaleTimeString('he-IL', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } else if (diffInDays < 7) {
+      // For this week's messages, show time
+      return date.toLocaleTimeString('he-IL', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } else {
+      // For older messages, show date and time
+      return date.toLocaleString('he-IL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  };
+
+  // Format date separator
+  const formatDateSeparator = (timestamp) => {
+    if (!timestamp) return '';
+    
+    let date;
+    if (timestamp?.toDate) {
+      date = timestamp.toDate();
+    } else {
+      date = new Date(timestamp);
+    }
+    
+    const now = new Date();
+    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 0) {
+      return 'היום';
+    } else if (diffInDays === 1) {
+      return 'אתמול';
+    } else if (diffInDays < 7) {
+      return date.toLocaleDateString('he-IL', { weekday: 'long' });
+    } else {
+      return date.toLocaleDateString('he-IL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+  };
+
+  // Check if we need a date separator
+  const needsDateSeparator = (currentMessage, previousMessage) => {
+    if (!previousMessage) return true;
+    
+    const currentDate = currentMessage.timestamp?.toDate ? 
+      currentMessage.timestamp.toDate() : new Date(currentMessage.timestamp);
+    const previousDate = previousMessage.timestamp?.toDate ? 
+      previousMessage.timestamp.toDate() : new Date(previousMessage.timestamp);
+    
+    return currentDate.toDateString() !== previousDate.toDateString();
   };
 
   return (
@@ -87,15 +318,22 @@ export default function ChatSidebar({
             <div>
               <h3 className="font-semibold text-gray-800">{chatPartnerName}</h3>
               <div className="flex items-center space-x-2 space-x-reverse">
-                <div className={`w-2 h-2 rounded-full ${
-                  connectionStatus === 'Connected' ? 'bg-green-500' : 'bg-red-500'
-                }`}></div>
-                <span className="text-xs text-gray-500">{connectionStatus}</span>
+                {/* Partner online status - only show if connected to server */}
+                {connectionStatus === 'Connected' && (
+                  <>
+                    <div className={`w-2 h-2 rounded-full ${
+                      isPartnerOnline ? 'bg-green-500' : 'bg-gray-400'
+                    }`}></div>
+                    <span className="text-xs text-gray-500">
+                      {isPartnerOnline ? 'מחובר' : 'לא מחובר'}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseChat}
             className="text-gray-500 hover:text-gray-700 p-2"
           >
             ✕
@@ -104,28 +342,44 @@ export default function ChatSidebar({
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-140px)]" dir="rtl">
-          {messages.length === 0 ? (
+          {allMessages.length === 0 ? (
             <div className="text-center text-gray-500 mt-8">
               <div className="text-4xl mb-4">💬</div>
               <p className="text-lg">התחל שיחה עם {chatPartnerName}</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {messages.map((message, index) => (
-                <div
-                  key={message.id || index}
-                  className={`flex ${
-                    message.sender === currentUserRole ? 'justify-start' : 'justify-end'
-                  }`}
-                >
+              {allMessages.map((message, index) => (
+                <div key={message.id || `${message.timestamp}-${index}`}>
+                  {/* Date separator */}
+                  {needsDateSeparator(message, allMessages[index - 1]) && (
+                    <div className="flex justify-center my-4">
+                      <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">
+                        {formatDateSeparator(message.timestamp)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Message */}
                   <div
-                    className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
-                      message.sender === currentUserRole
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-800'
+                    className={`flex flex-col ${
+                      message.sender === currentUserRole ? 'items-start' : 'items-end'
                     }`}
                   >
-                    {message.text}
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
+                        message.sender === currentUserRole
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-800'
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                    <span className={`text-xs text-gray-500 mt-1 px-1 ${
+                      message.sender === currentUserRole ? 'text-right' : 'text-left'
+                    }`}>
+                      {formatTimestamp(message.timestamp)}
+                    </span>
                   </div>
                 </div>
               ))}

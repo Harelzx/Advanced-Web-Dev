@@ -3,122 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket Test Client</title>
+    <title>WebSocket Chat Test</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
-        #messages { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; margin: 10px 0; }
-        input { width: 70%; padding: 10px; }
-        button { padding: 10px 20px; }
-        .message { margin: 5px 0; padding: 5px; background: #f0f0f0; border-radius: 5px; }
-        .status { font-weight: bold; }
-        .connected { color: green; }
-        .disconnected { color: red; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #fff3cd; color: #856404; }
+        
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .message.sent {
+            background-color: #007bff;
+            color: white;
+            margin-left: 50px;
+        }
+        .message.received {
+            background-color: #e9ecef;
+            color: #333;
+            margin-right: 50px;
+        }
+        .message.system {
+            background-color: #fff3cd;
+            color: #856404;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .user-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e7f3ff;
+            border-radius: 5px;
+        }
+        .user-info select, .user-info input {
+            margin: 5px;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
-    <h1>בדיקת שרת WebSocket</h1>
-    
-    <div>
-        <strong>סטטוס: </strong>
-        <span id="status" class="status disconnected">לא מחובר</span>
-    </div>
-    
-    <div id="messages"></div>
-    
-    <div>
-        <input type="text" id="messageInput" placeholder="הקלד הודעה..." />
-        <button onclick="sendMessage()">שלח</button>
-        <button onclick="connect()">התחבר</button>
-        <button onclick="disconnect()">התנתק</button>
+    <div class="container">
+        <h1>בדיקת WebSocket Chat</h1>
+        
+        <div class="user-info">
+            <label>תפקיד:</label>
+            <select id="roleSelect">
+                <option value="teacher">מורה</option>
+                <option value="parent">הורה</option>
+            </select>
+            
+            <label>שם:</label>
+            <input type="text" id="nameInput" placeholder="הכנס שם" value="משתמש דמו">
+            
+            <button onclick="setUserInfo()">קבע פרטי משתמש</button>
+        </div>
+        
+        <div id="status" class="status disconnected">
+            מתחבר לשרת...
+        </div>
+        
+        <div id="messages" class="messages"></div>
+        
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="הקלד הודעה..." disabled>
+            <button id="sendButton" onclick="sendMessage()" disabled>שלח</button>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 12px; color: #666;">
+            <strong>הוראות:</strong> פתח את הדף הזה במספר חלונות/טאבים כדי לבדוק תקשורת בין לקוחות שונים.
+        </div>
     </div>
 
     <script>
         let ws = null;
-        const messages = document.getElementById('messages');
-        const status = document.getElementById('status');
-        const messageInput = document.getElementById('messageInput');
-
-        function updateStatus(text, connected) {
-            status.textContent = text;
-            status.className = `status ${connected ? 'connected' : 'disconnected'}`;
+        let currentUser = { role: 'teacher', name: 'משתמש דמו', id: 'demo-user-' + Math.random().toString(36).substr(2, 5) };
+        
+        function updateStatus(message, className) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + className;
         }
-
-        function addMessage(text, type = 'normal') {
-            const div = document.createElement('div');
-            div.className = 'message';
-            div.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
-            if (type === 'system') div.style.color = 'blue';
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
+        
+        function addMessage(message, type = 'received') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+            
+            if (type === 'system') {
+                messageDiv.textContent = message;
+            } else if (typeof message === 'string') {
+                // Handle simple string messages
+                messageDiv.textContent = message;
+            } else {
+                // Handle message objects
+                const sender = message.sender === currentUser.role ? 'אתה' : 
+                              (message.sender === 'teacher' ? 'מורה' : 'הורה');
+                messageDiv.innerHTML = `<strong>${sender}:</strong> ${message.text}`;
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
-
-        function connect() {
-            try {
-                ws = new WebSocket('ws://localhost:8080');
+        
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8080');
+            
+            // Force text mode
+            ws.binaryType = 'blob';
+            
+            ws.onopen = function() {
+                updateStatus('מחובר לשרת ✅', 'connected');
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendButton').disabled = false;
                 
-                ws.onopen = () => {
-                    updateStatus('מחובר', true);
-                    addMessage('התחברות לשרת הצליחה!', 'system');
+                // Send user info to server
+                const userInfo = {
+                    type: 'user_info',
+                    userId: currentUser.id,
+                    role: currentUser.role,
+                    name: currentUser.name
                 };
-
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    addMessage(`התקבלה הודעה: ${data.text}`);
-                };
-
-                ws.onclose = () => {
-                    updateStatus('לא מחובר', false);
-                    addMessage('החיבור לשרת נסגר', 'system');
-                };
-
-                ws.onerror = (error) => {
-                    updateStatus('שגיאה', false);
-                    addMessage('שגיאה בחיבור לשרת', 'system');
-                };
-
-            } catch (error) {
-                addMessage('שגיאה ביצירת החיבור: ' + error.message, 'system');
-            }
-        }
-
-        function disconnect() {
-            if (ws) {
-                ws.close();
-            }
-        }
-
-        function sendMessage() {
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                addMessage('אין חיבור לשרת!', 'system');
-                return;
-            }
-
-            const text = messageInput.value.trim();
-            if (!text) return;
-
-            const message = {
-                text: text,
-                sender: 'test-user',
-                teacherId: 'test-teacher',
-                parentId: 'test-parent'
+                console.log('Sending user info:', userInfo);
+                ws.send(JSON.stringify(userInfo));
             };
-
-            ws.send(JSON.stringify(message));
-            addMessage(`נשלחה הודעה: ${text}`);
-            messageInput.value = '';
+            
+            ws.onmessage = function(event) {
+                console.log('Raw message received:', event.data);
+                console.log('Message type:', typeof event.data);
+                
+                try {
+                    let messageText;
+                    
+                    if (typeof event.data === 'string') {
+                        messageText = event.data;
+                        console.log('String message:', messageText);
+                    } else if (event.data instanceof Blob) {
+                        console.log('Blob message received, converting...');
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            console.log('Blob converted to:', reader.result);
+                            try {
+                                const data = JSON.parse(reader.result);
+                                processMessage(data);
+                            } catch (error) {
+                                console.error('Error parsing blob message:', error);
+                                addMessage('שגיאה בקבלת הודעה (blob)', 'system');
+                            }
+                        };
+                        reader.readAsText(event.data);
+                        return;
+                    } else {
+                        messageText = String(event.data);
+                        console.log('Other type converted to string:', messageText);
+                    }
+                    
+                    const data = JSON.parse(messageText);
+                    processMessage(data);
+                    
+                } catch (error) {
+                    console.error('Error parsing message:', error);
+                    console.error('Message data type:', typeof event.data);
+                    console.error('Message data:', event.data);
+                    addMessage('שגיאה בקבלת הודעה', 'system');
+                }
+            };
+            
+            function processMessage(data) {
+                console.log('Processing message:', data);
+                
+                if (data.type === 'system') {
+                    addMessage(data.text, 'system');
+                } else if (data.type === 'chat') {
+                    console.log('Processing chat message:', data);
+                    const messageType = data.sender === currentUser.role ? 'sent' : 'received';
+                    console.log('Message type:', messageType, 'Current user role:', currentUser.role, 'Message sender:', data.sender);
+                    addMessage(data, messageType);
+                } else {
+                    console.log('Unknown message type:', data.type);
+                    addMessage(data, 'received');
+                }
+            }
+            
+            ws.onclose = function() {
+                updateStatus('החיבור נסגר ❌', 'disconnected');
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendButton').disabled = true;
+                
+                // Try to reconnect after 3 seconds
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = function(error) {
+                updateStatus('שגיאת חיבור ⚠️', 'error');
+                console.error('WebSocket error:', error);
+            };
         }
-
-        // Enter key support
-        messageInput.addEventListener('keypress', (e) => {
+        
+        function setUserInfo() {
+            const role = document.getElementById('roleSelect').value;
+            const name = document.getElementById('nameInput').value || 'משתמש דמו';
+            
+            currentUser = {
+                role: role,
+                name: name,
+                id: 'demo-' + role + '-' + Math.random().toString(36).substr(2, 5)
+            };
+            
+            // Send updated user info if connected
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'user_info',
+                    userId: currentUser.id,
+                    role: currentUser.role,
+                    name: currentUser.name
+                }));
+            }
+            
+            addMessage(`פרטי משתמש עודכנו: ${currentUser.name} (${currentUser.role === 'teacher' ? 'מורה' : 'הורה'})`, 'system');
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && ws && ws.readyState === WebSocket.OPEN) {
+                const messageData = {
+                    type: 'chat',
+                    text: message,
+                    sender: currentUser.role,
+                    teacherId: currentUser.role === 'teacher' ? currentUser.id : 'demo-teacher-id',
+                    parentId: currentUser.role === 'parent' ? currentUser.id : 'demo-parent-id',
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Sending message:', messageData);
+                ws.send(JSON.stringify(messageData));
+                
+                input.value = '';
+            } else {
+                console.log('Cannot send message. Message:', message, 'WebSocket ready:', ws && ws.readyState === WebSocket.OPEN);
+                if (!message) addMessage('אין הודעה לשליחה', 'system');
+                if (!ws || ws.readyState !== WebSocket.OPEN) addMessage('אין חיבור לשרת', 'system');
+            }
+        }
+        
+        // Handle Enter key in input
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
-
-        // Auto connect on load
-        window.onload = () => {
-            addMessage('דף נטען. לחץ "התחבר" כדי להתחיל', 'system');
-        };
+        
+        // Connect when page loads
+        connectWebSocket();
     </script>
 </body>
 </html> 

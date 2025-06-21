@@ -8,12 +8,14 @@ import ParentView from '../components/dashboard/ParentView';
 import AddStudentModal from '../components/dashboard/AddStudentModal';
 import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
 import ChatSidebar from '../components/chat/ChatSidebar';
+import ChatPartnersList from '../components/chat/ChatPartnersList';
+import useNotifications from '../hooks/useNotifications';
+import NotificationToast from '../components/notifications/NotificationToast';
+import useWebSocket from '../hooks/useWebSocket';
 
 /**
- * The main component for the Dashboard page.
- * This component is responsible for the UI and layout of the dashboard.
- * It uses the useDashboardLogic hook to handle all business logic and data fetching,
- * keeping this component lean and focused on presentation.
+ * Main Dashboard Component
+ * This component serves as the central hub for both teachers and parents.
  */
 const Dashboard = () => {
   // --- Logic Layer ---
@@ -36,9 +38,16 @@ const Dashboard = () => {
   
   // --- Chat State Management ---
   const [showChat, setShowChat] = useState(false);
-  const [chatPartnerId, setChatPartnerId] = useState(null);
-  const [chatPartnerName, setChatPartnerName] = useState('');
-
+  const [showPartnersList, setShowPartnersList] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+  // --- Notifications ---
+  const { notifications, removeNotification } = useNotifications();
+  
+  // --- WebSocket Connection ---
+  const { connectionStatus } = useWebSocket();
+  
   // --- Modal Handlers ---
   const openRemoveModal = (student) => {
     setStudentToRemove(student);
@@ -52,22 +61,26 @@ const Dashboard = () => {
 
   // --- Chat Handlers ---
   const handleOpenChat = () => {
-    // For now, just open chat with a demo partner
-    // Later we'll add a selection modal
-    if (userRole === 'teacher') {
-      setChatPartnerId('demo-parent-id');
-      setChatPartnerName('הורה לדוגמה');
-    } else {
-      setChatPartnerId('demo-teacher-id');
-      setChatPartnerName('מורה לדוגמה');
-    }
+    setShowPartnersList(true);
+  };
+
+  const handleSelectPartner = (partnerId, partnerName, partnerRole) => {
+    setSelectedPartner({
+      id: partnerId,
+      name: partnerName,
+      role: partnerRole
+    });
+    setShowPartnersList(false);
     setShowChat(true);
   };
 
   const handleCloseChat = () => {
     setShowChat(false);
-    setChatPartnerId(null);
-    setChatPartnerName('');
+    setSelectedPartner(null);
+  };
+
+  const handleClosePartnersList = () => {
+    setShowPartnersList(false);
   };
 
   // --- Render Loading State ---
@@ -104,58 +117,91 @@ const Dashboard = () => {
 
   // --- Main Render ---
   return (
-    <main className="p-4 space-y-6" dir="rtl">
-      <DashboardHeader userRole={userRole} userName={userName} />
-      
-      <div className="panels p-6 border rounded-lg shadow-lg">
-        {userRole === 'teacher' ? (
-          <TeacherView 
-            studentsData={studentsData} 
-            onAddStudent={() => setShowAddModal(true)}
-            onRemoveStudent={openRemoveModal}
-            onOpenChat={handleOpenChat}
+    <>
+      <main className="p-4 space-y-6" dir="rtl">
+        <DashboardHeader 
+          userRole={userRole} 
+          userName={userName}
+          onOpenChat={handleOpenChat}
+          onAddStudent={() => setShowAddModal(true)}
+          onAddChild={() => setShowAddModal(true)}
+          unreadCount={unreadCount}
+        />
+        
+        <div className="panels p-6 border rounded-lg shadow-lg">
+          {userRole === 'teacher' ? (
+            <TeacherView 
+              studentsData={studentsData} 
+              onAddStudent={() => setShowAddModal(true)}
+              onRemoveStudent={openRemoveModal}
+              onOpenChat={handleOpenChat}
+              currentUserId={currentUserId}
+              connectionStatus={connectionStatus}
+              onUnreadCountChange={setUnreadCount}
+            />
+          ) : userRole === 'parent' ? (
+            <ParentView 
+              studentsData={studentsData}
+              onAddChild={() => setShowAddModal(true)}
+              onRemoveChild={openRemoveModal}
+              onOpenChat={handleOpenChat}
+              currentUserId={currentUserId}
+              connectionStatus={connectionStatus}
+              onUnreadCountChange={setUnreadCount}
+            />
+          ) : (
+            <div className="panels p-4 rounded-lg shadow text-center">
+              <p className="text-gray-700">טוען את לוח הבקרה...</p>
+            </div>
+          )}
+        </div>
+
+        {/* Modals for adding/removing students */}
+        <AddStudentModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          userRole={userRole}
+          userId={currentUserId}
+          onStudentAdded={refreshData}
+        />
+        <RemoveStudentModal
+          isOpen={showRemoveModal}
+          onClose={closeRemoveModal}
+          student={studentToRemove}
+          userRole={userRole}
+          userId={currentUserId}
+          onStudentRemoved={refreshData}
+        />
+
+        {/* Chat Partners List Modal */}
+        {showPartnersList && (
+          <ChatPartnersList
+            currentUserId={currentUserId}
+            currentUserRole={userRole}
+            onSelectPartner={handleSelectPartner}
+            onClose={handleClosePartnersList}
           />
-        ) : userRole === 'parent' ? (
-          <ParentView 
-            studentsData={studentsData}
-            onAddChild={() => setShowAddModal(true)}
-            onRemoveChild={openRemoveModal}
-            onOpenChat={handleOpenChat}
-          />
-        ) : (
-          <div className="panels p-4 rounded-lg shadow text-center">
-            <p className="text-gray-700">טוען את לוח הבקרה...</p>
-          </div>
         )}
-      </div>
-      
-      {/* Modals for adding/removing students */}
-      <AddStudentModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        userRole={userRole}
-        userId={currentUserId}
-        onStudentAdded={refreshData}
+
+        {/* Chat Sidebar */}
+        {showChat && selectedPartner && (
+          <ChatSidebar
+            isOpen={showChat}
+            onClose={handleCloseChat}
+            currentUserId={currentUserId}
+            currentUserRole={userRole}
+            chatPartnerId={selectedPartner.id}
+            chatPartnerName={selectedPartner.name}
+          />
+        )}
+      </main>
+
+      {/* Notifications */}
+      <NotificationToast
+        notifications={notifications}
+        onRemove={removeNotification}
       />
-      <RemoveStudentModal
-        isOpen={showRemoveModal}
-        onClose={closeRemoveModal}
-        student={studentToRemove}
-        userRole={userRole}
-        userId={currentUserId}
-        onStudentRemoved={refreshData}
-      />
-      
-      {/* Chat Sidebar */}
-      <ChatSidebar
-        isOpen={showChat}
-        onClose={handleCloseChat}
-        currentUserId={currentUserId}
-        currentUserRole={userRole}
-        chatPartnerId={chatPartnerId}
-        chatPartnerName={chatPartnerName}
-      />
-    </main>
+    </>
   );
 };
 

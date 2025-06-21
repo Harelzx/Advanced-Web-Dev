@@ -5,13 +5,17 @@ import StatsCard from './StatsCard';
 import ProgressBar from './ProgressBar';
 
 // A unified card component for displaying student/child data.
-export default function UserCard({ user, role, onRemove }) {
+export default function UserCard({ user, student, role, userRole, onRemove }) {
   const [showDetails, setShowDetails] = useState(false);
 
-  if (!user) return null;
+  // Support both 'user' and 'student' props for backward compatibility
+  const userData = user || student;
+  const currentRole = role || userRole;
+
+  if (!userData) return null;
 
   // Common data
-  const { name, averageGrade, grades, trainingProgress, practicePerformance, averageTimeSpent, wrongQuestions } = user;
+  const { name, averageGrade, grades, trainingProgress, practicePerformance, averageTimeSpent, wrongQuestions } = userData;
 
   // Data processing for progress bar and strengths/weaknesses
   const totalSessions = 9;
@@ -35,9 +39,9 @@ export default function UserCard({ user, role, onRemove }) {
     <div className="flex justify-between items-center w-full">
       <span className="font-semibold text-gray-800">{name}</span>
       <button
-        onClick={() => onRemove(user)}
-        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs flex-shrink-0"
-        title={`הסר ${role === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}`}
+        onClick={() => onRemove(userData)}
+        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex-shrink-0"
+        title={`הסר ${currentRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}`}
       >
         הסר
       </button>
@@ -45,7 +49,20 @@ export default function UserCard({ user, role, onRemove }) {
   );
 
   return (
-    <StatsCard title={title}>
+    <div className="panels p-4 rounded-lg shadow">
+      {/* Header with name and remove button */}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-semibold text-gray-800 text-lg">{name}</h3>
+        <button
+          onClick={() => onRemove(userData)}
+          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+          title={`הסר ${currentRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}`}
+        >
+          הסר
+        </button>
+      </div>
+
+      {/* Content */}
       <div className="space-y-4">
         {/* Training Progress */}
         {trainingProgress && (
@@ -124,6 +141,6 @@ export default function UserCard({ user, role, onRemove }) {
           </div>
         )}
       </div>
-    </StatsCard>
+    </div>
   );
 } 
