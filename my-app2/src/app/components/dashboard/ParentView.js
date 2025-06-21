@@ -4,12 +4,10 @@ import { useState } from 'react';
 import StatsCard from './StatsCard';
 import UserCard from './UserCard';
 import Button from '../Button';
-import { usePathname } from 'next/navigation';
 
 // Displays the parent's view of the dashboard.
 export default function ParentView({ studentsData = [], onAddChild, onRemoveChild }) {
   const [isChildrenCardsCollapsed, setIsChildrenCardsCollapsed] = useState(false);
-  const pathname = usePathname(); // Get the current route
 
   // For parents, studentsData will contain their children's data
   const children = studentsData;
@@ -18,10 +16,7 @@ export default function ParentView({ studentsData = [], onAddChild, onRemoveChil
     <div dir="rtl">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-700">התקדמות הילדים שלך</h2>
-        <Button
-          onClick={onAddChild}
-          className={pathname?.includes('/dashboard') ? 'w-1/4' : 'w-auto'}
-        >
+        <Button onClick={onAddChild}>
           הוסף ילד/ה
         </Button>
       </div>
