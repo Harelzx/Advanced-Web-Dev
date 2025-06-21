@@ -7,6 +7,7 @@ import TeacherView from '../components/dashboard/TeacherView';
 import ParentView from '../components/dashboard/ParentView';
 import AddStudentModal from '../components/dashboard/AddStudentModal';
 import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
+import ChatSidebar from '../components/chat/ChatSidebar';
 
 /**
  * The main component for the Dashboard page.
@@ -32,6 +33,11 @@ const Dashboard = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
+  
+  // --- Chat State Management ---
+  const [showChat, setShowChat] = useState(false);
+  const [chatPartnerId, setChatPartnerId] = useState(null);
+  const [chatPartnerName, setChatPartnerName] = useState('');
 
   // --- Modal Handlers ---
   const openRemoveModal = (student) => {
@@ -42,6 +48,26 @@ const Dashboard = () => {
   const closeRemoveModal = () => {
     setStudentToRemove(null);
     setShowRemoveModal(false);
+  };
+
+  // --- Chat Handlers ---
+  const handleOpenChat = () => {
+    // For now, just open chat with a demo partner
+    // Later we'll add a selection modal
+    if (userRole === 'teacher') {
+      setChatPartnerId('demo-parent-id');
+      setChatPartnerName('הורה לדוגמה');
+    } else {
+      setChatPartnerId('demo-teacher-id');
+      setChatPartnerName('מורה לדוגמה');
+    }
+    setShowChat(true);
+  };
+
+  const handleCloseChat = () => {
+    setShowChat(false);
+    setChatPartnerId(null);
+    setChatPartnerName('');
   };
 
   // --- Render Loading State ---
@@ -87,12 +113,14 @@ const Dashboard = () => {
             studentsData={studentsData} 
             onAddStudent={() => setShowAddModal(true)}
             onRemoveStudent={openRemoveModal}
+            onOpenChat={handleOpenChat}
           />
         ) : userRole === 'parent' ? (
           <ParentView 
             studentsData={studentsData}
             onAddChild={() => setShowAddModal(true)}
             onRemoveChild={openRemoveModal}
+            onOpenChat={handleOpenChat}
           />
         ) : (
           <div className="panels p-4 rounded-lg shadow text-center">
@@ -116,6 +144,16 @@ const Dashboard = () => {
         userRole={userRole}
         userId={currentUserId}
         onStudentRemoved={refreshData}
+      />
+      
+      {/* Chat Sidebar */}
+      <ChatSidebar
+        isOpen={showChat}
+        onClose={handleCloseChat}
+        currentUserId={currentUserId}
+        currentUserRole={userRole}
+        chatPartnerId={chatPartnerId}
+        chatPartnerName={chatPartnerName}
       />
     </main>
   );

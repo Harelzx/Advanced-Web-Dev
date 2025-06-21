@@ -3,7 +3,7 @@ import StatsCard from './StatsCard';
 import UserCard from './UserCard';
 
 // Displays the teacher's view of the dashboard.
-export default function TeacherView({ studentsData = [], onAddStudent, onRemoveStudent }) {
+export default function TeacherView({ studentsData = [], onAddStudent, onRemoveStudent, onOpenChat }) {
   const [isStudentListCollapsed, setIsStudentListCollapsed] = useState(false);
   
   const totalStudents = studentsData.length;
@@ -13,7 +13,16 @@ export default function TeacherView({ studentsData = [], onAddStudent, onRemoveS
 
   return (
     <div dir="rtl">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">סקירת מורה</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-700">סקירת מורה</h2>
+        <button
+          onClick={onOpenChat}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+        >
+          💬 צ'אט עם הורים
+        </button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Students Overview */}
         <StatsCard
