@@ -77,6 +77,21 @@ export default function UserCard({ user, role, onRemove }) {
           </div>
         </div>
         
+        {/* Detailed Subjects Breakdown (Collapsible) */}
+        {showDetails && (
+          <div className="text-sm border-t pt-3 mt-3 text-right">
+            <p className="font-semibold text-gray-700 mb-2">ציוני מבחן ראשוני:</p>
+            {Object.entries(grades || {}).map(([subject, grade]) => (
+              <div key={subject} className="flex justify-between mb-1">
+                <span className="text-gray-600">{subject}:</span>
+                <span className={`font-bold ${grade >= 80 ? "text-green-600" : grade >= 60 ? "text-yellow-600" : "text-red-600"}`}>
+                  {grade}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        
         {/* Strengths, Weaknesses and Avg Time */}
         {(practicePerformance || averageTimeSpent > 0) && (
             <div className="flex flex-wrap justify-around text-center border-t pt-4">
@@ -106,21 +121,6 @@ export default function UserCard({ user, role, onRemove }) {
           <div className="mt-2 text-sm text-gray-600 border-t pt-3">
             <span className="font-medium">שאלות שגויות: </span>
             {Object.values(wrongQuestions).reduce((total, questions) => total + (Array.isArray(questions) ? questions.length : 0), 0)} {'סה"כ'}
-          </div>
-        )}
-
-        {/* Detailed Subjects Breakdown (Collapsible) */}
-        {showDetails && (
-          <div className="text-sm border-t pt-3 mt-3 text-right">
-            <p className="font-semibold text-gray-700 mb-2">ציוני מבחן ראשוני:</p>
-            {Object.entries(grades || {}).map(([subject, grade]) => (
-              <div key={subject} className="flex justify-between mb-1">
-                <span className="text-gray-600">{subject}:</span>
-                <span className={`font-bold ${grade >= 80 ? "text-green-600" : grade >= 60 ? "text-yellow-600" : "text-red-600"}`}>
-                  {grade}%
-                </span>
-              </div>
-            ))}
           </div>
         )}
       </div>
