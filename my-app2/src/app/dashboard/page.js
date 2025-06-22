@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDashboardLogic } from '../hooks/useDashboardLogic';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
+import Navbar from '../components/Navbar';
 import TeacherView from '../components/dashboard/TeacherView';
 import ParentView from '../components/dashboard/ParentView';
 import AddStudentModal from '../components/dashboard/AddStudentModal';
@@ -105,8 +105,8 @@ const Dashboard = () => {
     return (
       <main className="p-4 space-y-6" dir="rtl">
         <div className="panels p-6 border rounded-lg shadow-lg text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-700">טוען את לוח הבקרה...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p style={{ color: 'var(--text-color)' }}>טוען את לוח הבקרה...</p>
         </div>
       </main>
     );
@@ -117,13 +117,13 @@ const Dashboard = () => {
     return (
       <main className="p-4 space-y-6" dir="rtl">
         <div className="panels p-6 border rounded-lg shadow-lg text-center">
-          <div className="text-red-600 mb-4">
+          <div className="text-red-500 mb-4">
             <span className="text-4xl">⚠️</span>
           </div>
-          <p className="text-red-700 font-medium mb-4">{error}</p>
+          <p className="text-red-600 font-medium mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
           >
             נסה שוב
           </button>
@@ -135,15 +135,16 @@ const Dashboard = () => {
   // --- Main Render ---
   return (
     <>
-    <main className="p-4 space-y-6" dir="rtl">
-        <DashboardHeader 
-          userRole={userRole} 
-          userName={userName}
-          onOpenChat={handleOpenChat}
-          onAddStudent={() => setShowAddModal(true)}
-          onAddChild={() => setShowAddModal(true)}
-          unreadCount={unreadCount}
-        />
+      <Navbar 
+        isDashboard={true}
+        userRole={userRole} 
+        userName={userName}
+        onOpenChat={handleOpenChat}
+        onAddStudent={() => setShowAddModal(true)}
+        onAddChild={() => setShowAddModal(true)}
+        unreadCount={unreadCount}
+      />
+      <main className="p-4 space-y-6 mt-16" dir="rtl">
       
       <div className="panels p-6 border rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
@@ -168,7 +169,7 @@ const Dashboard = () => {
           />
         ) : (
           <div className="panels p-4 rounded-lg shadow text-center">
-            <p className="text-gray-700">טוען את לוח הבקרה...</p>
+            <p style={{ color: 'var(--text-color)' }}>טוען את לוח הבקרה...</p>
           </div>
         )}
       </div>

@@ -35,8 +35,10 @@ const DashboardLayout = ({ children, userName, headerText, layoutType = "default
         </div>
         <div className="flex justify-between items-center mb-4">
           {showRole && (
-            <div className="p-2 rounded-lg">
-              <span>{roleLabel}: {userName}</span>
+            <div>
+              <p className="text-xl font-medium text-slate-700 dark:text-slate-300">
+                ברוך הבא, <span className="font-bold text-indigo-600 dark:text-indigo-400">{userName}</span>!
+              </p>
             </div>
           )}
           {showRefreshButton && (

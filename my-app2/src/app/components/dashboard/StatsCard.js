@@ -5,9 +5,9 @@ export default function StatsCard({
   title, 
   subtitle, 
   value, 
-  valueColor = "text-green-600", 
+  valueColor = "text-emerald-600 dark:text-emerald-400", 
   buttonText, 
-  buttonColor = "bg-green-500 hover:bg-green-600",
+  buttonColor = "bg-emerald-500 hover:bg-emerald-600",
   onButtonClick,
   className = "",
   children 
@@ -15,7 +15,7 @@ export default function StatsCard({
   return (
     <div className={`panels p-4 rounded-lg shadow ${className}`}>
       <div className="mb-2">
-      <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+      <h3 className="text-lg font-semibold" style={{ color: 'var(--text-color)' }}>{title}</h3>
       </div>
       
       {value !== undefined && (
@@ -25,7 +25,7 @@ export default function StatsCard({
       )}
       
       {subtitle && (
-        <p className="text-gray-600 mb-2">{subtitle}</p>
+        <p className="text-slate-600 dark:text-slate-400 mb-2">{subtitle}</p>
       )}
       
       {children}

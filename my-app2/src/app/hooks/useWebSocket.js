@@ -42,7 +42,9 @@ const useWebSocket = () => {
     }
 
     try {
-      globalWS = new WebSocket('ws://localhost:8080');
+      // Use environment variable for WebSocket URL or default to localhost
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+      globalWS = new WebSocket(wsUrl);
       
       globalWS.onopen = () => {
         globalConnectionStatus = 'Connected';

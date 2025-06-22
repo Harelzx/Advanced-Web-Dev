@@ -185,7 +185,7 @@ const ParentView = ({
           <h3 className="text-lg font-semibold text-gray-800">רשימת ילדים</h3>
                 <button
             onClick={() => setIsChildrenListExpanded(!isChildrenListExpanded)}
-            className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="list-toggle-button flex items-center gap-2 px-3 py-1 text-sm hover:bg-gray-100 rounded-lg transition-colors"
                 >
             <span>{isChildrenListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{

@@ -129,30 +129,30 @@ const TeacherView = ({
 
       {/* Communication Section */}
       <div className="panels p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">מרכז התקשורת</h3>
-        <p className="text-gray-600 mb-4">שלח הודעות והתעדכן עם הורי התלמידים</p>
+        <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-color)' }}>מרכז התקשורת</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-4">שלח הודעות והתעדכן עם הורי התלמידים</p>
         
         {/* Chat Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-green-50 p-3 rounded-lg text-center">
-            <div className="text-2xl font-bold text-green-600">
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg text-center border border-emerald-200 dark:border-emerald-800">
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
               {connectionStatus === 'Connected' ? '✓' : '✗'}
             </div>
-            <div className="text-xs text-green-500">
+            <div className="text-xs text-emerald-600 dark:text-emerald-500">
               {connectionStatus === 'Connected' ? 'צ\'אט פעיל' : 'צ\'אט לא פעיל'}
             </div>
           </div>
           
-          <div className="bg-purple-50 p-3 rounded-lg text-center">
-            <div className="text-2xl font-bold text-purple-600">
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg text-center border border-purple-200 dark:border-purple-800">
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {onlineUsers.filter(user => user.role === 'parent').length}
             </div>
-            <div className="text-xs text-purple-500">הורים מחוברים</div>
+            <div className="text-xs text-purple-600 dark:text-purple-500">הורים מחוברים</div>
           </div>
           
-          <div className="bg-blue-50 p-3 rounded-lg text-center">
-            <div className="text-2xl font-bold text-blue-600">{unreadCount}</div>
-            <div className="text-xs text-blue-500">הודעות חדשות</div>
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg text-center border border-indigo-200 dark:border-indigo-800">
+            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{unreadCount}</div>
+            <div className="text-xs text-indigo-600 dark:text-indigo-500">הודעות חדשות</div>
           </div>
         </div>
         
@@ -168,7 +168,7 @@ const TeacherView = ({
         
         <Button 
           onClick={onOpenChat}
-          className="relative bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
+          className="relative bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
         >
           💬 פתח צ'אט
           {unreadCount > 0 && (
@@ -182,10 +182,10 @@ const TeacherView = ({
         {/* Students List */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">רשימת תלמידים</h3>
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--text-color)' }}>רשימת תלמידים</h3>
               <button
             onClick={() => setIsStudentsListExpanded(!isStudentsListExpanded)}
-            className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="list-toggle-button flex items-center gap-2 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
             <span>{isStudentsListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{

@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background-color: #fff;
-  --text-color: #000;
+  --background-color: #f8fafc; /* Modern light gray instead of pure white */
+  --text-color: #1e293b; /* Warm dark gray instead of black */
+}
+
+.dark {
+  --background-color: #0f172a; /* Deep navy blue */
+  --text-color: #f1f5f9; /* Soft white */
 }
 
 @theme inline {
@@ -14,39 +19,71 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #bdb4c0;
-    --foreground: #000000;
+    --background: #0f172a; /* Deep navy blue instead of gray */
+    --foreground: #f1f5f9; /* Soft white instead of black */
   }
 }
 
 .panels {
-  background-color: #eeecec;
-  border: 1px solid var(--text-color); /* Black border in light mode */
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Include border transition */
+  background-color: #ffffff; /* Clean white for panels */
+  border: 1px solid #e2e8f0; /* Soft border instead of text color */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* Modern shadow */
+  transition: all 0.3s ease;
 }
 
 body.dark {
-  --background-color: #333;
-  --text-color: #fff;
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Include border transition */
+  --background-color: #0f172a; /* Deep navy blue */
+  --text-color: #f1f5f9; /* Soft white */
+  transition: all 0.3s ease;
 }
 
 body.dark .panels {
-  background-color: #000000;
-  color: #fff;
-  border-color: #fff; 
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Include border transition */
+  background-color: #1e293b; /* Dark slate for panels */
+  color: #f1f5f9;
+  border-color: #334155; /* Subtle border */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 body {
   background-color: var(--background-color);
   color: var(--text-color);
-  font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Include border transition */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  transition: all 0.3s ease;
 }
 
-h1, h2, p, h3, span {
+h1, h3, h4, h5, h6, p, span:not(.navbar-greeting):not(.navbar-title) {
   color: var(--text-color);
+}
+
+/* Allow h2 to be overridden by Tailwind classes for navbar */
+h2:not(.navbar-title) {
+  color: var(--text-color);
+}
+
+/* Navbar greeting should always be white */
+.navbar-greeting {
+  color: #ffffff !important;
+}
+
+/* Navbar buttons should always be white */
+.navbar-button, .navbar-button span {
+  color: #ffffff !important;
+}
+
+/* Mobile dashboard buttons should be white */
+.mobile-dashboard-button, .mobile-dashboard-button span {
+  color: #ffffff !important;
+  font-size: 1.125rem !important; /* text-lg */
+}
+
+.mobile-dashboard-button:hover, .mobile-dashboard-button:hover span {
+  color: #ffffff !important;
+}
+
+/* Mobile dashboard greeting text */
+.mobile-dashboard-greeting {
+  font-size: 1.125rem !important; /* text-lg */
 }
 
 /* RTL Support */
@@ -54,7 +91,7 @@ h1, h2, p, h3, span {
   text-align: right;
 }
 
-/* Custom animations for notifications */
+/* Modern animations for notifications */
 @keyframes slide-in-left {
   from {
     transform: translateX(-100%);
@@ -78,41 +115,61 @@ h1, h2, p, h3, span {
 }
 
 .animate-slide-in-left {
-  animation: slide-in-left 0.3s ease-out;
+  animation: slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-slide-out-left {
-  animation: slide-out-left 0.3s ease-in;
+  animation: slide-out-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Custom scrollbar for chat */
+/* Modern scrollbar design */
 .chat-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .chat-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f1f5f9;
+  border-radius: 3px;
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 2px;
+  background: #cbd5e1;
+  border-radius: 3px;
+  transition: background 0.2s ease;
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #94a3b8;
 }
 
-/* Pulse animation for online indicator */
-@keyframes pulse-green {
+/* Enhanced pulse animation */
+@keyframes pulse-modern {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
+    transform: scale(1.05);
   }
 }
 
 .animate-pulse-green {
-  animation: pulse-green 2s infinite;
+  animation: pulse-modern 2s infinite;
 }
+
+/* Student card - slightly darker than main container */
+.student-card {
+  background-color: #f8fafc; /* Light gray - darker than white container */
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+body.dark .student-card {
+  background-color: #0f172a; /* Darker navy - darker than main dark container */
+  color: #f1f5f9;
+  border-color: #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+

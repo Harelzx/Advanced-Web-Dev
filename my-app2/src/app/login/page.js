@@ -88,9 +88,9 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--background-color)' }}>
       <div className="panels p-10 rounded-lg shadow-xl w-96" dir="rtl">
-        <h1 className="text-black text-2xl mb-5 text-right">התחברות</h1>
+        <h1 className="text-2xl mb-5 text-right font-bold" style={{ color: 'var(--text-color)' }}>התחברות</h1>
         <Input
           type="email"
           placeholder="מייל"
@@ -109,20 +109,20 @@ const Login = () => {
           {loading ? 'מתחבר...' : 'התחבר'}
         </Button>
         {error && (
-          <p className="text-red-400 mt-2 text-right">שגיאה בהתחברות</p>
+          <p className="text-red-500 mt-2 text-right">שגיאה בהתחברות</p>
         )}
         {roleError && (
-          <p className="text-red-400 mt-2 text-right">{roleError}</p>
+          <p className="text-red-500 mt-2 text-right">{roleError}</p>
         )}
-        <p className="text-black mt-3 text-sm text-right">
+        <p className="mt-3 text-sm text-right" style={{ color: 'var(--text-color)' }}>
           אין משתמש?{' '}
-          <Link href="/sign-up" className="text-indigo-400 hover:text-indigo-300">
+          <Link href="/sign-up" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
             הרשמה
           </Link>
         </p>
-        <p className="text-black mt-3 text-sm text-right">
+        <p className="mt-3 text-sm text-right" style={{ color: 'var(--text-color)' }}>
           שכחת סיסמא?{' '}
-          <Link href="/ForgotPassword" className="text-indigo-400 hover:text-indigo-300">
+          <Link href="/ForgotPassword" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
             שחזור
           </Link>
         </p>

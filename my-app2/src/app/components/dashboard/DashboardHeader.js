@@ -24,19 +24,19 @@ export default function DashboardHeader({
   };
 
   return (
-    <div className="panels p-6 border-white rounded-lg shadow-lg" dir="rtl">
+    <div className="panels p-6 rounded-lg shadow-lg" dir="rtl">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-color)' }}>
             {userRole === 'teacher' ? 'לוח בקרה למורה' : 'לוח בקרה להורה'}
           </h1>
-          <p className="text-gray-600">ברוך שובך, {userName}!</p>
+          <p className="text-slate-600 dark:text-slate-400">ברוך שובך, {userName}!</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Chat Button */}
           <button
             onClick={onOpenChat}
-            className="relative px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2"
+            className="relative px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center gap-2 shadow-sm"
           >
             <span>💬</span>
             <span>צ'אט עם {userRole === 'teacher' ? 'הורים' : 'מורים'}</span>
@@ -50,7 +50,7 @@ export default function DashboardHeader({
           {/* Add Student/Child Button */}
           <button
             onClick={userRole === 'teacher' ? onAddStudent : onAddChild}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2"
+            className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors duration-200 flex items-center gap-2 shadow-sm"
           >
             <span>➕</span>
             <span>הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}</span>
@@ -59,7 +59,7 @@ export default function DashboardHeader({
           {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-2 shadow-sm"
         >
           <span>התנתק</span>
           <span>🚪</span>

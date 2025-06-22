@@ -15,9 +15,15 @@ const Input = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className={`w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500 ${
-        isLoginInput ? 'placeholder:text-right ltr text-left' : 'text-right'
+      style={{
+        backgroundColor: '#ffffff',
+        color: '#1e293b',
+        borderColor: '#cbd5e1'
+      }}
+      className={`w-full p-3 mb-4 border rounded-lg outline-none placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 ${
+        isLoginInput ? 'text-left placeholder:text-right' : 'text-right'
       } ${className}`}
+      dir={isLoginInput ? 'ltr' : 'rtl'}
     />
   );
 };

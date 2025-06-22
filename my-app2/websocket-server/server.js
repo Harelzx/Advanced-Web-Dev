@@ -1,12 +1,15 @@
 const { WebSocketServer, WebSocket } = require('ws');
 
-// Create WebSocket Server on port 8080 with text mode
+// Get port from environment variable (for Render) or default to 8080
+const PORT = process.env.PORT || 8080;
+
+// Create WebSocket Server with text mode
 const wss = new WebSocketServer({ 
-  port: 8080,
+  port: PORT,
   perMessageDeflate: false
 });
 
-console.log('WebSocket server started on port 8080');
+console.log(`WebSocket server started on port ${PORT}`);
 
 // Store connected clients with their info
 const connectedClients = new Map();

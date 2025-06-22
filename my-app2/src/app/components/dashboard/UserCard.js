@@ -49,7 +49,7 @@ export default function UserCard({ user, student, role, userRole, onRemove }) {
   );
 
   return (
-    <div className="panels p-4 rounded-lg shadow">
+    <div className="student-card p-4 rounded-lg shadow">
       {/* Header with name and remove button */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-gray-800 text-lg">{name}</h3>
