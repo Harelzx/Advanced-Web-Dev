@@ -35,7 +35,7 @@ function broadcastOnlineUsers() {
       timestamp: new Date().toISOString()
     });
 
-    console.log(`Broadcasting online users: ${onlineUsersList.length} users`);
+
     
     wss.clients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
@@ -53,7 +53,6 @@ function broadcastOnlineUsers() {
 
 // WebSocket connection handler
 wss.on('connection', function connection(ws) {
-  console.log('New WebSocket connection established');
   
   // Set binary type to handle text properly
   ws.binaryType = 'nodebuffer';
@@ -75,9 +74,7 @@ wss.on('connection', function connection(ws) {
         messageString = String(data);
       }
       
-      console.log('Raw message string:', messageString);
       const messageData = JSON.parse(messageString);
-      console.log('Parsed message:', messageData);
       
       // Store user info if it's a connection message
       if (messageData.type === 'user_info') {
@@ -100,7 +97,7 @@ wss.on('connection', function connection(ws) {
             lastSeen: now
           });
           
-          console.log(`User registered: ${messageData.userId} (${messageData.role})`);
+
           
           // Broadcast updated online users list (debounced)
           broadcastOnlineUsers();
@@ -112,7 +109,7 @@ wss.on('connection', function connection(ws) {
       if (messageData.type === 'user_offline') {
         // Remove user from online list
         onlineUsers.delete(messageData.userId);
-        console.log(`User manually went offline: ${messageData.userId}`);
+
         
         // Broadcast updated online users list (debounced)
         broadcastOnlineUsers();
@@ -121,14 +118,8 @@ wss.on('connection', function connection(ws) {
       
       // Handle chat messages
       if (messageData.type === 'chat') {
-        console.log('Broadcasting chat message to all clients');
-        console.log('Message content:', messageData.text);
-        console.log('Sender:', messageData.sender);
-        console.log('Number of connected clients:', wss.clients.size);
-        
         // Create the message to broadcast as a string
         const messageToSend = JSON.stringify(messageData);
-        console.log('Broadcasting message:', messageToSend);
         
         // Broadcast message to all connected clients (including sender)
         let broadcastCount = 0;
@@ -137,14 +128,11 @@ wss.on('connection', function connection(ws) {
             try {
               client.send(messageToSend, { binary: false });
               broadcastCount++;
-              console.log(`Sent to client ${broadcastCount}`);
             } catch (sendError) {
               console.error('Error sending to client:', sendError);
             }
           }
-        });
-        
-        console.log(`Message broadcasted to ${broadcastCount} clients`);
+                  });
       }
       
     } catch (error) {
@@ -159,15 +147,13 @@ wss.on('connection', function connection(ws) {
     if (clientInfo && clientInfo.userInfo) {
       // Remove user from online list
       onlineUsers.delete(clientInfo.userInfo.userId);
-      console.log(`User went offline: ${clientInfo.userInfo.userId}`);
+
       
       // Broadcast updated online users list (debounced)
       broadcastOnlineUsers();
     }
     
     connectedClients.delete(clientId);
-    console.log(`WebSocket connection closed (${clientId})`);
-    console.log(`Active connections: ${connectedClients.size}`);
   });
   
   // Send welcome message as text
@@ -179,12 +165,9 @@ wss.on('connection', function connection(ws) {
   
   try {
     ws.send(welcomeMessage, { binary: false });
-    console.log('Welcome message sent to client');
   } catch (error) {
     console.error('Error sending welcome message:', error);
   }
-  
-  console.log(`Active connections: ${connectedClients.size}`);
 });
 
 // Periodic cleanup of inactive users (every 30 seconds)
@@ -201,7 +184,6 @@ setInterval(() => {
   }
   
   if (removedUsers > 0) {
-    console.log(`Cleaned up ${removedUsers} inactive users`);
     broadcastOnlineUsers();
   }
 }, 30000);

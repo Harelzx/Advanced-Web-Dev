@@ -21,7 +21,7 @@ const TeacherView = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [isStudentsListExpanded, setIsStudentsListExpanded] = useState(true);
-  const { onlineUsers } = useWebSocket();
+    const { onlineUsers } = useWebSocket();
 
   // Calculate total students
   const totalStudents = studentsData.length;
@@ -117,11 +117,11 @@ const TeacherView = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StatsCard 
+        <StatsCard
           title="מספר תלמידים" 
           value={totalStudents}
         />
-        <StatsCard 
+        <StatsCard
           title="ציון ממוצע כיתתי" 
           value={`${Math.round(classAverage)}%`}
         />
@@ -178,23 +178,23 @@ const TeacherView = ({
           )}
         </Button>
       </div>
-
-      {/* Students List */}
+        
+        {/* Students List */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-800">רשימת תלמידים</h3>
-          <button
+              <button
             onClick={() => setIsStudentsListExpanded(!isStudentsListExpanded)}
             className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+              >
             <span>{isStudentsListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{
               transform: isStudentsListExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
             }}>
-              ▼
-            </span>
-          </button>
-        </div>
+                  ▼
+                </span>
+              </button>
+            </div>
         {isStudentsListExpanded && (
           studentsData.length === 0 ? (
             <div className="panels p-6 rounded-lg shadow text-center">
@@ -205,21 +205,18 @@ const TeacherView = ({
               <Button onClick={onAddStudent} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg">
                 הוסף תלמיד/ה ראשון/ה
               </Button>
-              <div className="mt-4 text-xs text-gray-400">
-                Debug: studentsData.length = {studentsData.length}
-              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
-              {studentsData.map((student) => (
-                <UserCard
-                  key={student.id}
+                    {studentsData.map((student) => (
+                      <UserCard 
+                        key={student.id} 
                   student={student}
                   userRole="teacher"
                   onRemove={() => onRemoveStudent(student)}
-                />
-              ))}
-            </div>
+                      />
+                    ))}
+                  </div>
           )
         )}
       </div>

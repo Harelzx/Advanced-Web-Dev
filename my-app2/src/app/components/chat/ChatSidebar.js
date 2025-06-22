@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, writeBatch, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, updateDoc } from 'firebase/firestore';
 import useWebSocket from '../../hooks/useWebSocket';
 import useNotifications from '../../hooks/useNotifications';
 
@@ -16,37 +16,10 @@ export default function ChatSidebar({
 }) {
   const [inputMessage, setInputMessage] = useState('');
   const [firebaseMessages, setFirebaseMessages] = useState([]);
-  const { messages: webSocketMessages, connectionStatus, onlineUsers, sendMessage, sendUserInfo, sendUserOffline } = useWebSocket();
+  const { messages: webSocketMessages, connectionStatus, onlineUsers, sendMessage } = useWebSocket();
   const { showChatNotification } = useNotifications();
 
-  // Send user info when component mounts and WebSocket connects
-  useEffect(() => {
-    if (connectionStatus === 'Connected' && currentUserId && currentUserRole) {
-      // Add a small delay to ensure the connection is fully established
-      const timer = setTimeout(async () => {
-        try {
-          // Get current user's name from Firebase
-          const userDocRef = doc(db, 'users', currentUserId);
-          const userDocSnap = await getDoc(userDocRef);
-          
-          let currentUserName = 'משתמש';
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            currentUserName = userData.fullName || userData.email || 'משתמש';
-          }
-          
-          sendUserInfo(currentUserId, currentUserRole, currentUserName);
-        } catch (error) {
-          console.error('Error fetching user name:', error);
-          // Fallback to email if name fetch fails
-          const currentUserEmail = sessionStorage.getItem('userEmail') || 'unknown';
-          sendUserInfo(currentUserId, currentUserRole, currentUserEmail);
-        }
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [connectionStatus, currentUserId, currentUserRole, sendUserInfo]);
+
 
   // Check if chat partner is online
   const isPartnerOnline = onlineUsers.some(user => user.userId === chatPartnerId);
@@ -85,14 +58,14 @@ export default function ChatSidebar({
   }, [webSocketMessages, isOpen, currentUserRole, chatPartnerName, showChatNotification]);
 
   // Combine Firebase history with real-time WebSocket messages
-  // Remove duplicates by checking if message already exists in Firebase
+  // Remove duplicates by checking text, sender and similar timestamp
   const allMessages = [
     ...firebaseMessages,
     ...webSocketMessages.filter(wsMsg => 
       !firebaseMessages.some(fbMsg => 
         fbMsg.text === wsMsg.text && 
         fbMsg.sender === wsMsg.sender &&
-        Math.abs(new Date(fbMsg.timestamp?.toDate?.() || fbMsg.timestamp) - new Date(wsMsg.timestamp)) < 5000
+        Math.abs(new Date(fbMsg.timestamp?.toDate?.() || fbMsg.timestamp) - new Date(wsMsg.timestamp)) < 3000
       )
     )
   ].sort((a, b) => {
@@ -119,9 +92,8 @@ export default function ChatSidebar({
       const partnerMessagesRef = collection(db, 'users', chatPartnerId, 'chats', currentUserId, 'messages');
       await addDoc(partnerMessagesRef, messageWithReadStatus);
 
-
     } catch (error) {
-      console.error('Error saving message to Firebase:', error);
+      console.log('Could not save message');
     }
   };
 
@@ -132,31 +104,18 @@ export default function ChatSidebar({
     const markMessagesAsRead = async () => {
       try {
         const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
-        // Simplified query - only filter by read status, then filter sender in code
-        const unreadQuery = query(
-          messagesRef, 
-          where('read', '==', false)
-        );
-        
+        const unreadQuery = query(messagesRef, where('read', '==', false));
         const unreadSnapshot = await getDocs(unreadQuery);
         
-        // Filter messages not sent by current user and mark them as read
-        const batch = writeBatch(db);
-        let messagesToUpdate = 0;
-        
-        unreadSnapshot.docs.forEach(doc => {
-          const messageData = doc.data();
+        // Simple loop to mark messages as read
+        for (const docSnapshot of unreadSnapshot.docs) {
+          const messageData = docSnapshot.data();
           if (messageData.sender !== currentUserRole) {
-            batch.update(doc.ref, { read: true });
-            messagesToUpdate++;
+            await updateDoc(docSnapshot.ref, { read: true });
           }
-        });
-        
-        if (messagesToUpdate > 0) {
-          await batch.commit();
         }
       } catch (error) {
-        console.error('Error marking messages as read:', error);
+        console.log('Could not mark messages as read');
       }
     };
 
@@ -190,16 +149,6 @@ export default function ChatSidebar({
       e.preventDefault();
       handleSendMessage();
     }
-  };
-
-  // Handle closing chat
-  const handleCloseChat = () => {
-    // Send offline notification to server
-    if (currentUserId) {
-      sendUserOffline(currentUserId);
-    }
-    // Call the original onClose function
-    onClose();
   };
 
   // Format timestamp for display
@@ -333,7 +282,7 @@ export default function ChatSidebar({
             </div>
           </div>
           <button
-            onClick={handleCloseChat}
+            onClick={onClose}
             className="text-gray-500 hover:text-gray-700 p-2"
           >
             ✕

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import UserCard from './UserCard';
 import StatsCard from './StatsCard';
@@ -21,7 +21,7 @@ const ParentView = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [isChildrenListExpanded, setIsChildrenListExpanded] = useState(true);
-  const { onlineUsers } = useWebSocket();
+    const { onlineUsers } = useWebSocket();
 
   // Calculate total children
   const totalChildren = studentsData.length;
@@ -111,7 +111,7 @@ const ParentView = ({
       onUnreadCountChange(total);
     }
   }, [unreadCounts, onUnreadCountChange]);
-
+  
   return (
     <div className="space-y-6">
 
@@ -166,7 +166,7 @@ const ParentView = ({
           </span>
         </div>
         
-        <Button 
+        <Button
           onClick={onOpenChat}
           className="relative bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
         >
@@ -178,22 +178,22 @@ const ParentView = ({
           )}
         </Button>
       </div>
-
+      
       {/* Children List */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-800">רשימת ילדים</h3>
-          <button
+                <button
             onClick={() => setIsChildrenListExpanded(!isChildrenListExpanded)}
             className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+                >
             <span>{isChildrenListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{
               transform: isChildrenListExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
             }}>
-              ▼
-            </span>
-          </button>
+                    ▼
+                  </span>
+                </button>
         </div>
         {isChildrenListExpanded && (
           studentsData.length === 0 ? (
@@ -205,20 +205,17 @@ const ParentView = ({
               <Button onClick={onAddChild} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg">
                 הוסף ילד/ה ראשון/ה
               </Button>
-              <div className="mt-4 text-xs text-gray-400">
-                Debug: studentsData.length = {studentsData.length}
-              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
               {studentsData.map((child) => (
-                <UserCard
-                  key={child.id}
+                    <UserCard 
+                      key={child.id}
                   student={child}
                   userRole="parent"
                   onRemove={() => onRemoveChild(child)}
-                />
-              ))}
+                    />
+                  ))}
             </div>
           )
         )}

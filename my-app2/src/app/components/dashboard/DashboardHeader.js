@@ -57,13 +57,13 @@ export default function DashboardHeader({
           </button>
           
           {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
-          >
-            <span>התנתק</span>
-            <span>🚪</span>
-          </button>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
+        >
+          <span>התנתק</span>
+          <span>🚪</span>
+        </button>
         </div>
       </div>
     </div>

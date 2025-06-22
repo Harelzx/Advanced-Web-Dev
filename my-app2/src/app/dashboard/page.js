@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDashboardLogic } from '../hooks/useDashboardLogic';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import TeacherView from '../components/dashboard/TeacherView';
@@ -46,8 +46,25 @@ const Dashboard = () => {
   const { notifications, removeNotification } = useNotifications();
   
   // --- WebSocket Connection ---
-  const { connectionStatus } = useWebSocket();
-  
+  const { connectionStatus, sendUserInfo } = useWebSocket();
+
+  // Send user info when WebSocket connects
+  useEffect(() => {
+    if (connectionStatus === 'Connected' && currentUserId && userRole) {
+      const timer = setTimeout(async () => {
+        try {
+          // Get current user's name from session or use userName
+          const currentUserName = userName || sessionStorage.getItem('userEmail') || 'משתמש';
+          sendUserInfo(currentUserId, userRole, currentUserName);
+        } catch (error) {
+          console.error('Error sending user info:', error);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [connectionStatus, currentUserId, userRole, userName, sendUserInfo]);
+
   // --- Modal Handlers ---
   const openRemoveModal = (student) => {
     setStudentToRemove(student);
@@ -118,7 +135,7 @@ const Dashboard = () => {
   // --- Main Render ---
   return (
     <>
-      <main className="p-4 space-y-6" dir="rtl">
+    <main className="p-4 space-y-6" dir="rtl">
         <DashboardHeader 
           userRole={userRole} 
           userName={userName}
@@ -127,51 +144,51 @@ const Dashboard = () => {
           onAddChild={() => setShowAddModal(true)}
           unreadCount={unreadCount}
         />
-        
-        <div className="panels p-6 border rounded-lg shadow-lg">
-          {userRole === 'teacher' ? (
-            <TeacherView 
-              studentsData={studentsData} 
-              onAddStudent={() => setShowAddModal(true)}
-              onRemoveStudent={openRemoveModal}
+      
+      <div className="panels p-6 border rounded-lg shadow-lg">
+        {userRole === 'teacher' ? (
+          <TeacherView 
+            studentsData={studentsData} 
+            onAddStudent={() => setShowAddModal(true)}
+            onRemoveStudent={openRemoveModal}
               onOpenChat={handleOpenChat}
               currentUserId={currentUserId}
               connectionStatus={connectionStatus}
               onUnreadCountChange={setUnreadCount}
-            />
-          ) : userRole === 'parent' ? (
-            <ParentView 
-              studentsData={studentsData}
-              onAddChild={() => setShowAddModal(true)}
-              onRemoveChild={openRemoveModal}
+          />
+        ) : userRole === 'parent' ? (
+          <ParentView 
+            studentsData={studentsData}
+            onAddChild={() => setShowAddModal(true)}
+            onRemoveChild={openRemoveModal}
               onOpenChat={handleOpenChat}
               currentUserId={currentUserId}
               connectionStatus={connectionStatus}
               onUnreadCountChange={setUnreadCount}
-            />
-          ) : (
-            <div className="panels p-4 rounded-lg shadow text-center">
-              <p className="text-gray-700">טוען את לוח הבקרה...</p>
-            </div>
-          )}
-        </div>
-
-        {/* Modals for adding/removing students */}
-        <AddStudentModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          userRole={userRole}
-          userId={currentUserId}
-          onStudentAdded={refreshData}
-        />
-        <RemoveStudentModal
-          isOpen={showRemoveModal}
-          onClose={closeRemoveModal}
-          student={studentToRemove}
-          userRole={userRole}
-          userId={currentUserId}
-          onStudentRemoved={refreshData}
-        />
+          />
+        ) : (
+          <div className="panels p-4 rounded-lg shadow text-center">
+            <p className="text-gray-700">טוען את לוח הבקרה...</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Modals for adding/removing students */}
+      <AddStudentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        userRole={userRole}
+        userId={currentUserId}
+        onStudentAdded={refreshData}
+      />
+      <RemoveStudentModal
+        isOpen={showRemoveModal}
+        onClose={closeRemoveModal}
+        student={studentToRemove}
+        userRole={userRole}
+        userId={currentUserId}
+        onStudentRemoved={refreshData}
+      />
 
         {/* Chat Partners List Modal */}
         {showPartnersList && (
@@ -194,7 +211,7 @@ const Dashboard = () => {
             chatPartnerName={selectedPartner.name}
           />
         )}
-      </main>
+    </main>
 
       {/* Notifications */}
       <NotificationToast

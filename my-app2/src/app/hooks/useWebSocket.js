@@ -2,86 +2,51 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Global WebSocket instance to prevent multiple connections in Strict Mode
+// Global variables for shared WebSocket connection
 let globalWS = null;
 let globalConnectionStatus = 'Disconnected';
 let globalOnlineUsers = [];
 let globalMessages = [];
 let listeners = new Set();
-let connectionAttempts = 0;
-let isConnecting = false;
-let cleanupTimeout = null;
+let userInfoSent = false;
 
 const useWebSocket = () => {
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const reconnectTimeoutRef = useRef(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
-  const userInfoSent = useRef(false);
   const listenerRef = useRef(null);
-  const isActive = useRef(true);
 
-  // Create listener function
+  // Create listener
   const createListener = useCallback(() => {
     return {
       id: Math.random().toString(36).substr(2, 9),
-      onMessage: (data) => {
-        if (isActive.current) {
-          setMessages(prev => [...prev, data]);
-        }
-      },
-      onStatusChange: (status) => {
-        if (isActive.current) {
-          setConnectionStatus(status);
-        }
-      },
-      onUsersUpdate: (users) => {
-        if (isActive.current) {
-          setOnlineUsers(users);
-        }
-      }
+      onMessage: (data) => setMessages(prev => [...prev, data]),
+      onStatusChange: (status) => setConnectionStatus(status),
+      onUsersUpdate: (users) => setOnlineUsers(users)
     };
   }, []);
 
+  // Connect to WebSocket (only once globally)
   const connectWebSocket = useCallback(() => {
-    // Clear any pending cleanup
-    if (cleanupTimeout) {
-      clearTimeout(cleanupTimeout);
-      cleanupTimeout = null;
-    }
-
-    // If global WebSocket exists and is connected, just sync state
     if (globalWS && globalWS.readyState === WebSocket.OPEN) {
-      if (isActive.current) {
-        setConnectionStatus(globalConnectionStatus);
-        setOnlineUsers(globalOnlineUsers);
-        setMessages(globalMessages);
-      }
+      // Already connected, just sync state
+      setConnectionStatus(globalConnectionStatus);
+      setOnlineUsers(globalOnlineUsers);
+      setMessages(globalMessages);
       return;
     }
 
-    // If connection is in progress, wait
-    if (isConnecting || (globalWS && globalWS.readyState === WebSocket.CONNECTING)) {
+    if (globalWS && globalWS.readyState === WebSocket.CONNECTING) {
+      // Already connecting, wait
       return;
     }
 
-    // Close existing connection if any
-    if (globalWS && globalWS.readyState !== WebSocket.CLOSED) {
-      globalWS.close(1000, 'Reconnecting');
-    }
-
-    isConnecting = true;
-    
     try {
       globalWS = new WebSocket('ws://localhost:8080');
-
+      
       globalWS.onopen = () => {
         globalConnectionStatus = 'Connected';
-        reconnectAttempts.current = 0;
-        userInfoSent.current = false;
-        isConnecting = false;
+        userInfoSent = false; // Reset when connection opens
         
         // Notify all listeners
         listeners.forEach(listener => {
@@ -113,35 +78,20 @@ const useWebSocket = () => {
         }
       };
 
-      globalWS.onclose = (event) => {
+      globalWS.onclose = () => {
         globalConnectionStatus = 'Disconnected';
         globalOnlineUsers = [];
-        userInfoSent.current = false;
-        isConnecting = false;
+        userInfoSent = false;
         
         // Notify all listeners
         listeners.forEach(listener => {
           listener.onStatusChange('Disconnected');
           listener.onUsersUpdate([]);
         });
-        
-        // Only attempt to reconnect for unexpected closures and if we have active listeners
-        if (!event.wasClean && event.code !== 1000 && reconnectAttempts.current < maxReconnectAttempts && listeners.size > 0) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
-          reconnectAttempts.current++;
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (listeners.size > 0) { // Double check we still have listeners
-              connectWebSocket();
-            }
-          }, delay);
-        }
       };
 
-      globalWS.onerror = (error) => {
-        console.error('WebSocket error occurred');
+      globalWS.onerror = () => {
         globalConnectionStatus = 'Error';
-        isConnecting = false;
         
         // Notify all listeners
         listeners.forEach(listener => {
@@ -152,7 +102,6 @@ const useWebSocket = () => {
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
       globalConnectionStatus = 'Error';
-      isConnecting = false;
       
       // Notify all listeners
       listeners.forEach(listener => {
@@ -162,54 +111,38 @@ const useWebSocket = () => {
   }, []);
 
   useEffect(() => {
-    // Mark as active
-    isActive.current = true;
-
     // Create and register listener
     const listener = createListener();
     listenerRef.current = listener;
     listeners.add(listener);
 
     // Sync with global state
-    if (isActive.current) {
-      setConnectionStatus(globalConnectionStatus);
-      setOnlineUsers(globalOnlineUsers);
-      setMessages(globalMessages);
-    }
+    setConnectionStatus(globalConnectionStatus);
+    setOnlineUsers(globalOnlineUsers);
+    setMessages(globalMessages);
 
     // Connect if needed
     connectWebSocket();
 
     // Cleanup on unmount
     return () => {
-      // Mark as inactive immediately
-      isActive.current = false;
-      
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      
-      // Remove listener
       if (listenerRef.current) {
         listeners.delete(listenerRef.current);
       }
       
-      // Schedule cleanup with delay to handle React Strict Mode
-      if (listeners.size === 0) {
-        cleanupTimeout = setTimeout(() => {
-          if (listeners.size === 0 && globalWS && globalWS.readyState !== WebSocket.CLOSED) {
-            globalWS.close(1000, 'All components unmounted');
-            globalWS = null;
-            globalConnectionStatus = 'Disconnected';
-            globalOnlineUsers = [];
-            globalMessages = [];
-            isConnecting = false;
-          }
-        }, 100); // Small delay to handle React Strict Mode double unmount/mount
+      // Close connection only if no more listeners
+      if (listeners.size === 0 && globalWS && globalWS.readyState !== WebSocket.CLOSED) {
+        globalWS.close();
+        globalWS = null;
+        globalConnectionStatus = 'Disconnected';
+        globalOnlineUsers = [];
+        globalMessages = [];
+        userInfoSent = false;
       }
     };
   }, [connectWebSocket, createListener]);
 
+  // Send message function
   const sendMessage = useCallback((messageData) => {
     if (globalWS && globalWS.readyState === WebSocket.OPEN) {
       const fullMessage = {
@@ -227,8 +160,9 @@ const useWebSocket = () => {
     }
   }, []);
 
+  // Send user info function
   const sendUserInfo = useCallback((userId, role, name) => {
-    if (globalWS && globalWS.readyState === WebSocket.OPEN && !userInfoSent.current) {
+    if (globalWS && globalWS.readyState === WebSocket.OPEN && !userInfoSent) {
       const userInfo = {
         type: 'user_info',
         userId,
@@ -238,29 +172,14 @@ const useWebSocket = () => {
       
       try {
         globalWS.send(JSON.stringify(userInfo));
-        userInfoSent.current = true;
+        userInfoSent = true;
       } catch (error) {
         console.error('Error sending user info:', error);
       }
-    } else if (!userInfoSent.current) {
-      console.error('Cannot send user info - WebSocket not connected');
     }
   }, []);
 
-  const sendUserOffline = useCallback((userId) => {
-    if (globalWS && globalWS.readyState === WebSocket.OPEN) {
-      const offlineInfo = {
-        type: 'user_offline',
-        userId
-      };
-      
-      try {
-        globalWS.send(JSON.stringify(offlineInfo));
-      } catch (error) {
-        console.error('Error sending user offline:', error);
-      }
-    }
-  }, []);
+
 
   return {
     messages,
@@ -268,8 +187,7 @@ const useWebSocket = () => {
     connectionStatus,
     onlineUsers,
     sendMessage,
-    sendUserInfo,
-    sendUserOffline
+    sendUserInfo
   };
 };
 

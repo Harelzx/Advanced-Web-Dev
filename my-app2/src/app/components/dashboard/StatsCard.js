@@ -15,7 +15,7 @@ export default function StatsCard({
   return (
     <div className={`panels p-4 rounded-lg shadow ${className}`}>
       <div className="mb-2">
-        <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+      <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
       </div>
       
       {value !== undefined && (
