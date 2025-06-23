@@ -5,7 +5,12 @@ const port = process.env.PORT || 8080;
 // Create WebSocket server - DISABLED FOR TESTING
 // const wss = new WebSocket.Server({ port });
 console.log('WebSocket server creation disabled for testing');
-process.exit(0); // Exit immediately without starting server
+console.log('Server will stay alive but do nothing...');
+
+// Keep the process alive without doing anything
+setInterval(() => {
+  // Do nothing - just keep the process running
+}, 60000); // Check every minute
 
 // Store connected clients and online users
 const connectedClients = new Map();

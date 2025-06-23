@@ -43,15 +43,22 @@ const useWebSocket = (userId, userRole, userName) => {
 
   // Connect to WebSocket
   const connect = useCallback(() => {
+    console.log('🔌 Attempting WebSocket connection...');
+    console.log('📊 Current globalConnectionStatus:', globalConnectionStatus);
+    console.log('👥 Current globalOnlineUsers:', globalOnlineUsers.length);
+    
     if (globalWS && globalWS.readyState === WebSocket.OPEN) {
+      console.log('✅ WebSocket already connected');
       return;
     }
 
     if (globalWS && globalWS.readyState === WebSocket.CONNECTING) {
+      console.log('⏳ WebSocket already connecting');
       return;
     }
 
     try {
+      console.log('🚀 Creating new WebSocket connection to:', wsUrl);
       globalWS = new WebSocket(wsUrl);
       globalConnectionStatus = 'Connecting';
       
@@ -61,6 +68,7 @@ const useWebSocket = (userId, userRole, userName) => {
       });
 
       globalWS.onopen = () => {
+        console.log('🎉 WebSocket connected successfully!');
         globalConnectionStatus = 'Connected';
         userInfoSent = false;
         
@@ -73,24 +81,28 @@ const useWebSocket = (userId, userRole, userName) => {
       globalWS.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log('📨 WebSocket message received:', data.type);
           
           if (data.type === 'online_users') {
+            console.log('👥 Updating online users:', data.users?.length || 0);
             globalOnlineUsers = data.users || [];
             listeners.forEach(listener => {
               listener.onUsersUpdate([...globalOnlineUsers]);
             });
           } else if (data.type === 'chat') {
+            console.log('💬 New chat message received');
             globalMessages = [...globalMessages, data];
             listeners.forEach(listener => {
               listener.onMessagesUpdate([...globalMessages]);
             });
           }
         } catch (error) {
-          // Silent error handling
+          console.log('❌ Error parsing WebSocket message:', error);
         }
       };
 
-      globalWS.onerror = () => {
+      globalWS.onerror = (error) => {
+        console.log('🚨 WebSocket error occurred:', error);
         if (globalWS?.readyState === WebSocket.CLOSED || globalWS?.readyState === WebSocket.CLOSING) {
           return;
         }
@@ -102,16 +114,25 @@ const useWebSocket = (userId, userRole, userName) => {
         });
       };
 
-      globalWS.onclose = () => {
+      globalWS.onclose = (event) => {
+        console.log('🔌 WebSocket connection closed:', event.code, event.reason);
         globalConnectionStatus = 'Disconnected';
         globalWS = null;
         
+        // Clear old data when disconnected
+        console.log('🧹 Clearing old WebSocket data');
+        globalOnlineUsers = [];
+        globalMessages = [];
+        
         listeners.forEach(listener => {
           listener.onStatusChange('Disconnected');
+          listener.onUsersUpdate([]);
+          listener.onMessagesUpdate([]);
         });
         
         // Auto-reconnect if we have listeners
         if (listeners.size > 0) {
+          console.log('🔄 Scheduling reconnection in 3 seconds...');
           setTimeout(() => {
             if (listeners.size > 0) {
               connect();
