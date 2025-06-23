@@ -38,24 +38,23 @@ export default function ChatSidebar({
         ...doc.data()
       }));
       
+      // Check for new messages when chat is closed
+      if (!isOpen && firebaseMessages.length > 0 && historyMessages.length > firebaseMessages.length) {
+        const newMessages = historyMessages.slice(firebaseMessages.length);
+        newMessages.forEach(message => {
+          if (message.sender !== currentUserRole) {
+            showChatNotification(chatPartnerName, message.text, message.sender);
+          }
+        });
+      }
+      
       setFirebaseMessages(historyMessages);
     });
 
     return () => unsubscribe();
-  }, [currentUserId, chatPartnerId, currentUserRole]);
+  }, [currentUserId, chatPartnerId, currentUserRole, isOpen, firebaseMessages.length, chatPartnerName, showChatNotification]);
 
-  // Show notification for new WebSocket messages (only when chat is closed)
-  useEffect(() => {
-    if (webSocketMessages.length > 0 && !isOpen) {
-      const lastMessage = webSocketMessages[webSocketMessages.length - 1];
-      
-      // Only show notification for messages from others
-      if (lastMessage.sender !== currentUserRole) {
-        const senderRole = lastMessage.sender;
-        showChatNotification(chatPartnerName, lastMessage.text, senderRole);
-      }
-    }
-  }, [webSocketMessages, isOpen, currentUserRole, chatPartnerName, showChatNotification]);
+
 
   // Combine Firebase history with real-time WebSocket messages
   // Remove duplicates by checking text, sender and similar timestamp
@@ -92,9 +91,9 @@ export default function ChatSidebar({
       const partnerMessagesRef = collection(db, 'users', chatPartnerId, 'chats', currentUserId, 'messages');
       await addDoc(partnerMessagesRef, messageWithReadStatus);
 
-    } catch (error) {
-      console.log('Could not save message');
-    }
+          } catch (error) {
+        // Could not save message
+      }
   };
 
   // Mark messages as read when chat is opened
@@ -115,7 +114,7 @@ export default function ChatSidebar({
           }
         }
       } catch (error) {
-        console.log('Could not mark messages as read');
+        // Could not mark messages as read
       }
     };
 
@@ -127,6 +126,7 @@ export default function ChatSidebar({
     if (!inputMessage.trim()) return;
 
     const messageData = {
+      type: 'chat',
       text: inputMessage,
       sender: currentUserRole,
       teacherId: currentUserRole === 'teacher' ? currentUserId : chatPartnerId,
@@ -271,7 +271,7 @@ export default function ChatSidebar({
                 {connectionStatus === 'Connected' && (
                   <>
                     <div className={`w-2 h-2 rounded-full ${
-                      isPartnerOnline ? 'bg-green-500' : 'bg-gray-400'
+                      isPartnerOnline ? 'bg-green-500 animate-pulse-green' : 'bg-gray-400'
                     }`}></div>
                     <span className="text-xs text-gray-500">
                       {isPartnerOnline ? 'מחובר' : 'לא מחובר'}
@@ -290,7 +290,7 @@ export default function ChatSidebar({
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-140px)]" dir="rtl">
+        <div className="flex-1 overflow-y-auto chat-scrollbar p-4 h-[calc(100vh-140px)]" dir="rtl">
           {allMessages.length === 0 ? (
             <div className="text-center text-gray-500 mt-8">
               <div className="text-4xl mb-4">💬</div>
@@ -320,6 +320,11 @@ export default function ChatSidebar({
                         message.sender === currentUserRole
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-200 text-gray-800'
+                      } ${
+                        // Add animation for very recent messages (last 3 seconds)
+                        new Date() - new Date(message.timestamp?.toDate?.() || message.timestamp) < 3000
+                          ? 'animate-slide-in-left'
+                          : ''
                       }`}
                     >
                       {message.text}

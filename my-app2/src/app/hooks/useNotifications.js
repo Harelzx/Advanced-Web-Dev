@@ -21,35 +21,20 @@ export default function useNotifications() {
 
   // Show notification
   const showNotification = (title, options = {}) => {
-    if (permission === 'granted' && 'Notification' in window) {
-      const notification = new Notification(title, {
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        ...options
-      });
-
-      // Auto close after 5 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 5000);
-
-      return notification;
-    } else {
-      // Fallback: show in-app notification
-      const inAppNotification = {
-        id: Date.now(),
-        title,
-        body: options.body,
-        timestamp: new Date().toISOString()
-      };
-      
-      setNotifications(prev => [...prev, inAppNotification]);
-      
-      // Auto remove after 5 seconds
-      setTimeout(() => {
-        setNotifications(prev => prev.filter(n => n.id !== inAppNotification.id));
-      }, 5000);
-    }
+    // Always show in-app notification (with animations) instead of browser notification
+    const inAppNotification = {
+      id: Date.now(),
+      title,
+      body: options.body,
+      timestamp: new Date().toISOString()
+    };
+    
+    setNotifications(prev => [...prev, inAppNotification]);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== inAppNotification.id));
+    }, 5000);
   };
 
   // Show chat message notification

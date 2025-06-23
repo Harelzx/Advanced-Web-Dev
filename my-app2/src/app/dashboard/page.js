@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDashboardLogic } from '../hooks/useDashboardLogic';
 import Navbar from '../components/Navbar';
 import TeacherView from '../components/dashboard/TeacherView';
@@ -41,29 +41,60 @@ const Dashboard = () => {
   const [showPartnersList, setShowPartnersList] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notifiedMessagesRef = useRef(new Set()); // Track messages we already showed notifications for
   
   // --- Notifications ---
-  const { notifications, removeNotification } = useNotifications();
+  const { notifications, removeNotification, showChatNotification } = useNotifications();
   
   // --- WebSocket Connection ---
-  const { connectionStatus, sendUserInfo } = useWebSocket();
+  const { connectionStatus, sendMessage, messages: webSocketMessages } = useWebSocket(currentUserId, userRole, userName);
 
-  // Send user info when WebSocket connects
+
+
+  // --- Chat Notifications Logic ---
   useEffect(() => {
-    if (connectionStatus === 'Connected' && currentUserId && userRole) {
-      const timer = setTimeout(async () => {
-        try {
-          // Get current user's name from session or use userName
-          const currentUserName = userName || sessionStorage.getItem('userEmail') || 'משתמש';
-          sendUserInfo(currentUserId, userRole, currentUserName);
-        } catch (error) {
-          console.error('Error sending user info:', error);
-        }
-      }, 100);
+    if (webSocketMessages.length > 0) {
+      const lastMessage = webSocketMessages[webSocketMessages.length - 1];
       
-      return () => clearTimeout(timer);
+      // Create unique message ID for tracking
+      const messageId = `${lastMessage.timestamp}-${lastMessage.text}-${lastMessage.sender}`;
+      
+      // Check if we already showed notification for this message
+      if (notifiedMessagesRef.current.has(messageId)) {
+        return;
+      }
+      
+      // Show notification if:
+      // 1. Message is from someone else (not current user)
+      // 2. Either chat is closed OR message is from someone other than current chat partner
+      const isFromOtherUser = lastMessage.sender !== userRole;
+      const isFromCurrentChatPartner = showChat && selectedPartner && (
+        (lastMessage.teacherId === selectedPartner.id && lastMessage.sender === 'teacher') ||
+        (lastMessage.parentId === selectedPartner.id && lastMessage.sender === 'parent')
+      );
+      
+      if (isFromOtherUser && !isFromCurrentChatPartner) {
+        const senderRole = lastMessage.sender;
+        
+        // Mark this message as notified
+        notifiedMessagesRef.current.add(messageId);
+        
+        // Keep only last 100 message IDs to prevent memory growth
+        if (notifiedMessagesRef.current.size > 100) {
+          const sortedArray = Array.from(notifiedMessagesRef.current);
+          notifiedMessagesRef.current = new Set(sortedArray.slice(-100));
+        }
+        
+        // Get sender name based on role
+        const senderName = senderRole === 'teacher' ? 'מורה' : 'הורה';
+        
+        // Show the notification
+        showChatNotification(senderName, lastMessage.text, senderRole);
+      }
     }
-  }, [connectionStatus, currentUserId, userRole, userName, sendUserInfo]);
+  }, [webSocketMessages, showChat, selectedPartner, userRole, showChatNotification]);
+
+
 
   // --- Modal Handlers ---
   const openRemoveModal = (student) => {

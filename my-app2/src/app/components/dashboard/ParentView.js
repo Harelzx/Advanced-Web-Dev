@@ -134,40 +134,38 @@ const ParentView = ({
         
         {/* Chat Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-green-50 p-3 rounded-lg text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {connectionStatus === 'Connected' ? '✓' : '✗'}
+          <div className={`p-3 rounded-lg text-center border ${
+            connectionStatus === 'Connected' 
+              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+          }`}>
+            <div className={`text-2xl font-bold ${
+              connectionStatus === 'Connected' 
+                ? 'text-green-600 dark:text-green-400' 
+                : 'text-red-600 dark:text-red-400'
+            }`}>
+              {connectionStatus === 'Connected' ? '🟢' : '🔴'}
             </div>
-            <div className="text-xs text-green-500">
-              {connectionStatus === 'Connected' ? 'צ\'אט פעיל ✅' : 
-               connectionStatus === 'Connecting' ? 'מתחבר...' : 'צ\'אט לא פעיל ❌'}
+            <div className={`text-xs ${
+              connectionStatus === 'Connected' 
+                ? 'text-green-600 dark:text-green-500' 
+                : 'text-red-600 dark:text-red-500'
+            }`}>
+              שרת צ'אט {connectionStatus === 'Connected' ? 'Online' : 'Offline'}
             </div>
           </div>
           
-          <div className="bg-purple-50 p-3 rounded-lg text-center">
-            <div className="text-2xl font-bold text-purple-600">
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg text-center border border-purple-200 dark:border-purple-800">
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {onlineUsers.filter(user => user.role === 'teacher').length}
             </div>
-            <div className="text-xs text-purple-500">מורים מחוברים</div>
+            <div className="text-xs text-purple-600 dark:text-purple-500">מורים מחוברים</div>
           </div>
           
-          <div className="bg-blue-50 p-3 rounded-lg text-center">
-            <div className="text-2xl font-bold text-blue-600">{unreadCount}</div>
-            <div className="text-xs text-blue-500">הודעות חדשות</div>
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg text-center border border-indigo-200 dark:border-indigo-800">
+            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{unreadCount}</div>
+            <div className="text-xs text-indigo-600 dark:text-indigo-500">הודעות חדשות</div>
           </div>
-        </div>
-        
-        {/* Connection Status */}
-        <div className="flex items-center space-x-2 space-x-reverse mb-4">
-          <div className={`w-2 h-2 rounded-full ${
-            connectionStatus === 'Connected' ? 'bg-green-500' : 
-            connectionStatus === 'Connecting' ? 'bg-yellow-500' : 'bg-red-500'
-          }`}></div>
-          <span className="text-xs text-gray-500">
-            {connectionStatus === 'Connected' ? 'שרת צ\'אט זמין ✅' : 
-             connectionStatus === 'Connecting' ? 'מתחבר לשרת צ\'אט...' :
-             `שרת צ'אט לא זמין (${connectionStatus})`}
-          </span>
         </div>
         
         <Button

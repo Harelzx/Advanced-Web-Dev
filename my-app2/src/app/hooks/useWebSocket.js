@@ -1,62 +1,68 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-// Global variables for shared WebSocket connection
+// Global variables to maintain single WebSocket connection
 let globalWS = null;
 let globalConnectionStatus = 'Disconnected';
 let globalOnlineUsers = [];
 let globalMessages = [];
-let listeners = new Set();
 let userInfoSent = false;
+let listeners = new Set();
 
-const useWebSocket = () => {
-  const [messages, setMessages] = useState([]);
+const useWebSocket = (userId, userRole, userName) => {
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const listenerRef = useRef(null);
+  const [messages, setMessages] = useState([]);
 
-  // Create listener
+  const wsUrl = 'wss://websocket-chat-server-gwjc.onrender.com/';
+
+  // Create listener for this component instance
   const createListener = useCallback(() => {
-    return {
-      id: Math.random().toString(36).substr(2, 9),
-      onMessage: (data) => setMessages(prev => [...prev, data]),
-      onStatusChange: (status) => setConnectionStatus(status),
-      onUsersUpdate: (users) => setOnlineUsers(users)
+    const listener = {
+      onStatusChange: (status) => {
+        setConnectionStatus(status);
+      },
+      onUsersUpdate: (users) => {
+        setOnlineUsers(users);
+      },
+      onMessagesUpdate: (msgs) => {
+        setMessages(msgs);
+      }
     };
+
+    listeners.add(listener);
+    
+    // Update with current global state
+    listener.onStatusChange(globalConnectionStatus);
+    listener.onUsersUpdate([...globalOnlineUsers]);
+    listener.onMessagesUpdate([...globalMessages]);
+
+    return listener;
   }, []);
 
-  // Connect to WebSocket (only once globally)
-  const connectWebSocket = useCallback(() => {
+  // Connect to WebSocket
+  const connect = useCallback(() => {
     if (globalWS && globalWS.readyState === WebSocket.OPEN) {
-      // Already connected, just sync state
-      setConnectionStatus('Connected');
-      setOnlineUsers(globalOnlineUsers);
-      setMessages(globalMessages);
       return;
     }
 
     if (globalWS && globalWS.readyState === WebSocket.CONNECTING) {
-      // Already connecting, wait
-      setConnectionStatus('Connecting');
       return;
     }
 
     try {
-      // Use environment variable for WebSocket URL or default to localhost
-      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+      globalWS = new WebSocket(wsUrl);
       globalConnectionStatus = 'Connecting';
       
-      // Notify all listeners about connecting state
+      // Notify all listeners
       listeners.forEach(listener => {
         listener.onStatusChange('Connecting');
       });
-      
-      globalWS = new WebSocket(wsUrl);
-      
+
       globalWS.onopen = () => {
         globalConnectionStatus = 'Connected';
-        userInfoSent = false; // Reset when connection opens
+        userInfoSent = false;
         
         // Notify all listeners
         listeners.forEach(listener => {
@@ -66,138 +72,115 @@ const useWebSocket = () => {
 
       globalWS.onmessage = (event) => {
         try {
-          const messageData = JSON.parse(event.data);
+          const data = JSON.parse(event.data);
           
-          if (messageData.type === 'online_users') {
-            globalOnlineUsers = messageData.users;
-            
-            // Notify all listeners
+          if (data.type === 'online_users') {
+            globalOnlineUsers = data.users || [];
             listeners.forEach(listener => {
-              listener.onUsersUpdate(messageData.users);
+              listener.onUsersUpdate([...globalOnlineUsers]);
             });
-          } else if (messageData.type === 'chat' && messageData.text) {
-            globalMessages.push(messageData);
-            
-            // Notify all listeners
+          } else if (data.type === 'chat') {
+            globalMessages = [...globalMessages, data];
             listeners.forEach(listener => {
-              listener.onMessage(messageData);
+              listener.onMessagesUpdate([...globalMessages]);
             });
           }
         } catch (error) {
-          console.error('Error parsing message:', error);
+          // Silent error handling
         }
       };
 
-      globalWS.onclose = (event) => {
-        globalConnectionStatus = 'Disconnected';
-        globalOnlineUsers = [];
-        userInfoSent = false;
+      globalWS.onerror = () => {
+        if (globalWS?.readyState === WebSocket.CLOSED || globalWS?.readyState === WebSocket.CLOSING) {
+          return;
+        }
         
-        // Notify all listeners
-        listeners.forEach(listener => {
-          listener.onStatusChange('Disconnected');
-          listener.onUsersUpdate([]);
-        });
-      };
-
-      globalWS.onerror = (error) => {
         globalConnectionStatus = 'Error';
         
-        // Notify all listeners
         listeners.forEach(listener => {
           listener.onStatusChange('Error');
         });
       };
 
+      globalWS.onclose = () => {
+        globalConnectionStatus = 'Disconnected';
+        globalWS = null;
+        
+        listeners.forEach(listener => {
+          listener.onStatusChange('Disconnected');
+        });
+        
+        // Auto-reconnect if we have listeners
+        if (listeners.size > 0) {
+          setTimeout(() => {
+            if (listeners.size > 0) {
+              connect();
+            }
+          }, 3000);
+        }
+      };
+
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
       globalConnectionStatus = 'Error';
       
-      // Notify all listeners
       listeners.forEach(listener => {
         listener.onStatusChange('Error');
       });
     }
-  }, []);
+  }, [wsUrl]);
 
+  // Send user info when connected
   useEffect(() => {
-    // Create and register listener
-    const listener = createListener();
-    listenerRef.current = listener;
-    listeners.add(listener);
+    if (globalWS && globalWS.readyState === WebSocket.OPEN && !userInfoSent && userId) {
+      const userInfo = {
+        type: 'user_info',
+        userId,
+        role: userRole,
+        name: userName
+      };
+      
+      globalWS.send(JSON.stringify(userInfo));
+      userInfoSent = true;
+    }
+  }, [connectionStatus, userId, userRole, userName]);
 
-    // Sync with global state
-    setConnectionStatus(globalConnectionStatus);
-    setOnlineUsers(globalOnlineUsers);
-    setMessages(globalMessages);
+  // Setup WebSocket connection
+  useEffect(() => {
+    const listener = createListener();
 
     // Connect if needed
-    connectWebSocket();
+    connect();
 
-    // Cleanup on unmount
     return () => {
-      if (listenerRef.current) {
-        listeners.delete(listenerRef.current);
-      }
+      // Remove this listener
+      listeners.delete(listener);
       
       // Close connection only if no more listeners
-      if (listeners.size === 0 && globalWS && globalWS.readyState !== WebSocket.CLOSED) {
-        globalWS.close();
-        globalWS = null;
-        globalConnectionStatus = 'Disconnected';
-        globalOnlineUsers = [];
-        globalMessages = [];
-        userInfoSent = false;
+      if (listeners.size === 0) {
+        if (globalWS && globalWS.readyState !== WebSocket.CLOSED) {
+          globalWS.close();
+          globalWS = null;
+          globalConnectionStatus = 'Disconnected';
+          globalOnlineUsers = [];
+          globalMessages = [];
+          userInfoSent = false;
+        }
       }
     };
-  }, [connectWebSocket, createListener]);
+  }, [connect, createListener]);
 
   // Send message function
   const sendMessage = useCallback((messageData) => {
     if (globalWS && globalWS.readyState === WebSocket.OPEN) {
-      const fullMessage = {
-        ...messageData,
-        type: 'chat'
-      };
-      
-      try {
-        globalWS.send(JSON.stringify(fullMessage));
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    } else {
-      console.error('WebSocket is not connected');
+      globalWS.send(JSON.stringify(messageData));
     }
   }, []);
-
-  // Send user info function
-  const sendUserInfo = useCallback((userId, role, name) => {
-    if (globalWS && globalWS.readyState === WebSocket.OPEN && !userInfoSent) {
-      const userInfo = {
-        type: 'user_info',
-        userId,
-        role,
-        name
-      };
-      
-      try {
-        globalWS.send(JSON.stringify(userInfo));
-        userInfoSent = true;
-      } catch (error) {
-        console.error('Error sending user info:', error);
-      }
-    }
-  }, []);
-
-
 
   return {
-    messages,
-    setMessages,
     connectionStatus,
     onlineUsers,
-    sendMessage,
-    sendUserInfo
+    messages,
+    sendMessage
   };
 };
 
