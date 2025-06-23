@@ -12,6 +12,8 @@ setInterval(() => {
   // Do nothing - just keep the process running
 }, 60000); // Check every minute
 
+// ALL WEBSOCKET CODE DISABLED FOR TESTING
+/*
 // Store connected clients and online users
 const connectedClients = new Map();
 const onlineUsers = new Map();
@@ -129,6 +131,8 @@ setInterval(() => {
     broadcastOnlineUsers();
   }
 }, 5 * 60 * 1000);
+
+*/
 
 console.log(`WebSocket server DISABLED for testing - not starting`);
 // WebSocket server is disabled for testing
