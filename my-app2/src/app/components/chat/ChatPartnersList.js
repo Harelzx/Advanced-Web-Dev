@@ -99,32 +99,36 @@ export default function ChatPartnersList({
     loadPartners();
   }, [currentUserId, currentUserRole]);
 
-  // Load unread message counts for each partner
+  // Load unread message counts for each partner - DISABLED FOR WEBSOCKET-ONLY MODE
   useEffect(() => {
-    if (!currentUserId || partners.length === 0) return;
+    console.log('🔥 Unread counts Firebase listener disabled - using WebSocket only');
+    // DISABLED: Firebase real-time listener for unread counts
+    // Will be handled by WebSocket notifications instead
+    
+    // if (!currentUserId || partners.length === 0) return;
 
-    const unsubscribes = partners.map(partner => {
-      const messagesRef = collection(db, 'users', currentUserId, 'chats', partner.id, 'messages');
-      // Simplified query - only filter by read status, then filter sender in code
-      const unreadQuery = query(messagesRef, where('read', '==', false));
+    // const unsubscribes = partners.map(partner => {
+    //   const messagesRef = collection(db, 'users', currentUserId, 'chats', partner.id, 'messages');
+    //   // Simplified query - only filter by read status, then filter sender in code
+    //   const unreadQuery = query(messagesRef, where('read', '==', false));
       
-      return onSnapshot(unreadQuery, (snapshot) => {
-        // Filter out messages sent by current user
-        const unreadFromPartner = snapshot.docs.filter(doc => {
-          const messageData = doc.data();
-          return messageData.sender !== currentUserRole;
-        });
+    //   return onSnapshot(unreadQuery, (snapshot) => {
+    //     // Filter out messages sent by current user
+    //     const unreadFromPartner = snapshot.docs.filter(doc => {
+    //       const messageData = doc.data();
+    //       return messageData.sender !== currentUserRole;
+    //     });
         
-        setUnreadCounts(prev => ({
-          ...prev,
-          [partner.id]: unreadFromPartner.length
-        }));
-      });
-    });
+    //     setUnreadCounts(prev => ({
+    //       ...prev,
+    //       [partner.id]: unreadFromPartner.length
+    //     }));
+    //   });
+    // });
 
-    return () => {
-      unsubscribes.forEach(unsub => unsub());
-    };
+    // return () => {
+    //   unsubscribes.forEach(unsub => unsub());
+    // };
   }, [currentUserId, currentUserRole, partners]);
 
   // Check if a partner is online

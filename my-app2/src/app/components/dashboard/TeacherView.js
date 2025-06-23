@@ -31,76 +31,75 @@ const TeacherView = ({
     ? studentsData.reduce((sum, student) => sum + student.averageGrade, 0) / studentsData.length
     : 0;
 
-  // Load unread messages count using real-time listeners like ChatPartnersList
+  // Load unread messages count - DISABLED FOR WEBSOCKET-ONLY MODE
   useEffect(() => {
-    if (!currentUserId) return;
-
-    const loadPartnersAndUnreadCount = async () => {
-      try {
-
-        
-        // Get teacher's students (same logic as ChatPartnersList)
-        const studentsQuery = query(
-          collection(db, 'users'),
-          where('role', '==', 'student'),
-          where('teacherId', '==', currentUserId)
-        );
-        const studentsSnapshot = await getDocs(studentsQuery);
-        
-        // Get unique parent IDs
-        const parentIds = new Set();
-        studentsSnapshot.docs.forEach(doc => {
-          const studentData = doc.data();
-          if (studentData.parentId) {
-            parentIds.add(studentData.parentId);
-          }
-        });
-
-
-
-        if (parentIds.size === 0) {
-          setUnreadCount(0);
-          return;
-        }
-
-        // Set up real-time listeners for each parent
-        const unsubscribes = Array.from(parentIds).map(parentId => {
-          const messagesRef = collection(db, 'users', currentUserId, 'chats', parentId, 'messages');
-          const unreadQuery = query(messagesRef, where('read', '==', false));
-          
-          return onSnapshot(unreadQuery, (snapshot) => {
-            // Filter out messages sent by current user
-            const unreadFromPartner = snapshot.docs.filter(doc => {
-              const messageData = doc.data();
-              return messageData.sender !== 'teacher';
-            });
-            
-            const currentPartnerUnread = unreadFromPartner.length;
-
-            
-            // Update counts per partner
-            setUnreadCounts(prev => ({
-              ...prev,
-              [parentId]: currentPartnerUnread
-            }));
-          });
-        });
-
-        return () => {
-          unsubscribes.forEach(unsub => unsub());
-        };
-      } catch (error) {
-        console.error('Error loading unread count:', error);
-      }
-    };
-
-    const cleanup = loadPartnersAndUnreadCount();
+    console.log('🔥 TeacherView unread count Firebase listener disabled - using WebSocket only');
+    // DISABLED: Firebase real-time listener for unread counts
+    // Will be handled by WebSocket notifications instead
     
-    return () => {
-      if (cleanup && typeof cleanup.then === 'function') {
-        cleanup.then(cleanupFn => cleanupFn && cleanupFn());
-      }
-    };
+    // if (!currentUserId) return;
+
+    // const loadPartnersAndUnreadCount = async () => {
+    //   try {
+    //     // Get teacher's students (same logic as ChatPartnersList)
+    //     const studentsQuery = query(
+    //       collection(db, 'users'),
+    //       where('role', '==', 'student'),
+    //       where('teacherId', '==', currentUserId)
+    //     );
+    //     const studentsSnapshot = await getDocs(studentsQuery);
+        
+    //     // Get unique parent IDs
+    //     const parentIds = new Set();
+    //     studentsSnapshot.docs.forEach(doc => {
+    //       const studentData = doc.data();
+    //       if (studentData.parentId) {
+    //         parentIds.add(studentData.parentId);
+    //       }
+    //     });
+
+    //     if (parentIds.size === 0) {
+    //       setUnreadCount(0);
+    //       return;
+    //     }
+
+    //     // Set up real-time listeners for each parent
+    //     const unsubscribes = Array.from(parentIds).map(parentId => {
+    //       const messagesRef = collection(db, 'users', currentUserId, 'chats', parentId, 'messages');
+    //       const unreadQuery = query(messagesRef, where('read', '==', false));
+          
+    //       return onSnapshot(unreadQuery, (snapshot) => {
+    //         // Filter out messages sent by current user
+    //         const unreadFromPartner = snapshot.docs.filter(doc => {
+    //           const messageData = doc.data();
+    //           return messageData.sender !== 'teacher';
+    //         });
+            
+    //         const currentPartnerUnread = unreadFromPartner.length;
+            
+    //         // Update counts per partner
+    //         setUnreadCounts(prev => ({
+    //           ...prev,
+    //           [parentId]: currentPartnerUnread
+    //         }));
+    //       });
+    //     });
+
+    //     return () => {
+    //       unsubscribes.forEach(unsub => unsub());
+    //     };
+    //   } catch (error) {
+    //     console.error('Error loading unread count:', error);
+    //   }
+    // };
+
+    // const cleanup = loadPartnersAndUnreadCount();
+    
+    // return () => {
+    //   if (cleanup && typeof cleanup.then === 'function') {
+    //     cleanup.then(cleanupFn => cleanupFn && cleanupFn());
+    //   }
+    // };
   }, [currentUserId]);
 
   // Calculate total unread count whenever individual counts change
