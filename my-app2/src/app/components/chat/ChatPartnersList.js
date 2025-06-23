@@ -101,9 +101,8 @@ export default function ChatPartnersList({
 
   // Load unread message counts for each partner - DISABLED FOR WEBSOCKET-ONLY MODE
   useEffect(() => {
-    console.log('🔥 Unread counts Firebase listener disabled - using WebSocket only');
     // DISABLED: Firebase real-time listener for unread counts
-    // Will be handled by WebSocket notifications instead
+    // WebSocket is responsible for all real-time functionality
     
     // if (!currentUserId || partners.length === 0) return;
 

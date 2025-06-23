@@ -2,18 +2,8 @@ const WebSocket = require('ws');
 
 const port = process.env.PORT || 8080;
 
-// Create WebSocket server - DISABLED FOR TESTING
-// const wss = new WebSocket.Server({ port });
-console.log('WebSocket server creation disabled for testing');
-console.log('Server will stay alive but do nothing...');
-
-// Keep the process alive without doing anything
-setInterval(() => {
-  // Do nothing - just keep the process running
-}, 60000); // Check every minute
-
-// ALL WEBSOCKET CODE DISABLED FOR TESTING
-/*
+// Create WebSocket server
+const wss = new WebSocket.Server({ port });
 // Store connected clients and online users
 const connectedClients = new Map();
 const onlineUsers = new Map();
@@ -132,9 +122,5 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-*/
-
-console.log(`WebSocket server DISABLED for testing - not starting`);
-// WebSocket server is disabled for testing
-// console.log(`WebSocket server started on port ${port}`);
+console.log(`WebSocket server started on port ${port}`);
 
