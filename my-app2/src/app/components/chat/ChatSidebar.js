@@ -67,6 +67,10 @@ export default function ChatSidebar({
     return timeA - timeB;
   });
 
+  console.log('💬 Firebase messages:', firebaseMessages.length);
+  console.log('⚡ WebSocket messages:', webSocketMessages.length);
+  console.log('📋 All messages:', allMessages.length);
+
   // Save message to Firebase under both users
   const saveMessageToFirebase = async (messageData) => {
     try {
@@ -127,6 +131,9 @@ export default function ChatSidebar({
       parentId: currentUserRole === 'parent' ? currentUserId : chatPartnerId,
       timestamp: new Date().toISOString()
     };
+
+    console.log('🚀 Sending message:', messageData);
+    console.log('📡 WebSocket status:', connectionStatus);
 
     // Send via WebSocket for real-time communication
     sendMessage(messageData);
