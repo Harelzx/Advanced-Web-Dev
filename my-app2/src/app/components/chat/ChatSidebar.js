@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, where, getDocs, updateDoc } from 'firebase/firestore';
 import useWebSocket from '../../hooks/useWebSocket';
 import useNotifications from '../../hooks/useNotifications';
 
@@ -24,35 +24,29 @@ export default function ChatSidebar({
   // Check if chat partner is online
   const isPartnerOnline = onlineUsers.some(user => user.userId === chatPartnerId);
 
-  // Load chat history from Firebase on component mount
+  // Load chat history from Firebase ONCE on component mount (no real-time listener)
   useEffect(() => {
     if (!currentUserId || !chatPartnerId) return;
 
-    // Save chat under current user's document
-    const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'asc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const historyMessages = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      // Check for new messages when chat is closed
-      if (!isOpen && firebaseMessages.length > 0 && historyMessages.length > firebaseMessages.length) {
-        const newMessages = historyMessages.slice(firebaseMessages.length);
-        newMessages.forEach(message => {
-          if (message.sender !== currentUserRole) {
-            showChatNotification(chatPartnerName, message.text, message.sender);
-          }
-        });
+    const loadChatHistory = async () => {
+      try {
+        const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+        const snapshot = await getDocs(q);
+        
+        const historyMessages = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setFirebaseMessages(historyMessages);
+      } catch (error) {
+        console.error('Could not load chat history:', error);
       }
-      
-      setFirebaseMessages(historyMessages);
-    });
+    };
 
-    return () => unsubscribe();
-  }, [currentUserId, chatPartnerId, currentUserRole, isOpen, firebaseMessages.length, chatPartnerName, showChatNotification]);
+    loadChatHistory();
+  }, [currentUserId, chatPartnerId]);
 
 
 
