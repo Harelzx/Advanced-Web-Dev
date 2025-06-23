@@ -123,4 +123,10 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-console.log(`WebSocket server started on port ${port}`); 
+console.log(`WebSocket server started on port ${port}`);
+
+// Temporarily crash the server for testing
+setTimeout(() => {
+  console.log('Shutting down server for testing...');
+  process.exit(0);
+}, 5000); 
