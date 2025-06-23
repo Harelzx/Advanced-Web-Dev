@@ -30,7 +30,7 @@ const useWebSocket = () => {
   const connectWebSocket = useCallback(() => {
     if (globalWS && globalWS.readyState === WebSocket.OPEN) {
       // Already connected, just sync state
-      setConnectionStatus(globalConnectionStatus);
+      setConnectionStatus('Connected');
       setOnlineUsers(globalOnlineUsers);
       setMessages(globalMessages);
       return;
@@ -38,12 +38,20 @@ const useWebSocket = () => {
 
     if (globalWS && globalWS.readyState === WebSocket.CONNECTING) {
       // Already connecting, wait
+      setConnectionStatus('Connecting');
       return;
     }
 
     try {
       // Use environment variable for WebSocket URL or default to localhost
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+      globalConnectionStatus = 'Connecting';
+      
+      // Notify all listeners about connecting state
+      listeners.forEach(listener => {
+        listener.onStatusChange('Connecting');
+      });
+      
       globalWS = new WebSocket(wsUrl);
       
       globalWS.onopen = () => {
@@ -80,7 +88,7 @@ const useWebSocket = () => {
         }
       };
 
-      globalWS.onclose = () => {
+      globalWS.onclose = (event) => {
         globalConnectionStatus = 'Disconnected';
         globalOnlineUsers = [];
         userInfoSent = false;
@@ -92,7 +100,7 @@ const useWebSocket = () => {
         });
       };
 
-      globalWS.onerror = () => {
+      globalWS.onerror = (error) => {
         globalConnectionStatus = 'Error';
         
         // Notify all listeners

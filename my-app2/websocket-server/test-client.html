@@ -161,7 +161,11 @@
         }
         
         function connectWebSocket() {
-            ws = new WebSocket('ws://localhost:8080');
+            // Use production URL or localhost for testing
+            const wsUrl = window.location.hostname === 'localhost' 
+                ? 'ws://localhost:8080' 
+                : 'wss://your-websocket-server-name.onrender.com'; // Replace with your actual Render URL
+            ws = new WebSocket(wsUrl);
             
             // Force text mode
             ws.binaryType = 'blob';

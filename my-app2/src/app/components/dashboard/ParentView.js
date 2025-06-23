@@ -139,7 +139,8 @@ const ParentView = ({
               {connectionStatus === 'Connected' ? '✓' : '✗'}
             </div>
             <div className="text-xs text-green-500">
-              {connectionStatus === 'Connected' ? 'צ\'אט פעיל' : 'צ\'אט לא פעיל'}
+              {connectionStatus === 'Connected' ? 'צ\'אט פעיל ✅' : 
+               connectionStatus === 'Connecting' ? 'מתחבר...' : 'צ\'אט לא פעיל ❌'}
             </div>
           </div>
           
@@ -159,10 +160,13 @@ const ParentView = ({
         {/* Connection Status */}
         <div className="flex items-center space-x-2 space-x-reverse mb-4">
           <div className={`w-2 h-2 rounded-full ${
-            connectionStatus === 'Connected' ? 'bg-green-500' : 'bg-red-500'
+            connectionStatus === 'Connected' ? 'bg-green-500' : 
+            connectionStatus === 'Connecting' ? 'bg-yellow-500' : 'bg-red-500'
           }`}></div>
           <span className="text-xs text-gray-500">
-            {connectionStatus === 'Connected' ? 'שרת צ\'אט זמין' : 'שרת צ\'אט לא זמין'}
+            {connectionStatus === 'Connected' ? 'שרת צ\'אט זמין ✅' : 
+             connectionStatus === 'Connecting' ? 'מתחבר לשרת צ\'אט...' :
+             `שרת צ'אט לא זמין (${connectionStatus})`}
           </span>
         </div>
         
