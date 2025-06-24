@@ -56,7 +56,7 @@ export default function ChatSidebar({
     };
 
     loadChatHistory();
-  }, [currentUserId, chatPartnerId]);
+  }, [currentUserId, chatPartnerId, isOpen]);
 
   // Filter WebSocket messages to only show messages relevant to current chat
   const relevantWebSocketMessages = webSocketMessages.filter(wsMsg => {
@@ -99,7 +99,7 @@ export default function ChatSidebar({
       // Small delay to ensure the component is fully rendered, then jump instantly to bottom
       setTimeout(() => scrollToBottom(true), 100);
     }
-  }, [isOpen]);
+  }, [isOpen, allMessages.length]);
 
   // Mark new messages as read when they arrive while chat is open
   useEffect(() => {

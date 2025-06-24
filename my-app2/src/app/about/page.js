@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import TeamSection from '../components/TeamSection';
 
 export default function AboutPage() {
@@ -8,12 +9,12 @@ export default function AboutPage() {
       
       {/* Back to Home Button */}
       <div className="p-4">
-        <a 
+        <Link 
           href="/" 
           className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200 font-medium"
         >
           ← חזרה לעמוד הראשי
-        </a>
+        </Link>
       </div>
       
       {/* Hero Section */}
@@ -35,7 +36,7 @@ export default function AboutPage() {
             </h2>
             <div className="max-w-4xl mx-auto" style={{ color: 'var(--text-color)', direction: 'rtl' }}>
               <p className="text-lg leading-relaxed mb-6" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
-                ב-7 באוקטובר 2023, כשהתחילה מלחמת חרבות ברזל, אלפי תלמידים ברחבי ישראל מצאו את עצמם מפונים מבתיהם. פתאום, תלמידי כיתות י"א ו-י"ב שהיו אמורים להתכונן לבגרויות נותרו ללא מסגרת לימודים קבועה.
+                ב-7 באוקטובר 2023, כשהתחילה מלחמת חרבות ברזל, אלפי תלמידים ברחבי ישראל מצאו את עצמם מפונים מבתיהם. פתאום, תלמידי כיתות י&ldquo;א ו-י&ldquo;ב שהיו אמורים להתכונן לבגרויות נותרו ללא מסגרת לימודים קבועה.
               </p>
               <p className="text-lg leading-relaxed mb-6" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
                 ראינו את הצורך הדחוף: תלמידים שצריכים להשלים חומר רב לקראת הבגרויות, הורים מודאגים שרוצים לעקוב אחר ההתקדמות, ומורים שצריכים כלים דיגיטליים להמשך הוראה מרחוק.
@@ -85,7 +86,7 @@ export default function AboutPage() {
               </h3>
               <ul className="space-y-2 text-center" style={{ color: 'var(--text-color)', opacity: 0.7 }}>
                 <li>Node.js - שרת JavaScript</li>
-                <li>WebSocket - צ'אט בזמן אמת</li>
+                <li>WebSocket - צ&apos;אט בזמן אמת</li>
                 <li>API Routes - Next.js API</li>
                 <li>Firebase - אימות ומסד נתונים</li>
               </ul>
@@ -114,8 +115,6 @@ export default function AboutPage() {
 
       {/* Team Section */}
       <TeamSection />
-
-
 
     </div>
   );

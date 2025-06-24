@@ -35,7 +35,7 @@ export default function Navbar({
                                 onClick={onOpenChat}
                                 className="navbar-button relative hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium"
                             >
-                                <span>צ'אט</span>
+                                <span>צ&apos;אט</span>
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                         {unreadCount > 9 ? '9+' : unreadCount}
@@ -106,7 +106,7 @@ export default function Navbar({
                                     onClick={() => { onOpenChat(); setOpen(false); }}
                                     className="mobile-dashboard-button w-full relative py-3 px-4 hover:bg-white/20 rounded-lg text-right transition-all duration-200 font-medium text-lg"
                                 >
-                                    <span>צ'אט</span>
+                                    <span>צ&apos;אט</span>
                                     {unreadCount > 0 && (
                                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                             {unreadCount > 9 ? '9+' : unreadCount}

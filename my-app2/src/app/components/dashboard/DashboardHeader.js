@@ -39,7 +39,7 @@ export default function DashboardHeader({
             className="relative px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center gap-2 shadow-sm"
           >
             <span>💬</span>
-            <span>צ'אט עם {userRole === 'teacher' ? 'הורים' : 'מורים'}</span>
+            <span>צ&apos;אט עם {userRole === 'teacher' ? 'הורים' : 'מורים'}</span>
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
                 {unreadCount > 99 ? '99+' : unreadCount}

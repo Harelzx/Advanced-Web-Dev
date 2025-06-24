@@ -1,6 +1,7 @@
 "use client";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import Image from 'next/image';
 
 export default function StudyQuestion({
   question,
@@ -57,10 +58,12 @@ export default function StudyQuestion({
       <div className="p-8">
         {question.imageUrl && (
           <div className="mb-4 flex justify-center">
-            <img
+            <Image
               src={question.imageUrl}
               alt="bagrut"
-              className="max-w-full max-h-96 rounded-lg shadow"
+              width={800}
+              height={600}
+              className="max-w-full max-h-96 rounded-lg shadow object-contain"
             />
           </div>
         )}

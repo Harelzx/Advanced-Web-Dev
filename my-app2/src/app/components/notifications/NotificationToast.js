@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export default function NotificationToast({ notifications, onRemove }) {
   return (
@@ -19,21 +19,21 @@ export default function NotificationToast({ notifications, onRemove }) {
 function NotificationItem({ notification, onRemove }) {
   const [isExiting, setIsExiting] = useState(false);
 
+  const handleRemove = useCallback(() => {
+    setIsExiting(true);
+    // Wait for animation to complete before removing
+    setTimeout(() => {
+      onRemove(notification.id);
+    }, 300); // Match animation duration
+  }, [notification.id, onRemove]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       handleRemove();
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [notification.id]);
-
-  const handleRemove = () => {
-    setIsExiting(true);
-    // Wait for animation to complete before removing
-    setTimeout(() => {
-      onRemove(notification.id);
-    }, 300); // Match animation duration
-  };
+  }, [handleRemove]);
 
   return (
     <div className={`bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm ${

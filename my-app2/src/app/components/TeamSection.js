@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 export default function TeamSection({ showTitle = true, showSubtitle = true }) {
   const teamMembers = [
     {
@@ -60,9 +62,11 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
               {/* Profile Image */}
               <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                 {member.image ? (
-                  <img 
+                  <Image 
                     src={member.image} 
                     alt={member.name}
+                    width={96}
+                    height={96}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       console.log('Image failed to load:', member.image);

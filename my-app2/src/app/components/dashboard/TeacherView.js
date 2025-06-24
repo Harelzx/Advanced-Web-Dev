@@ -75,7 +75,7 @@ const TeacherView = ({
                 ? 'text-green-600 dark:text-green-500' 
                 : 'text-red-600 dark:text-red-500'
             }`}>
-              שרת צ'אט {connectionStatus === 'Connected' ? 'Online' : 'Offline'}
+              שרת צ&apos;אט {connectionStatus === 'Connected' ? 'Online' : 'Offline'}
             </div>
           </div>
           
@@ -112,7 +112,7 @@ const TeacherView = ({
           onClick={onOpenChat}
           className="relative bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
         >
-          💬 פתח צ'אט
+          💬 פתח צ&apos;אט
           {totalUnreadCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
               {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
