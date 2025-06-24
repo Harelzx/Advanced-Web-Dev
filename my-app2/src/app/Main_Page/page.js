@@ -84,7 +84,7 @@ export default function MainPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [router]);
 
   return (
     <>
