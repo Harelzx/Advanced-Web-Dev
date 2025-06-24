@@ -7,6 +7,13 @@
   --input-text: #1e293b; /* Light mode input text */
   --input-border: #cbd5e1; /* Light mode input border */
   --card-bg: #ffffff; /* Light mode card background */
+  
+  /* Navbar variables */
+  --navbar-bg: rgba(15, 23, 42, 0.95); /* slate-900/95 */
+  --navbar-text: #ffffff;
+  --navbar-text-secondary: rgb(226, 232, 240); /* slate-200 */
+  --navbar-border: rgba(51, 65, 85, 0.5); /* slate-700/50 */
+  --navbar-hover: rgba(255, 255, 255, 0.1);
 }
 
 .dark {
@@ -25,12 +32,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a; /* Deep navy blue instead of gray */
-    --foreground: #f1f5f9; /* Soft white instead of black */
-  }
-}
+/* Removed prefers-color-scheme to prevLearnPath
+ent system dark mode interference */
 
 .panels {
   background-color: #ffffff; /* Clean white for panels */
@@ -73,32 +76,32 @@ h2:not(.navbar-title) {
   color: var(--text-color);
 }
 
-/* Navbar greeting should always be white */
-.navbar-greeting {
-  color: #ffffff !important;
+/* Clean Navbar Styling */
+.navbar-custom {
+  background-color: var(--navbar-bg);
+  border-bottom-color: var(--navbar-border);
 }
 
-/* Navbar buttons should always be white */
-.navbar-button, .navbar-button span {
-  color: #ffffff !important;
+.navbar-title-custom {
+  color: var(--navbar-text) !important;
+  -webkit-text-fill-color: var(--navbar-text) !important;
 }
 
-/* Mobile dashboard buttons should be white */
-.mobile-dashboard-button, .mobile-dashboard-button span {
-  color: #ffffff !important;
-  font-size: 1.125rem !important; /* text-lg */
+.navbar-text-custom {
+  color: var(--navbar-text-secondary);
 }
 
-.mobile-dashboard-button:hover, .mobile-dashboard-button:hover span {
-  color: #ffffff !important;
+.navbar-button-custom {
+  color: var(--navbar-text-secondary);
 }
 
-/* Mobile dashboard greeting text */
-.mobile-dashboard-greeting {
-  font-size: 1.125rem !important; /* text-lg */
+.navbar-button-custom:hover {
+  background-color: var(--navbar-hover);
 }
 
-
+.navbar-hamburger-custom {
+  color: var(--navbar-text);
+}
 
 /* RTL Support */
 [dir="rtl"] {

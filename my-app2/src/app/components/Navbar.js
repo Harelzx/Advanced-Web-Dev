@@ -14,10 +14,10 @@ export default function Navbar({
     const [open, setOpen] = useState(false);
 
     return (
-        <nav className="w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-lg border-b border-slate-200/50 dark:border-slate-700/50 z-10 fixed top-0 left-0">
+        <nav className="navbar-custom w-full backdrop-blur-md shadow-lg border-b z-10 fixed top-0 left-0">
             <div className="mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16" dir="rtl">
                 {/* Title */}
-                <h2 className="navbar-title text-xl font-bold text-white drop-shadow-md">
+                <h2 className="navbar-title-custom text-xl font-bold drop-shadow-md">
                     {isDashboard ? (userRole === 'teacher' ? 'לוח בקרה למורה' : 'לוח בקרה להורה') : 'LearnPath'}
                 </h2>
 
@@ -26,14 +26,14 @@ export default function Navbar({
                     {isDashboard ? (
                         /* Dashboard actions */
                         <div className="flex items-center gap-4">
-                            <span className="navbar-greeting font-medium">
+                            <span className="navbar-text-custom font-medium">
                                 ברוך שובך, {userName}!
                             </span>
                             
                             {/* Chat Button */}
                             <button
                                 onClick={onOpenChat}
-                                className="navbar-button relative hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium"
+                                className="navbar-button-custom relative rounded-lg px-4 py-2 transition-all duration-200 font-medium"
                             >
                                 <span>צ&apos;אט</span>
                                 {unreadCount > 0 && (
@@ -46,26 +46,26 @@ export default function Navbar({
                             {/* Add Button */}
                             <button
                                 onClick={userRole === 'teacher' ? onAddStudent : onAddChild}
-                                className="navbar-button hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium"
+                                className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium"
                             >
                                 <span>הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}</span>
                             </button>
                         </div>
                     ) : (
                         /* Regular nav links */
-                        <ul className="flex flex-row-reverse space-x-reverse text-slate-700 dark:text-slate-200">
+                        <ul className="navbar-text-custom flex flex-row-reverse space-x-reverse">
                             <li>
-                                <Link href="/InterStudy" className="hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium">
+                                <Link href="/InterStudy" className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
                                     תרגולים
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/PersonalizedPath" className="hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium">
+                                <Link href="/PersonalizedPath" className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
                                     מסלול למידה אישי
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/Main_Page" className="hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium">
+                                <Link href="/Main_Page" className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
                                     ראשי
                                 </Link>
                             </li>
@@ -73,7 +73,7 @@ export default function Navbar({
                     )}
 
                     {/* Left-side logout */}
-                    <Link href="/" className="text-indigo-600 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg px-4 py-2 transition-all duration-200 font-medium">
+                    <Link href="/" className="text-indigo-400 navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
                         התנתקות
                     </Link>
                 </div>
@@ -81,7 +81,7 @@ export default function Navbar({
                 {/* Hamburger button for mobile */}
                 <div className="md:hidden flex items-center">
                     <button
-                        className="text-2xl text-white px-2 py-1 hover:bg-white/20 rounded transition-colors duration-200"
+                        className="navbar-hamburger-custom text-2xl px-2 py-1 hover:bg-slate-200/20 rounded transition-colors duration-200"
                         onClick={() => setOpen(!open)}
                         aria-label="Toggle menu"
                     >
@@ -92,11 +92,11 @@ export default function Navbar({
 
             {/* Mobile menu */}
             {open && (
-                <ul className="md:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm text-slate-800 dark:text-slate-100 flex flex-col space-y-1 p-4 border-t border-slate-200/30 dark:border-slate-700/30" dir="rtl">
+                <ul className="navbar-custom navbar-text-custom md:hidden backdrop-blur-md flex flex-col space-y-1 p-4 border-t" dir="rtl">
                     {isDashboard ? (
                         /* Dashboard mobile menu */
                         <>
-                            <li className="mobile-dashboard-greeting py-3 px-4 text-center font-medium text-slate-800 dark:text-slate-200">
+                            <li className="navbar-text-custom py-3 px-4 text-center font-medium">
                                 ברוך שובך, {userName}!
                             </li>
                             
@@ -104,7 +104,7 @@ export default function Navbar({
                             <li>
                                 <button
                                     onClick={() => { onOpenChat(); setOpen(false); }}
-                                    className="mobile-dashboard-button w-full relative py-3 px-4 hover:bg-white/20 rounded-lg text-right transition-all duration-200 font-medium text-lg"
+                                    className="navbar-button-custom w-full relative py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium text-lg"
                                 >
                                     <span>צ&apos;אט</span>
                                     {unreadCount > 0 && (
@@ -119,7 +119,7 @@ export default function Navbar({
                             <li>
                                 <button
                                     onClick={() => { (userRole === 'teacher' ? onAddStudent : onAddChild)(); setOpen(false); }}
-                                    className="mobile-dashboard-button w-full py-3 px-4 hover:bg-white/20 rounded-lg text-right transition-all duration-200 font-medium text-lg"
+                                    className="navbar-button-custom w-full py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium text-lg"
                                 >
                                     <span>הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}</span>
                                 </button>
@@ -129,17 +129,17 @@ export default function Navbar({
                         /* Regular nav links */
                         <>
                             <li>
-                                <Link href="/Main_Page" className="block py-3 px-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
+                                <Link href="/Main_Page" className="navbar-button-custom block py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
                                     ראשי
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/PersonalizedPath" className="block py-3 px-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
+                                <Link href="/PersonalizedPath" className="navbar-button-custom block py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
                                     מסלול למידה אישי
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/InterStudy" className="block py-3 px-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
+                                <Link href="/InterStudy" className="navbar-button-custom block py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
                                     תרגולים
                                 </Link>
                             </li>
@@ -147,8 +147,8 @@ export default function Navbar({
                     )}
                     
                     {/* Left-aligned logout */}
-                    <li className="mt-3 border-t border-slate-200/30 dark:border-slate-700/30 pt-3">
-                        <Link href="/" className="block py-3 px-4 text-indigo-600 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-right font-medium transition-all duration-200" onClick={() => setOpen(false)}>
+                    <li className="mt-3 border-t pt-3" style={{ borderTopColor: 'var(--navbar-border)' }}>
+                        <Link href="/" className="block py-3 px-4 text-indigo-400 navbar-button-custom rounded-lg text-right font-medium transition-all duration-200" onClick={() => setOpen(false)}>
                             התנתקות
                         </Link>
                     </li>

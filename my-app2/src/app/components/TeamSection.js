@@ -69,12 +69,8 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
                     height={80}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.log('Image failed to load:', member.image);
                       e.target.style.display = 'none';
                       e.target.nextElementSibling.style.display = 'flex';
-                    }}
-                    onLoad={(e) => {
-                      console.log('Image loaded successfully:', member.image);
                     }}
                   />
                 ) : null}
