@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, limit, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import UserCard from './UserCard';
 import StatsCard from './StatsCard';
@@ -18,10 +18,8 @@ const ParentView = ({
   connectionStatus,
   onUnreadCountChange
 }) => {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [unreadCounts, setUnreadCounts] = useState({});
   const [isChildrenListExpanded, setIsChildrenListExpanded] = useState(true);
-    const { onlineUsers } = useWebSocket();
+  const { onlineUsers, totalUnreadCount } = useWebSocket(currentUserId, 'parent', 'Parent User');
 
   // Calculate total children
   const totalChildren = studentsData.length;
@@ -31,85 +29,12 @@ const ParentView = ({
     ? studentsData.reduce((sum, child) => sum + child.averageGrade, 0) / studentsData.length
     : 0;
 
-  // Load unread messages count - DISABLED FOR WEBSOCKET-ONLY MODE
+  // Update parent component with unread count from WebSocket
   useEffect(() => {
-    console.log('🔥 ParentView unread count Firebase listener disabled - using WebSocket only');
-    // DISABLED: Firebase real-time listener for unread counts
-    // Will be handled by WebSocket notifications instead
-    
-    // if (!currentUserId) return;
-
-    // const loadPartnersAndUnreadCount = async () => {
-    //   try {
-    //     // Get parent's children (same logic as ChatPartnersList)
-    //     const childrenQuery = query(
-    //       collection(db, 'users'),
-    //       where('role', '==', 'student'),
-    //       where('parentId', '==', currentUserId)
-    //     );
-    //     const childrenSnapshot = await getDocs(childrenQuery);
-        
-    //     // Get unique teacher IDs
-    //     const teacherIds = new Set();
-    //     childrenSnapshot.docs.forEach(doc => {
-    //       const childData = doc.data();
-    //       if (childData.teacherId) {
-    //         teacherIds.add(childData.teacherId);
-    //       }
-    //     });
-
-    //     if (teacherIds.size === 0) {
-    //       setUnreadCount(0);
-    //       return;
-    //     }
-
-    //     // Set up real-time listeners for each teacher
-    //     const unsubscribes = Array.from(teacherIds).map(teacherId => {
-    //       const messagesRef = collection(db, 'users', currentUserId, 'chats', teacherId, 'messages');
-    //       const unreadQuery = query(messagesRef, where('read', '==', false));
-          
-    //       return onSnapshot(unreadQuery, (snapshot) => {
-    //         // Filter out messages sent by current user
-    //         const unreadFromPartner = snapshot.docs.filter(doc => {
-    //           const messageData = doc.data();
-    //           return messageData.sender !== 'parent';
-    //         });
-            
-    //         const currentPartnerUnread = unreadFromPartner.length;
-            
-    //         // Update counts per partner
-    //         setUnreadCounts(prev => ({
-    //           ...prev,
-    //           [teacherId]: currentPartnerUnread
-    //         }));
-    //       });
-    //     });
-
-    //     return () => {
-    //       unsubscribes.forEach(unsub => unsub());
-    //     };
-    //   } catch (error) {
-    //     console.error('Error loading unread count:', error);
-    //   }
-    // };
-
-    // const cleanup = loadPartnersAndUnreadCount();
-    
-    // return () => {
-    //   if (cleanup && typeof cleanup.then === 'function') {
-    //     cleanup.then(cleanupFn => cleanupFn && cleanupFn());
-    //   }
-    // };
-  }, [currentUserId]);
-
-  // Calculate total unread count whenever individual counts change
-  useEffect(() => {
-    const total = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
-    setUnreadCount(total);
     if (onUnreadCountChange) {
-      onUnreadCountChange(total);
+      onUnreadCountChange(totalUnreadCount);
     }
-  }, [unreadCounts, onUnreadCountChange]);
+  }, [totalUnreadCount, onUnreadCountChange]);
   
   return (
     <div className="space-y-6">
@@ -161,9 +86,25 @@ const ParentView = ({
             <div className="text-xs text-purple-600 dark:text-purple-500">מורים מחוברים</div>
           </div>
           
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg text-center border border-indigo-200 dark:border-indigo-800">
-            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{unreadCount}</div>
-            <div className="text-xs text-indigo-600 dark:text-indigo-500">הודעות חדשות</div>
+          <div className={`p-3 rounded-lg text-center border ${
+            totalUnreadCount > 0 
+              ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800'
+              : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+          }`}>
+            <div className={`text-2xl font-bold ${
+              totalUnreadCount > 0 
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-600 dark:text-gray-400'
+            }`}>
+              {totalUnreadCount > 0 ? totalUnreadCount : '0'}
+            </div>
+            <div className={`text-xs ${
+              totalUnreadCount > 0 
+                ? 'text-indigo-600 dark:text-indigo-500'
+                : 'text-gray-600 dark:text-gray-500'
+            }`}>
+              {totalUnreadCount > 0 ? 'הודעות חדשות' : 'אין הודעות חדשות'}
+            </div>
           </div>
         </div>
         
@@ -172,9 +113,9 @@ const ParentView = ({
           className="relative bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
         >
           💬 פתח צ'אט
-          {unreadCount > 0 && (
+          {totalUnreadCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
             </span>
           )}
         </Button>

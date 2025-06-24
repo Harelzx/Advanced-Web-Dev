@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { collection, query, where, getDocs, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import useWebSocket from '../../hooks/useWebSocket';
 
 export default function ChatPartnersList({ 
@@ -13,12 +13,11 @@ export default function ChatPartnersList({
 }) {
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unreadCounts, setUnreadCounts] = useState({});
-  const { onlineUsers } = useWebSocket();
+  const { onlineUsers, unreadCounts } = useWebSocket(currentUserId, currentUserRole, 'User');
 
-  // Load potential chat partners based on user role
+  // Load chat partners
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId || !currentUserRole) return;
 
     const loadPartners = async () => {
       try {
@@ -99,37 +98,6 @@ export default function ChatPartnersList({
     loadPartners();
   }, [currentUserId, currentUserRole]);
 
-  // Load unread message counts for each partner - DISABLED FOR WEBSOCKET-ONLY MODE
-  useEffect(() => {
-    // DISABLED: Firebase real-time listener for unread counts
-    // WebSocket is responsible for all real-time functionality
-    
-    // if (!currentUserId || partners.length === 0) return;
-
-    // const unsubscribes = partners.map(partner => {
-    //   const messagesRef = collection(db, 'users', currentUserId, 'chats', partner.id, 'messages');
-    //   // Simplified query - only filter by read status, then filter sender in code
-    //   const unreadQuery = query(messagesRef, where('read', '==', false));
-      
-    //   return onSnapshot(unreadQuery, (snapshot) => {
-    //     // Filter out messages sent by current user
-    //     const unreadFromPartner = snapshot.docs.filter(doc => {
-    //       const messageData = doc.data();
-    //       return messageData.sender !== currentUserRole;
-    //     });
-        
-    //     setUnreadCounts(prev => ({
-    //       ...prev,
-    //       [partner.id]: unreadFromPartner.length
-    //     }));
-    //   });
-    // });
-
-    // return () => {
-    //   unsubscribes.forEach(unsub => unsub());
-    // };
-  }, [currentUserId, currentUserRole, partners]);
-
   // Check if a partner is online
   const isPartnerOnline = (partnerId) => {
     return onlineUsers.some(user => user.userId === partnerId);
@@ -202,10 +170,14 @@ export default function ChatPartnersList({
                     <div className={`w-3 h-3 rounded-full ${isPartnerOnline(partner.id) ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     
                     <div className="flex items-center space-x-2 space-x-reverse">
-                      {/* Unread count badge */}
-                      {unreadCounts[partner.id] > 0 && (
+                      {/* Unread count badge or read indicator */}
+                      {unreadCounts[partner.id] > 0 ? (
                         <div className="bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
                           {unreadCounts[partner.id]}
+                        </div>
+                      ) : (
+                        <div className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                          אין הודעות
                         </div>
                       )}
                     </div>

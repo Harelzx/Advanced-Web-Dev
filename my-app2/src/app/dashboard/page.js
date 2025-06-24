@@ -68,15 +68,22 @@ const Dashboard = () => {
       // 1. Message is from someone else (not current user)
       // 2. Either chat is closed OR message is from someone other than current chat partner
       const isFromOtherUser = lastMessage.sender !== userRole;
-      const isFromCurrentChatPartner = showChat && selectedPartner && (
-        (lastMessage.teacherId === selectedPartner.id && lastMessage.sender === 'teacher') ||
-        (lastMessage.parentId === selectedPartner.id && lastMessage.sender === 'parent')
-      );
       
-      if (isFromOtherUser && !isFromCurrentChatPartner) {
-        const senderRole = lastMessage.sender;
-        
-        // Mark this message as notified
+      // Check if this message is from the currently open chat partner
+      let isFromCurrentChatPartner = false;
+      if (showChat && selectedPartner) {
+        // For teacher receiving from parent
+        if (userRole === 'teacher' && lastMessage.sender === 'parent') {
+          isFromCurrentChatPartner = lastMessage.parentId === selectedPartner.id;
+        }
+        // For parent receiving from teacher
+        else if (userRole === 'parent' && lastMessage.sender === 'teacher') {
+          isFromCurrentChatPartner = lastMessage.teacherId === selectedPartner.id;
+        }
+      }
+      
+      if (isFromOtherUser) {
+        // Always mark message as processed to prevent future notifications
         notifiedMessagesRef.current.add(messageId);
         
         // Keep only last 100 message IDs to prevent memory growth
@@ -85,11 +92,16 @@ const Dashboard = () => {
           notifiedMessagesRef.current = new Set(sortedArray.slice(-100));
         }
         
-        // Get sender name based on role
-        const senderName = senderRole === 'teacher' ? 'מורה' : 'הורה';
-        
-        // Show the notification
-        showChatNotification(senderName, lastMessage.text, senderRole);
+        // Only show notification if chat is not open with this partner
+        if (!isFromCurrentChatPartner) {
+          const senderRole = lastMessage.sender;
+          
+          // Get sender name based on role
+          const senderName = senderRole === 'teacher' ? 'מורה' : 'הורה';
+          
+          // Show the notification
+          showChatNotification(senderName, lastMessage.text, senderRole);
+        }
       }
     }
   }, [webSocketMessages, showChat, selectedPartner, userRole, showChatNotification]);

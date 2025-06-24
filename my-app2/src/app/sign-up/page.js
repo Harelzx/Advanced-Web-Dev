@@ -89,7 +89,13 @@ const SignUp = () => {
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white text-right"
+          style={{
+            backgroundColor: 'var(--input-bg)',
+            color: 'var(--input-text)',
+            borderColor: 'var(--input-border)'
+          }}
+          className="w-full p-3 mb-4 border rounded-lg outline-none text-right focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+          dir="rtl"
         >
           <option value="student">תלמיד</option>
           <option value="teacher">מורה</option>

@@ -3,11 +3,17 @@
 :root {
   --background-color: #f8fafc; /* Modern light gray instead of pure white */
   --text-color: #1e293b; /* Warm dark gray instead of black */
+  --input-bg: #ffffff; /* Light mode input background */
+  --input-text: #1e293b; /* Light mode input text */
+  --input-border: #cbd5e1; /* Light mode input border */
 }
 
 .dark {
   --background-color: #0f172a; /* Deep navy blue */
   --text-color: #f1f5f9; /* Soft white */
+  --input-bg: #374151; /* Dark mode input background */
+  --input-text: #ffffff; /* Dark mode input text */
+  --input-border: #4b5563; /* Dark mode input border */
 }
 
 @theme inline {
@@ -34,6 +40,9 @@
 body.dark {
   --background-color: #0f172a; /* Deep navy blue */
   --text-color: #f1f5f9; /* Soft white */
+  --input-bg: #374151; /* Dark mode input background */
+  --input-text: #ffffff; /* Dark mode input text */
+  --input-border: #4b5563; /* Dark mode input border */
   transition: all 0.3s ease;
 }
 
@@ -85,6 +94,8 @@ h2:not(.navbar-title) {
 .mobile-dashboard-greeting {
   font-size: 1.125rem !important; /* text-lg */
 }
+
+
 
 /* RTL Support */
 [dir="rtl"] {
@@ -171,5 +182,21 @@ body.dark .student-card {
   color: #f1f5f9;
   border-color: #334155;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Input placeholder styling for dark mode */
+body.dark input::placeholder,
+body.dark select::placeholder,
+body.dark textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Input styling for dark mode */
+body.dark input,
+body.dark select,
+body.dark textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--input-border) !important;
 }
 

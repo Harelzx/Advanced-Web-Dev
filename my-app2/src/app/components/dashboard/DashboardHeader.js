@@ -30,7 +30,7 @@ export default function DashboardHeader({
           <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-color)' }}>
             {userRole === 'teacher' ? 'לוח בקרה למורה' : 'לוח בקרה להורה'}
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">ברוך שובך, {userName}!</p>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">ברוך שובך, {userName}!</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Chat Button */}

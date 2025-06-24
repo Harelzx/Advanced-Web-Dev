@@ -7,6 +7,7 @@ let globalWS = null;
 let globalConnectionStatus = 'Disconnected';
 let globalOnlineUsers = [];
 let globalMessages = [];
+let globalUnreadCounts = {}; // Track unread messages per partner
 let userInfoSent = false;
 let listeners = new Set();
 
@@ -14,12 +15,15 @@ const useWebSocket = (userId, userRole, userName) => {
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
 
-  const wsUrl = 'wss://websocket-chat-server-gwjc.onrender.com/';
+  const wsUrl = 'wss://advanced-web-dev.onrender.com/';
 
   // Create listener for this component instance
   const createListener = useCallback(() => {
     const listener = {
+      userId,
+      userRole,
       onStatusChange: (status) => {
         setConnectionStatus(status);
       },
@@ -28,6 +32,9 @@ const useWebSocket = (userId, userRole, userName) => {
       },
       onMessagesUpdate: (msgs) => {
         setMessages(msgs);
+      },
+      onUnreadCountsUpdate: (counts) => {
+        setUnreadCounts(counts);
       }
     };
 
@@ -37,9 +44,10 @@ const useWebSocket = (userId, userRole, userName) => {
     listener.onStatusChange(globalConnectionStatus);
     listener.onUsersUpdate([...globalOnlineUsers]);
     listener.onMessagesUpdate([...globalMessages]);
+    listener.onUnreadCountsUpdate({...globalUnreadCounts});
 
     return listener;
-  }, []);
+  }, [userId, userRole]);
 
   // Connect to WebSocket
   const connect = useCallback(() => {
@@ -80,10 +88,45 @@ const useWebSocket = (userId, userRole, userName) => {
               listener.onUsersUpdate([...globalOnlineUsers]);
             });
           } else if (data.type === 'chat') {
-            globalMessages = [...globalMessages, data];
-            listeners.forEach(listener => {
-              listener.onMessagesUpdate([...globalMessages]);
-            });
+            // Check if message already exists to prevent duplicates
+            const messageExists = globalMessages.some(msg => 
+              msg.text === data.text && 
+              msg.sender === data.sender &&
+              Math.abs(new Date(msg.timestamp) - new Date(data.timestamp)) < 5000
+            );
+            
+            if (!messageExists) {
+              globalMessages = [...globalMessages, data];
+              listeners.forEach(listener => {
+                listener.onMessagesUpdate([...globalMessages]);
+              });
+              
+              // Update unread counts for recipients only
+              if (data.teacherId && data.parentId) {
+                // For teacher receiving from parent - only increment if teacher is not the sender
+                if (data.sender === 'parent') {
+                  const teacherId = data.teacherId;
+                  if (globalUnreadCounts[teacherId]) {
+                    globalUnreadCounts[teacherId][data.parentId] = (globalUnreadCounts[teacherId][data.parentId] || 0) + 1;
+                  } else {
+                    globalUnreadCounts[teacherId] = { [data.parentId]: 1 };
+                  }
+                }
+                // For parent receiving from teacher - only increment if parent is not the sender
+                else if (data.sender === 'teacher') {
+                  const parentId = data.parentId;
+                  if (globalUnreadCounts[parentId]) {
+                    globalUnreadCounts[parentId][data.teacherId] = (globalUnreadCounts[parentId][data.teacherId] || 0) + 1;
+                  } else {
+                    globalUnreadCounts[parentId] = { [data.teacherId]: 1 };
+                  }
+                }
+                
+                listeners.forEach(listener => {
+                  listener.onUnreadCountsUpdate({...globalUnreadCounts});
+                });
+              }
+            }
           }
         } catch (error) {
           // Silent error handling
@@ -106,14 +149,8 @@ const useWebSocket = (userId, userRole, userName) => {
         globalConnectionStatus = 'Disconnected';
         globalWS = null;
         
-        // Clear old data when disconnected
-        globalOnlineUsers = [];
-        globalMessages = [];
-        
         listeners.forEach(listener => {
           listener.onStatusChange('Disconnected');
-          listener.onUsersUpdate([]);
-          listener.onMessagesUpdate([]);
         });
         
         // Auto-reconnect if we have listeners
@@ -169,6 +206,7 @@ const useWebSocket = (userId, userRole, userName) => {
           globalConnectionStatus = 'Disconnected';
           globalOnlineUsers = [];
           globalMessages = [];
+          globalUnreadCounts = {};
           userInfoSent = false;
         }
       }
@@ -182,11 +220,35 @@ const useWebSocket = (userId, userRole, userName) => {
     }
   }, []);
 
+  // Mark messages as read for a specific partner
+  const markMessagesAsRead = useCallback((partnerId) => {
+    if (userId && globalUnreadCounts[userId] && globalUnreadCounts[userId][partnerId]) {
+      globalUnreadCounts[userId][partnerId] = 0;
+      listeners.forEach(listener => {
+        listener.onUnreadCountsUpdate({...globalUnreadCounts});
+      });
+    }
+  }, [userId]);
+
+  // Get unread count for current user
+  const getUserUnreadCounts = useCallback(() => {
+    return globalUnreadCounts[userId] || {};
+  }, [userId]);
+
+  // Get total unread count for current user
+  const getTotalUnreadCount = useCallback(() => {
+    const userCounts = globalUnreadCounts[userId] || {};
+    return Object.values(userCounts).reduce((total, count) => total + count, 0);
+  }, [userId]);
+
   return {
     connectionStatus,
     onlineUsers,
     messages,
-    sendMessage
+    unreadCounts: getUserUnreadCounts(),
+    totalUnreadCount: getTotalUnreadCount(),
+    sendMessage,
+    markMessagesAsRead
   };
 };
 

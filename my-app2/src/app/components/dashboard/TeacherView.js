@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, limit, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import UserCard from './UserCard';
 import StatsCard from './StatsCard';
@@ -18,10 +18,8 @@ const TeacherView = ({
   connectionStatus,
   onUnreadCountChange
 }) => {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [unreadCounts, setUnreadCounts] = useState({});
   const [isStudentsListExpanded, setIsStudentsListExpanded] = useState(true);
-    const { onlineUsers } = useWebSocket();
+  const { onlineUsers, totalUnreadCount } = useWebSocket(currentUserId, 'teacher', 'Teacher User');
 
   // Calculate total students
   const totalStudents = studentsData.length;
@@ -31,85 +29,12 @@ const TeacherView = ({
     ? studentsData.reduce((sum, student) => sum + student.averageGrade, 0) / studentsData.length
     : 0;
 
-  // Load unread messages count - DISABLED FOR WEBSOCKET-ONLY MODE
+  // Update parent component with unread count from WebSocket
   useEffect(() => {
-    console.log('🔥 TeacherView unread count Firebase listener disabled - using WebSocket only');
-    // DISABLED: Firebase real-time listener for unread counts
-    // Will be handled by WebSocket notifications instead
-    
-    // if (!currentUserId) return;
-
-    // const loadPartnersAndUnreadCount = async () => {
-    //   try {
-    //     // Get teacher's students (same logic as ChatPartnersList)
-    //     const studentsQuery = query(
-    //       collection(db, 'users'),
-    //       where('role', '==', 'student'),
-    //       where('teacherId', '==', currentUserId)
-    //     );
-    //     const studentsSnapshot = await getDocs(studentsQuery);
-        
-    //     // Get unique parent IDs
-    //     const parentIds = new Set();
-    //     studentsSnapshot.docs.forEach(doc => {
-    //       const studentData = doc.data();
-    //       if (studentData.parentId) {
-    //         parentIds.add(studentData.parentId);
-    //       }
-    //     });
-
-    //     if (parentIds.size === 0) {
-    //       setUnreadCount(0);
-    //       return;
-    //     }
-
-    //     // Set up real-time listeners for each parent
-    //     const unsubscribes = Array.from(parentIds).map(parentId => {
-    //       const messagesRef = collection(db, 'users', currentUserId, 'chats', parentId, 'messages');
-    //       const unreadQuery = query(messagesRef, where('read', '==', false));
-          
-    //       return onSnapshot(unreadQuery, (snapshot) => {
-    //         // Filter out messages sent by current user
-    //         const unreadFromPartner = snapshot.docs.filter(doc => {
-    //           const messageData = doc.data();
-    //           return messageData.sender !== 'teacher';
-    //         });
-            
-    //         const currentPartnerUnread = unreadFromPartner.length;
-            
-    //         // Update counts per partner
-    //         setUnreadCounts(prev => ({
-    //           ...prev,
-    //           [parentId]: currentPartnerUnread
-    //         }));
-    //       });
-    //     });
-
-    //     return () => {
-    //       unsubscribes.forEach(unsub => unsub());
-    //     };
-    //   } catch (error) {
-    //     console.error('Error loading unread count:', error);
-    //   }
-    // };
-
-    // const cleanup = loadPartnersAndUnreadCount();
-    
-    // return () => {
-    //   if (cleanup && typeof cleanup.then === 'function') {
-    //     cleanup.then(cleanupFn => cleanupFn && cleanupFn());
-    //   }
-    // };
-  }, [currentUserId]);
-
-  // Calculate total unread count whenever individual counts change
-  useEffect(() => {
-    const total = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
-    setUnreadCount(total);
     if (onUnreadCountChange) {
-      onUnreadCountChange(total);
+      onUnreadCountChange(totalUnreadCount);
     }
-  }, [unreadCounts, onUnreadCountChange]);
+  }, [totalUnreadCount, onUnreadCountChange]);
 
   return (
     <div className="space-y-6">
@@ -161,9 +86,25 @@ const TeacherView = ({
             <div className="text-xs text-purple-600 dark:text-purple-500">הורים מחוברים</div>
           </div>
           
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg text-center border border-indigo-200 dark:border-indigo-800">
-            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{unreadCount}</div>
-            <div className="text-xs text-indigo-600 dark:text-indigo-500">הודעות חדשות</div>
+          <div className={`p-3 rounded-lg text-center border ${
+            totalUnreadCount > 0 
+              ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800'
+              : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+          }`}>
+            <div className={`text-2xl font-bold ${
+              totalUnreadCount > 0 
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-600 dark:text-gray-400'
+            }`}>
+              {totalUnreadCount > 0 ? totalUnreadCount : '0'}
+            </div>
+            <div className={`text-xs ${
+              totalUnreadCount > 0 
+                ? 'text-indigo-600 dark:text-indigo-500'
+                : 'text-gray-600 dark:text-gray-500'
+            }`}>
+              {totalUnreadCount > 0 ? 'הודעות חדשות' : 'אין הודעות חדשות'}
+            </div>
           </div>
         </div>
         
@@ -172,9 +113,9 @@ const TeacherView = ({
           className="relative bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full justify-center"
         >
           💬 פתח צ'אט
-          {unreadCount > 0 && (
+          {totalUnreadCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
             </span>
           )}
         </Button>
@@ -186,7 +127,7 @@ const TeacherView = ({
           <h3 className="text-lg font-semibold" style={{ color: 'var(--text-color)' }}>רשימת תלמידים</h3>
               <button
             onClick={() => setIsStudentsListExpanded(!isStudentsListExpanded)}
-            className="list-toggle-button flex items-center gap-2 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="list-toggle-button flex items-center gap-2 px-3 py-1 text-sm hover:bg-gray-100 rounded-lg transition-colors"
               >
             <span>{isStudentsListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{

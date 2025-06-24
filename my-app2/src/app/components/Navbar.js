@@ -26,10 +26,7 @@ export default function Navbar({
                     {isDashboard ? (
                         /* Dashboard actions */
                         <div className="flex items-center gap-4">
-                            <span className="navbar-greeting text-sm" style={{ 
-                                color: '#ffffff !important', 
-                                textShadow: '2px 2px 4px rgba(0,0,0,0.8)' 
-                            }}>
+                            <span className="navbar-greeting font-medium">
                                 ברוך שובך, {userName}!
                             </span>
                             
@@ -99,7 +96,7 @@ export default function Navbar({
                     {isDashboard ? (
                         /* Dashboard mobile menu */
                         <>
-                            <li className="mobile-dashboard-greeting py-3 px-4 text-center font-medium text-slate-800 dark:text-slate-200 text-lg">
+                            <li className="mobile-dashboard-greeting py-3 px-4 text-center font-medium text-slate-800 dark:text-slate-200">
                                 ברוך שובך, {userName}!
                             </li>
                             

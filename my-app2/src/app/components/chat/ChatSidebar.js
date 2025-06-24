@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, addDoc, serverTimestamp, where, getDocs, updateDoc } from 'firebase/firestore';
 import useWebSocket from '../../hooks/useWebSocket';
@@ -16,13 +16,18 @@ export default function ChatSidebar({
 }) {
   const [inputMessage, setInputMessage] = useState('');
   const [firebaseMessages, setFirebaseMessages] = useState([]);
-  const { messages: webSocketMessages, connectionStatus, onlineUsers, sendMessage } = useWebSocket();
+  const { messages: webSocketMessages, connectionStatus, onlineUsers, sendMessage, markMessagesAsRead } = useWebSocket(currentUserId, currentUserRole, 'User');
   const { showChatNotification } = useNotifications();
-
-
+  const messagesEndRef = useRef(null);
+  const previousMessageCountRef = useRef(0);
 
   // Check if chat partner is online
   const isPartnerOnline = onlineUsers.some(user => user.userId === chatPartnerId);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = (instant = false) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' });
+  };
 
   // Load chat history from Firebase ONCE on component mount (no real-time listener)
   useEffect(() => {
@@ -40,6 +45,11 @@ export default function ChatSidebar({
         }));
         
         setFirebaseMessages(historyMessages);
+        
+        // If chat is open when history loads, scroll to bottom instantly
+        if (isOpen && historyMessages.length > 0) {
+          setTimeout(() => scrollToBottom(true), 50);
+        }
       } catch (error) {
         console.error('Could not load chat history:', error);
       }
@@ -48,26 +58,71 @@ export default function ChatSidebar({
     loadChatHistory();
   }, [currentUserId, chatPartnerId]);
 
-
+  // Filter WebSocket messages to only show messages relevant to current chat
+  const relevantWebSocketMessages = webSocketMessages.filter(wsMsg => {
+    // Only show messages for current chat
+    const isRelevantChat = (
+      (wsMsg.teacherId === currentUserId && wsMsg.parentId === chatPartnerId) ||
+      (wsMsg.parentId === currentUserId && wsMsg.teacherId === chatPartnerId)
+    );
+    
+    if (!isRelevantChat) return false;
+    
+    // Show all messages from WebSocket for real-time experience
+    
+    // Only filter out exact duplicates (same text, sender, and very close timestamp)
+    return !firebaseMessages.some(fbMsg => 
+      fbMsg.text === wsMsg.text && 
+      fbMsg.sender === wsMsg.sender &&
+      Math.abs(new Date(fbMsg.timestamp?.toDate?.() || fbMsg.timestamp) - new Date(wsMsg.timestamp)) < 2000
+    );
+  });
 
   // Combine Firebase history with real-time WebSocket messages
-  // Remove duplicates by checking text, sender and similar timestamp
   const allMessages = [
     ...firebaseMessages,
-    ...webSocketMessages.filter(wsMsg => 
-      !firebaseMessages.some(fbMsg => 
-        fbMsg.text === wsMsg.text && 
-        fbMsg.sender === wsMsg.sender &&
-        Math.abs(new Date(fbMsg.timestamp?.toDate?.() || fbMsg.timestamp) - new Date(wsMsg.timestamp)) < 3000
-      )
-    )
+    ...relevantWebSocketMessages
   ].sort((a, b) => {
     const timeA = new Date(a.timestamp?.toDate?.() || a.timestamp);
     const timeB = new Date(b.timestamp?.toDate?.() || b.timestamp);
     return timeA - timeB;
   });
 
+  // Auto-scroll when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [allMessages]);
 
+  // Auto-scroll when chat is opened - jump instantly to bottom
+  useEffect(() => {
+    if (isOpen && allMessages.length > 0) {
+      // Small delay to ensure the component is fully rendered, then jump instantly to bottom
+      setTimeout(() => scrollToBottom(true), 100);
+    }
+  }, [isOpen]);
+
+  // Mark new messages as read when they arrive while chat is open
+  useEffect(() => {
+    if (!isOpen || !currentUserId || !chatPartnerId) return;
+    
+    const currentMessageCount = allMessages.length;
+    const previousMessageCount = previousMessageCountRef.current;
+    
+    // Only if we have new messages and chat is open
+    if (currentMessageCount > previousMessageCount && previousMessageCount > 0) {
+      // Check if the new messages are from the other person
+      const newMessages = allMessages.slice(previousMessageCount);
+      const hasNewMessagesFromOther = newMessages.some(msg => msg.sender !== currentUserRole);
+      
+      if (hasNewMessagesFromOther) {
+        // Mark as read in WebSocket
+        markMessagesAsRead(chatPartnerId);
+      }
+    }
+    
+    // Update the previous count
+    previousMessageCountRef.current = currentMessageCount;
+  }, [allMessages, isOpen, currentUserId, chatPartnerId, currentUserRole, markMessagesAsRead]);
 
   // Save message to Firebase under both users
   const saveMessageToFirebase = async (messageData) => {
@@ -86,17 +141,16 @@ export default function ChatSidebar({
       // Also save under chat partner for their history
       const partnerMessagesRef = collection(db, 'users', chatPartnerId, 'chats', currentUserId, 'messages');
       await addDoc(partnerMessagesRef, messageWithReadStatus);
-
-          } catch (error) {
-        // Could not save message
-      }
+    } catch (error) {
+      // Could not save message
+    }
   };
 
   // Mark messages as read when chat is opened
   useEffect(() => {
     if (!currentUserId || !chatPartnerId || !isOpen) return;
 
-    const markMessagesAsRead = async () => {
+    const markMessagesAsReadInFirebase = async () => {
       try {
         const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
         const unreadQuery = query(messagesRef, where('read', '==', false));
@@ -114,8 +168,10 @@ export default function ChatSidebar({
       }
     };
 
-    markMessagesAsRead();
-  }, [currentUserId, chatPartnerId, currentUserRole, isOpen]);
+    // Mark as read in both Firebase and WebSocket
+    markMessagesAsReadInFirebase();
+    markMessagesAsRead(chatPartnerId);
+  }, [currentUserId, chatPartnerId, currentUserRole, isOpen, markMessagesAsRead]);
 
   // Handle sending message
   const handleSendMessage = async () => {
@@ -130,13 +186,23 @@ export default function ChatSidebar({
       timestamp: new Date().toISOString()
     };
 
-
-
     // Send via WebSocket for real-time communication
     sendMessage(messageData);
     
-    // Save to Firebase for persistence
+    // Save to Firebase for persistence (this will show the message immediately for sender)
     await saveMessageToFirebase(messageData);
+    
+    // Reload Firebase messages to show the new message immediately
+    const messagesRef = collection(db, 'users', currentUserId, 'chats', chatPartnerId, 'messages');
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));
+    const snapshot = await getDocs(q);
+    
+    const historyMessages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    setFirebaseMessages(historyMessages);
     
     setInputMessage('');
   };
@@ -335,6 +401,8 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ))}
+              {/* Invisible element to scroll to */}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
