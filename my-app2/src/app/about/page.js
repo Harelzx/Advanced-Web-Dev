@@ -30,15 +30,18 @@ export default function AboutPage() {
       {/* Story Section */}
       <section className="py-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-red-50 to-blue-50 dark:from-red-900/20 dark:to-blue-900/20 rounded-3xl p-6 mb-4">
+          <div className="rounded-2xl p-6 shadow-lg border mb-4" style={{ 
+            backgroundColor: 'var(--card-bg)',
+            borderColor: 'var(--input-border)'
+          }}>
             <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: 'var(--text-color)' }}>
-              🇮🇱 נולד ממלחמת חרבות ברזל
+              הפרויקט נולד ממלחמת חרבות ברזל
             </h2>
             <div className="max-w-4xl mx-auto" style={{ color: 'var(--text-color)', direction: 'rtl' }}>
-              <p className="text-lg leading-relaxed mb-6" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
+              <p className="text-lg leading-relaxed mb-4" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
                 ב-7 באוקטובר 2023, כשהתחילה מלחמת חרבות ברזל, אלפי תלמידים ברחבי ישראל מצאו את עצמם מפונים מבתיהם. פתאום, תלמידי כיתות י&ldquo;א ו-י&ldquo;ב שהיו אמורים להתכונן לבגרויות נותרו ללא מסגרת לימודים קבועה.
               </p>
-              <p className="text-lg leading-relaxed mb-6" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
+              <p className="text-lg leading-relaxed mb-4" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
                 ראינו את הצורך הדחוף: תלמידים שצריכים להשלים חומר רב לקראת הבגרויות, הורים מודאגים שרוצים לעקוב אחר ההתקדמות, ומורים שצריכים כלים דיגיטליים להמשך הוראה מרחוק.
               </p>
               <p className="text-lg leading-relaxed" style={{ lineHeight: '1.8', textAlign: 'justify' }}>
@@ -53,7 +56,7 @@ export default function AboutPage() {
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-8" style={{ color: 'var(--text-color)' }}>
-            🏗️ ארכיטקטורת הפרויקט
+            ארכיטקטורת הפרויקט
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
