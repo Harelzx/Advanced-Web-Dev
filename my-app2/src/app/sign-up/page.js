@@ -6,7 +6,8 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../components/Button';
-import Input from '../components/Input'; 
+import Input from '../components/Input';
+import BackArrow from '../components/BackArrow'; 
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -59,14 +60,7 @@ const SignUp = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
       <div className="panels p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
-        {/* Back to login arrow */}
-        <Link
-          href="/"
-          className="absolute right-4 top-4 text-black text-2xl hover:text-indigo-400"
-          aria-label="חזרה להתחברות"
-        >
-          →
-        </Link>
+        <BackArrow href="/" ariaLabel="חזרה לעמוד הראשי" />
         <h1 className="text-black text-2xl mb-5 text-right">הרשמה</h1>
         <Input
           type="text"

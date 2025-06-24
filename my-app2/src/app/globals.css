@@ -6,6 +6,7 @@
   --input-bg: #ffffff; /* Light mode input background */
   --input-text: #1e293b; /* Light mode input text */
   --input-border: #cbd5e1; /* Light mode input border */
+  --card-bg: #ffffff; /* Light mode card background */
 }
 
 .dark {
@@ -14,6 +15,7 @@
   --input-bg: #374151; /* Dark mode input background */
   --input-text: #ffffff; /* Dark mode input text */
   --input-border: #4b5563; /* Dark mode input border */
+  --card-bg: #1e293b; /* Dark mode card background */
 }
 
 @theme inline {
@@ -43,6 +45,7 @@ body.dark {
   --input-bg: #374151; /* Dark mode input background */
   --input-text: #ffffff; /* Dark mode input text */
   --input-border: #4b5563; /* Dark mode input border */
+  --card-bg: #1e293b; /* Dark mode card background */
   transition: all 0.3s ease;
 }
 
