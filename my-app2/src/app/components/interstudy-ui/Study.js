@@ -29,20 +29,33 @@ export default function Study({
   onHome,
   sessionNumber,
   difficultyConfigs = {
-    easy: { color: "from-emerald-500 to-teal-600", icon: "🌱", title: "רמה קלה" },
-    medium: { color: "from-amber-500 to-orange-600", icon: "🔥", title: "רמה בינונית" },
+    easy: {
+      color: "from-emerald-500 to-teal-600",
+      icon: "🌱",
+      title: "רמה קלה",
+    },
+    medium: {
+      color: "from-amber-500 to-orange-600",
+      icon: "🔥",
+      title: "רמה בינונית",
+    },
     hard: { color: "from-rose-500 to-red-600", icon: "⚡", title: "רמה קשה" },
   },
 }) {
-
   const getDifficultyConfig = (diff) => {
-    return difficultyConfigs[diff] || { color: "from-gray-500 to-gray-600", icon: "📚", title: "אימון" };
+    return (
+      difficultyConfigs[diff] || {
+        color: "from-gray-500 to-gray-600",
+        icon: "📚",
+        title: "אימון",
+      }
+    );
   };
 
   if (isLoading || !question) {
     return <LoadingDisplay />;
   }
-  
+
   if (quizCompleted) {
     return (
       <StudyResults
@@ -76,16 +89,19 @@ export default function Study({
               onAnswer={handleAnswer}
             />
 
-            {isAnswered && (
-              <div className="mt-6 flex justify-center w-full pb-6">
-                <button
-                  onClick={nextQuestion}
-                  className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg"
-                >
-                  {currentQuestion === totalQuestions - 1 ? 'סיים תרגול' : 'השאלה הבאה'}
-                </button>
-              </div>
-            )}
+            {isAnswered &&
+              !(question.sections && Array.isArray(question.sections)) && (
+                <div className="mt-6 flex justify-center w-full pb-6">
+                  <button
+                    onClick={nextQuestion}
+                    className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg"
+                  >
+                    {currentQuestion === totalQuestions - 1
+                      ? "סיים תרגול"
+                      : "השאלה הבאה"}
+                  </button>
+                </div>
+              )}
           </div>
         </div>
       </div>

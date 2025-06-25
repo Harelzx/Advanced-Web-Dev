@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { db, auth } from "../firebase/config";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -48,7 +48,6 @@ const getAvailableSessions = (completedSessions) => {
 
   // Unlocking logic
   if (completed.includes(1)) {
-    
     available.add(2); // session 2 easy
     available.add(4); // session 1 medium
   }
@@ -123,6 +122,7 @@ const SessionSelection = ({ availableSessions, onSelectSession }) => {
 export default function InterStudyPage() {
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // State for managing UI feedback (loading and errors)
   const [isLoading, setIsLoading] = useState(true);
@@ -238,12 +238,25 @@ export default function InterStudyPage() {
         } else {
           allQuestions = await getPracticeQuestions();
         }
-        const sessionQuestions = buildPracticeSession(
-          { currentSession: sessionNumber },
-          await getFirstQuizScores(user.uid),
-          allQuestions,
-          difficultyNumber
-        );
+        // For hard sessions, exclude already used hard questions
+        let usedHardQuestionIds = trainingProgress.usedHardQuestions || [];
+        let sessionQuestions;
+        if (difficultyKey === "hard") {
+          sessionQuestions = buildPracticeSession(
+            { currentSession: sessionNumber },
+            await getFirstQuizScores(user.uid),
+            allQuestions,
+            difficultyNumber,
+            usedHardQuestionIds
+          );
+        } else {
+          sessionQuestions = buildPracticeSession(
+            { currentSession: sessionNumber },
+            await getFirstQuizScores(user.uid),
+            allQuestions,
+            difficultyNumber
+          );
+        }
 
         if (sessionQuestions.length === 0) {
           setError(`לא נמצאו שאלות מתאימות עבור תרגול מספר ${sessionNumber}.`);
@@ -296,14 +309,29 @@ export default function InterStudyPage() {
           practiceSets
         );
 
-        // Update completed sessions
-        const newCompletedSessions = [
-          ...(trainingProgress.completedSessions || []),
-          selectedSession,
-        ];
+        // Update completed sessions (ensure uniqueness)
+        const prevCompleted = trainingProgress.completedSessions || [];
+        const newCompletedSessions = Array.from(
+          new Set([...prevCompleted, selectedSession])
+        );
         const newAvailableSessions = getAvailableSessions(newCompletedSessions);
 
-        // Save updated completedSessions to Firestore
+        // Track used hard questions
+        let newUsedHardQuestions = trainingProgress.usedHardQuestions || [];
+        if (results.difficulty === "hard") {
+          // Add the current session's hard question IDs to the list
+          const hardQuestionIds = (practiceSets.hard || []).map((q) => q.id);
+          newUsedHardQuestions = Array.from(
+            new Set([...newUsedHardQuestions, ...hardQuestionIds])
+          );
+        }
+
+        // Check if all sessions are completed
+        const allSessions = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        const completedNums = newCompletedSessions.map(Number);
+        const isComplete = allSessions.every((s) => completedNums.includes(s));
+
+        // Save updated completedSessions and usedHardQuestions to Firestore
         const progressRef = doc(
           db,
           "users",
@@ -316,8 +344,8 @@ export default function InterStudyPage() {
           {
             ...trainingProgress,
             completedSessions: newCompletedSessions,
-            status:
-              newCompletedSessions.length === 9 ? "completed" : "in_progress",
+            usedHardQuestions: newUsedHardQuestions,
+            status: isComplete ? "completed" : "in_progress",
             lastActivity: serverTimestamp(),
           },
           { merge: true }
@@ -327,8 +355,8 @@ export default function InterStudyPage() {
         setTrainingProgress((prev) => ({
           ...prev,
           completedSessions: newCompletedSessions,
-          status:
-            newCompletedSessions.length === 9 ? "completed" : "in_progress",
+          usedHardQuestions: newUsedHardQuestions,
+          status: isComplete ? "completed" : "in_progress",
         }));
         setAvailableSessions(newAvailableSessions);
         setSessionCompleted(true);
@@ -348,6 +376,22 @@ export default function InterStudyPage() {
       loadTrainingData(user.uid);
     }
   }, [user, authLoading, loadTrainingData]);
+
+  useEffect(() => {
+    if (searchParams.get("reset") === "1") {
+      setSessionCompleted(false);
+      setSessionStarted(false);
+      setSelectedSession(null);
+      if (user) loadTrainingData(user.uid);
+
+      // Remove the reset param from the URL after handling
+      if (typeof window !== "undefined" && window.history) {
+        const url = new URL(window.location);
+        url.searchParams.delete("reset");
+        window.history.replaceState({}, "", url.pathname + url.search);
+      }
+    }
+  }, [searchParams.toString(), user]);
 
   // --- Render Logic ---
   // The following section determines which UI to show based on the current state.
@@ -406,32 +450,69 @@ export default function InterStudyPage() {
         dir="rtl"
       >
         <h2 className="text-3xl font-bold mb-4">כל הכבוד!</h2>
-        <p>סיימת בהצלחה את כל תוכנית התרגולים.</p>
+        <p className="mb-6">סיימת בהצלחה את כל תוכנית התרגולים.</p>
+        <button
+          onClick={async () => {
+            // Update Firestore status to 'in_progress'
+            if (user) {
+              const progressRef = doc(
+                db,
+                "users",
+                user.uid,
+                "training_progress",
+                "plan_1"
+              );
+              await setDoc(
+                progressRef,
+                { status: "in_progress" },
+                { merge: true }
+              );
+            }
+            setSessionCompleted(false);
+            setSessionStarted(false);
+            setSelectedSession(null);
+            setTrainingProgress((prev) => ({
+              ...prev,
+              status: "in_progress",
+            }));
+            if (user) {
+              loadTrainingData(user.uid);
+            }
+          }}
+          className="bg-gray-200/80 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-300/90 transition duration-300 shadow-md"
+        >
+          חזור לעמוד התרגולים
+        </button>
       </div>
     );
   }
 
   if (sessionCompleted && lastSessionResults) {
-    // Find the next available session (the lowest-numbered available session not yet completed)
-    const nextAvailable = availableSessions
-      .filter((s) => !(trainingProgress.completedSessions || []).includes(s))
-      .sort((a, b) => a - b)[0];
+    // Use unlocking logic to determine the next available session
+    const completed = (trainingProgress.completedSessions || []).map(Number);
+    const available = getAvailableSessions(completed);
+    // const nextAvailable = available
+    //   .filter(s => !completed.includes(s))
+    //   .sort((a, b) => a - b)[0];
+    // Check if all sessions are completed
+    const allSessions = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const isComplete = allSessions.every((s) => completed.includes(s));
     return (
       <SessionSummaryScreen
         results={lastSessionResults}
         completedSessions={selectedSession}
-        nextSessionNumber={nextAvailable}
-        onContinue={() => {
-          if (nextAvailable) {
-            setSessionCompleted(false);
-            setSessionStarted(false);
-            setSelectedSession(nextAvailable);
-          }
-        }}
+        nextSessionNumber={null}
+        onContinue={() => {}}
         onBackToSessions={() => {
           setSessionCompleted(false);
           setSessionStarted(false);
           setSelectedSession(null);
+        }}
+        isComplete={isComplete}
+        onRedoSession={() => {
+          setSessionCompleted(false);
+          setSessionStarted(false);
+          setSelectedSession(selectedSession);
         }}
       />
     );

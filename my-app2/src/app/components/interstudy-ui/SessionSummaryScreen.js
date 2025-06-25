@@ -7,9 +7,14 @@ export default function SessionSummaryScreen({
   nextSessionNumber,
   onContinue,
   onBackToSessions,
+  isComplete,
+  onRedoSession,
 }) {
   const router = useRouter();
-  const finalScore = Math.round((results.score / results.totalQuestions) * 100);
+  // Calculate score as a percentage out of 100
+  const maxScore = results.totalQuestions * 20;
+  const finalScore =
+    maxScore > 0 ? Math.round((results.score / maxScore) * 100) : 0;
 
   return (
     <div
@@ -28,24 +33,43 @@ export default function SessionSummaryScreen({
           .
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {nextSessionNumber <= 9 ? (
+          {!isComplete &&
+          typeof nextSessionNumber === "number" &&
+          nextSessionNumber >= 1 &&
+          nextSessionNumber <= 9 ? (
             <button
               onClick={onContinue}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition duration-300 shadow-md transform hover:scale-105"
             >
               המשך לתרגול הבא ({nextSessionNumber})
             </button>
-          ) : (
-            <p className="text-lg font-semibold text-green-600">
-              סיימת את כל תוכנית האימונים!
-            </p>
-          )}
+          ) : null}
           <button
-            onClick={onBackToSessions}
-            className="bg-gray-200/80 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-300/90 transition duration-300 shadow-md"
+            onClick={onRedoSession}
+            className="bg-blue-200/80 text-blue-800 font-bold py-3 px-6 rounded-xl hover:bg-blue-300/90 transition duration-300 shadow-md"
           >
-            חזור לעמוד התרגולים
+            בצע תרגול זה שוב
           </button>
+          {isComplete ? (
+            <div className="flex flex-col gap-4 items-center w-full">
+              <p className="text-lg font-semibold text-green-600">
+                סיימת את כל תוכנית התרגולים!
+              </p>
+              <button
+                onClick={onBackToSessions}
+                className="bg-gray-200/80 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-300/90 transition duration-300 shadow-md"
+              >
+                חזור לעמוד התרגולים
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onBackToSessions}
+              className="bg-gray-200/80 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-300/90 transition duration-300 shadow-md"
+            >
+              חזור לעמוד התרגולים
+            </button>
+          )}
         </div>
       </div>
     </div>
