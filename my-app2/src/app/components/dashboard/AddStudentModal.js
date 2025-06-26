@@ -109,14 +109,14 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
-      <div className="panels p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
+              <div className="panels p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
             הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            className="btn-close"
           >
             ×
           </button>
@@ -124,24 +124,24 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
         {/* Success/Error Messages */}
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
             <div className="flex items-center">
-              <span className="text-green-600 mr-2">✅</span>
-              <span className="text-green-800 font-medium">{successMessage}</span>
+              <span className="text-green-600 dark:text-green-400 mr-2">✅</span>
+              <span className="text-green-800 dark:text-green-200 font-medium">{successMessage}</span>
             </div>
           </div>
         )}
         
         {errorMessage && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <span className="text-red-600 mr-2">❌</span>
-                <span className="text-red-800 font-medium">{errorMessage}</span>
+                <span className="text-red-600 dark:text-red-400 mr-2">❌</span>
+                <span className="text-red-800 dark:text-red-200 font-medium">{errorMessage}</span>
               </div>
               <button
                 onClick={() => setErrorMessage('')}
-                className="text-red-600 hover:text-red-800 ml-2"
+                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 ml-2"
               >
                 ×
               </button>
@@ -151,7 +151,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
 
         {/* Search Input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+          <label className="block text-sm font-medium mb-2 text-right">
             חפש אחר {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}:
           </label>
           <input
@@ -160,8 +160,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoFocus
-            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 panels text-right"
-            style={{ color: '#111827', backgroundColor: '#ffffff' }}
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-right transition-colors shadow-sm"
           />
         </div>
 
@@ -169,33 +168,35 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
         <div className="max-h-64 overflow-y-auto">
           {loading ? (
             <div className="text-center py-4">
-              <div className="text-gray-600">טוען תלמידים...</div>
+              <div className="text-gray-600 dark:text-gray-400">טוען תלמידים...</div>
             </div>
           ) : filteredStudents.length > 0 ? (
             <div className="space-y-2">
               {filteredStudents.map((student) => (
-                <div key={student.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50">
-                  <div>
-                    <div className="font-medium text-gray-800">{student.name}</div>
-                    <div className="text-sm text-gray-600">{student.email}</div>
-                    {(student.parentId || student.teacherId) && (
-                      <div className="text-xs text-orange-600">
-                        כבר משוייך ל{student.parentId ? 'הורה' : 'מורה'}
-                      </div>
-                    )}
+                <div key={student.id} className="list-item border rounded-lg transition-colors" style={{ borderColor: 'var(--input-border)' }}>
+                  <div className="flex justify-between items-start p-3 gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">{student.name}</div>
+                      <div className="text-sm opacity-75">{student.email}</div>
+                      {(student.parentId || student.teacherId) && (
+                        <div className="text-xs text-orange-600 dark:text-orange-400">
+                          כבר משוייך ל{student.parentId ? 'הורה' : 'מורה'}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => addStudent(student.id)}
+                      disabled={adding}
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50 flex-shrink-0 self-center"
+                    >
+                      {adding ? 'מוסיף...' : 'הוסף'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => addStudent(student.id)}
-                    disabled={adding}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-                  >
-                    {adding ? 'מוסיף...' : 'הוסף'}
-                  </button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-4 text-gray-600">
+            <div className="text-center py-4 text-gray-600 dark:text-gray-400">
               {searchTerm ? 'לא נמצאו תלמידים תואמים לחיפוש שלך.' : 'אין תלמידים זמינים.'}
             </div>
           )}
@@ -205,7 +206,7 @@ export default function AddStudentModal({ isOpen, onClose, userRole, userId, onS
         <div className="mt-4 text-left">
           <button
             onClick={onClose}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            className="btn-secondary"
           >
             סגור
           </button>

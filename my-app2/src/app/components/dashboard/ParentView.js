@@ -52,9 +52,9 @@ const ParentView = ({
       </div>
 
       {/* Communication Section */}
-      <div className="panels p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">מרכז התקשורת</h3>
-        <p className="text-gray-600 mb-4">שלח הודעות והתעדכן עם מורי הילדים</p>
+              <div className="panels p-4 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">מרכז התקשורת</h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">שלח הודעות והתעדכן עם מורי הילדים</p>
         
         {/* Chat Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
@@ -124,10 +124,10 @@ const ParentView = ({
       {/* Children List */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">רשימת ילדים</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">רשימת ילדים</h3>
                 <button
             onClick={() => setIsChildrenListExpanded(!isChildrenListExpanded)}
-            className="list-toggle-button flex items-center gap-2 px-3 py-1 text-sm hover:bg-gray-100 rounded-lg transition-colors"
+            className="list-toggle-button"
                 >
             <span>{isChildrenListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{
@@ -140,8 +140,8 @@ const ParentView = ({
         {isChildrenListExpanded && (
           studentsData.length === 0 ? (
             <div className="panels p-6 rounded-lg shadow text-center">
-              <p className="text-gray-600 mb-4">עדיין לא נוספו ילדים לחשבון שלך</p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">עדיין לא נוספו ילדים לחשבון שלך</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
                 כדי להתחיל לעקוב אחר התקדמות הילדים שלך, לחץ על הכפתור למטה להוספת ילד/ה
               </p>
               <Button onClick={onAddChild} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg">

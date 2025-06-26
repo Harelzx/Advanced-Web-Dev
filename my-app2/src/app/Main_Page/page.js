@@ -7,7 +7,7 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fetchBadges, hasBadge, saveBadge, recordPageVisit, checkExplorerBadge } from '../components/Badge/BadgeSystem';
 import BadgeNotificationModal from '../components/Badge/BadgeNotificationModal';
 import BadgeCase from '@/app/components/Badge/BadgeCase'; 
-import DashboardLayout from '../components/dashboard/DashboardLayout'; 
+import MainPageLayout from '../components/mainpage-ui/MainPageLayout'; 
 import NextPracticeCard from '../components/mainpage-ui/NextPracticeCard'; 
 import OverallProgress from '../components/mainpage-ui/OverallProgress'; 
 
@@ -88,14 +88,8 @@ export default function MainPage() {
 
   return (
     <>
-      <DashboardLayout
-        userRole="student"
+      <MainPageLayout
         userName={user.fullName}
-        headerText="ברוכים הבאים לדף הראשי שלך!"
-        layoutType="compact"
-        showRole={true}
-        showRefreshButton={false}
-        roleLabel="שם מלא"
       >
         <div className="space-y-4" dir="rtl">
           <div className="space-y-4">
@@ -136,7 +130,7 @@ export default function MainPage() {
             </div>
           </div>
         </div>
-      </DashboardLayout>
+      </MainPageLayout>
       <div className="panels p-4 border rounded-lg shadow-lg" style={{ minHeight: '500px', maxWidth: 'calc(100% - 15px)', margin: '20px auto' }}>
         <BadgeCase earnedBadges={earnedBadges} fullName={user.fullName} school={user.school} />
       </div>

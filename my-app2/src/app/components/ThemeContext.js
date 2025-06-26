@@ -17,8 +17,16 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('theme', theme);
+      // Apply theme class to html element for Tailwind dark mode
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
     }
-    document.body.className = theme; // Apply theme class to body
+    document.body.className = theme; // Keep for CSS variables
   }, [theme]);
 
   const toggleTheme = () => {

@@ -1,14 +1,13 @@
 "use client";
 
 import Header from "./components/Header";
-import TeamSection from "./components/TeamSection";
+import TeamSection from "./components/about/TeamSection";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
       
-      {/* Additional content sections can be added here */}
       <main className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* How it works section */}

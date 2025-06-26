@@ -64,7 +64,7 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
     <div className="panels p-4 rounded-lg shadow" dir="rtl">
       <div className="mb-6 text-center text-stone-700">
       </div>
-      <h3 className="text-xl font-bold mb-6 text-stone-800 text-center">תגים שהושגו</h3>
+      <h3 className="text-xl font-bold mb-6 text-stone-800 dark:text-stone-200 text-center">תגים שהושגו</h3>
       <div className="grid grid-cols-3 gap-6 p-4">
         {allBadges.map((badge) => {
           const earnedBadge = earnedBadges.find(b => b.label === badge.label);
@@ -79,14 +79,14 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
                 {earned ? (
                   <Lottie animationData={badge.anim} loop={true} />
                 ) : (
-                  <FaLock className="w-15 h-12 text-2xl text-gray-800" />
+                  <FaLock className="w-15 h-12 text-2xl text-gray-800 dark:text-gray-300" />
                 )}
               </div>
-              <span className="text-center text-sm font-semibold text-gray-800">
+              <span className="text-center text-sm font-semibold text-gray-800 dark:text-gray-200">
                 {badge.label}
               </span>
               {earned && dateEarned && (
-                <span className="text-center text-xs text-gray-600 mt-1">
+                <span className="text-center text-xs text-gray-600 dark:text-gray-400 mt-1">
                   הושג ב: {formatDate(dateEarned)}
                 </span>
               )}

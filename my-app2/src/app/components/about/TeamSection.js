@@ -2,6 +2,10 @@
 
 import Image from 'next/image';
 
+/**
+ * Team Section Component
+ * Can be reused across different pages with optional title/subtitle props
+ */
 export default function TeamSection({ showTitle = true, showSubtitle = true }) {
   const teamMembers = [
     {
@@ -46,18 +50,24 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
     <section className="py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {showTitle && (
-          <h2 className="text-3xl font-bold text-center mb-6" style={{ color: 'var(--text-color)' }}>
+          <h2 
+            className="text-3xl font-bold text-center mb-6" 
+            style={{ color: 'var(--text-color)' }}
+          >
             הצוות המפתח
           </h2>
         )}
 
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teamMembers.map((member, index) => (
-            <div key={index} className="rounded-xl p-5 shadow-md border text-center hover:shadow-lg transition-shadow duration-300" style={{ 
-              backgroundColor: 'var(--card-bg)',
-              borderColor: 'var(--input-border)'
-            }}>
+            <div 
+              key={index} 
+              className="rounded-xl p-5 shadow-md border text-center hover:shadow-lg transition-shadow duration-300" 
+              style={{ 
+                backgroundColor: 'var(--card-bg)',
+                borderColor: 'var(--input-border)'
+              }}
+            >
               
               {/* Profile Image */}
               <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
@@ -80,7 +90,10 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
               </div>
 
               {/* Name and Role */}
-              <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-color)' }}>
+              <h3 
+                className="text-lg font-semibold mb-2" 
+                style={{ color: 'var(--text-color)' }}
+              >
                 {member.name}
               </h3>
               <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-4 leading-relaxed">

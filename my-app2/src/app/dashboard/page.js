@@ -12,6 +12,8 @@ import ChatPartnersList from '../components/chat/ChatPartnersList';
 import useNotifications from '../hooks/useNotifications';
 import NotificationToast from '../components/notifications/NotificationToast';
 import useWebSocket from '../hooks/useWebSocket';
+import LoadingWheel from '../components/LoadingWheel';
+import DashboardError from '../components/dashboard/DashboardError';
 
 /**
  * Main Dashboard Component
@@ -19,7 +21,6 @@ import useWebSocket from '../hooks/useWebSocket';
  */
 const Dashboard = () => {
   // --- Logic Layer ---
-  // The hook provides all necessary data and functions.
   const { 
     userRole, 
     userName, 
@@ -31,7 +32,6 @@ const Dashboard = () => {
   } = useDashboardLogic();
   
   // --- UI State Management ---
-  // State for managing the visibility of modals.
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
@@ -41,83 +41,13 @@ const Dashboard = () => {
   const [showPartnersList, setShowPartnersList] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const notifiedMessagesRef = useRef(new Set()); // Track messages we already showed notifications for
+  const notifiedMessagesRef = useRef(new Set());
   
   // --- Notifications ---
   const { notifications, removeNotification, showChatNotification } = useNotifications();
   
   // --- WebSocket Connection ---
   const { connectionStatus, sendMessage, messages: webSocketMessages } = useWebSocket(currentUserId, userRole, userName);
-
-
-
-  // --- Chat Notifications Logic ---
-  useEffect(() => {
-    if (webSocketMessages.length > 0) {
-      const lastMessage = webSocketMessages[webSocketMessages.length - 1];
-      
-      // Create unique message ID for tracking
-      const messageId = `${lastMessage.timestamp}-${lastMessage.text}-${lastMessage.sender}`;
-      
-      // Check if we already showed notification for this message
-      if (notifiedMessagesRef.current.has(messageId)) {
-        return;
-      }
-      
-      // Show notification if:
-      // 1. Message is from someone else (not current user)
-      // 2. Either chat is closed OR message is from someone other than current chat partner
-      const isFromOtherUser = lastMessage.sender !== userRole;
-      
-      // Check if this message is from the currently open chat partner
-      let isFromCurrentChatPartner = false;
-      if (showChat && selectedPartner) {
-        // For teacher receiving from parent
-        if (userRole === 'teacher' && lastMessage.sender === 'parent') {
-          isFromCurrentChatPartner = lastMessage.parentId === selectedPartner.id;
-        }
-        // For parent receiving from teacher
-        else if (userRole === 'parent' && lastMessage.sender === 'teacher') {
-          isFromCurrentChatPartner = lastMessage.teacherId === selectedPartner.id;
-        }
-      }
-      
-      if (isFromOtherUser) {
-        // Always mark message as processed to prevent future notifications
-        notifiedMessagesRef.current.add(messageId);
-        
-        // Keep only last 100 message IDs to prevent memory growth
-        if (notifiedMessagesRef.current.size > 100) {
-          const sortedArray = Array.from(notifiedMessagesRef.current);
-          notifiedMessagesRef.current = new Set(sortedArray.slice(-100));
-        }
-        
-        // Only show notification if chat is not open with this partner
-        if (!isFromCurrentChatPartner) {
-          const senderRole = lastMessage.sender;
-          
-          // Get sender name based on role
-          const senderName = senderRole === 'teacher' ? 'מורה' : 'הורה';
-          
-          // Show the notification
-          showChatNotification(senderName, lastMessage.text, senderRole);
-        }
-      }
-    }
-  }, [webSocketMessages, showChat, selectedPartner, userRole, showChatNotification]);
-
-
-
-  // --- Modal Handlers ---
-  const openRemoveModal = (student) => {
-    setStudentToRemove(student);
-    setShowRemoveModal(true);
-  };
-
-  const closeRemoveModal = () => {
-    setStudentToRemove(null);
-    setShowRemoveModal(false);
-  };
 
   // --- Chat Handlers ---
   const handleOpenChat = () => {
@@ -143,36 +73,65 @@ const Dashboard = () => {
     setShowPartnersList(false);
   };
 
+  // --- Chat Notifications Logic ---
+  useEffect(() => {
+    if (webSocketMessages.length > 0) {
+      const lastMessage = webSocketMessages[webSocketMessages.length - 1];
+      
+      const messageId = `${lastMessage.timestamp}-${lastMessage.text}-${lastMessage.sender}`;
+      
+      if (notifiedMessagesRef.current.has(messageId)) {
+        return;
+      }
+      
+      const isFromOtherUser = lastMessage.sender !== userRole;
+      
+      let isFromCurrentChatPartner = false;
+      if (showChat && selectedPartner) {
+        if (userRole === 'teacher' && lastMessage.sender === 'parent') {
+          isFromCurrentChatPartner = lastMessage.parentId === selectedPartner.id;
+        }
+        else if (userRole === 'parent' && lastMessage.sender === 'teacher') {
+          isFromCurrentChatPartner = lastMessage.teacherId === selectedPartner.id;
+        }
+      }
+      
+      if (isFromOtherUser) {
+        notifiedMessagesRef.current.add(messageId);
+        
+        if (notifiedMessagesRef.current.size > 100) {
+          const sortedArray = Array.from(notifiedMessagesRef.current);
+          notifiedMessagesRef.current = new Set(sortedArray.slice(-100));
+        }
+        
+        if (!isFromCurrentChatPartner) {
+          const senderRole = lastMessage.sender;
+          const senderName = senderRole === 'teacher' ? 'מורה' : 'הורה';
+          showChatNotification(senderName, lastMessage.text, senderRole);
+        }
+      }
+    }
+  }, [webSocketMessages, showChat, selectedPartner, userRole, showChatNotification]);
+
+  // --- Modal Handlers ---
+  const openRemoveModal = (student) => {
+    setStudentToRemove(student);
+    setShowRemoveModal(true);
+  };
+
+  const closeRemoveModal = () => {
+    setStudentToRemove(null);
+    setShowRemoveModal(false);
+  };
+
   // --- Render Loading State ---
   if (loading) {
-    return (
-      <main className="p-4 space-y-6" dir="rtl">
-        <div className="panels p-6 border rounded-lg shadow-lg text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-          <p style={{ color: 'var(--text-color)' }}>טוען את לוח הבקרה...</p>
-        </div>
-      </main>
-    );
+    return <LoadingWheel title="טוען את לוח הבקרה..." message="אנא המתן בזמן שאנו מעבדים את הנתונים." />;
   }
 
   // --- Render Error State ---
   if (error) {
-    return (
-      <main className="p-4 space-y-6" dir="rtl">
-        <div className="panels p-6 border rounded-lg shadow-lg text-center">
-          <div className="text-red-500 mb-4">
-            <span className="text-4xl">⚠️</span>
-          </div>
-          <p className="text-red-600 font-medium mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-          >
-            נסה שוב
-          </button>
-        </div>
-      </main>
-    );
+    return <DashboardError message={error} />;
   }
 
   // --- Main Render ---
@@ -189,7 +148,7 @@ const Dashboard = () => {
       />
       <main className="p-4 space-y-6 mt-16" dir="rtl">
       
-      <div className="panels p-6 border rounded-lg shadow-lg">
+      <div className="panels p-6 rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
           <TeacherView 
             studentsData={studentsData} 
@@ -211,9 +170,7 @@ const Dashboard = () => {
               onUnreadCountChange={setUnreadCount}
           />
         ) : (
-          <div className="panels p-4 rounded-lg shadow text-center">
-            <p style={{ color: 'var(--text-color)' }}>טוען את לוח הבקרה...</p>
-          </div>
+          <LoadingWheel title="מזהה תפקיד משתמש..." message="אנא המתן רגע." />
         )}
       </div>
       

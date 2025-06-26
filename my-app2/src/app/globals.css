@@ -1,65 +1,106 @@
 @import "tailwindcss";
 
+/* ===== CSS VARIABLES ===== */
 :root {
-  --background-color: #f8fafc; /* Modern light gray instead of pure white */
-  --text-color: #1e293b; /* Warm dark gray instead of black */
-  --input-bg: #ffffff; /* Light mode input background */
-  --input-text: #1e293b; /* Light mode input text */
-  --input-border: #cbd5e1; /* Light mode input border */
-  --card-bg: #ffffff; /* Light mode card background */
+  /* Light mode colors */
+  --background-color: #f8fafc;
+  --text-color: #1e293b;
+  --input-bg: #ffffff;
+  --input-text: #1e293b;
+  --input-border: #cbd5e1;
+  --card-bg: #ffffff;
   
-  /* Navbar variables */
-  --navbar-bg: rgba(15, 23, 42, 0.95); /* slate-900/95 */
+  /* Secondary Button Colors */
+  --btn-secondary-bg: #ffffff; /* white */
+  --btn-secondary-text: #374151; /* gray-700 */
+  --btn-secondary-hover-bg: #f9fafb; /* gray-50 */
+  --btn-secondary-border: #d1d5db; /* gray-300 */
+  
+  /* Close Button Colors */
+  --btn-close-text: #6b7280; /* gray-500 */
+  --btn-close-hover-text: #374151; /* gray-700 */
+  --btn-close-hover-bg: #f3f4f6; /* gray-100 */
+  
+  /* List Item Colors */
+  --list-item-hover-bg: #f9fafb; /* gray-50 */
+  
+  /* Badge Colors */
+  --badge-bg: #f8fafc; /* gray-50 */
+  --badge-border: #e2e8f0; /* gray-200 */
+  
+  /* Text Button Colors */
+  --text-btn-color: #2563eb; /* blue-600 */
+  
+
+  
+  /* Navbar colors (always dark) */
+  --navbar-bg: rgba(15, 23, 42, 0.95);
   --navbar-text: #ffffff;
-  --navbar-text-secondary: rgb(226, 232, 240); /* slate-200 */
-  --navbar-border: rgba(51, 65, 85, 0.5); /* slate-700/50 */
-  --navbar-hover: rgba(255, 255, 255, 0.1);
+  --navbar-text-secondary: #e2e8f0;
+  --navbar-border: rgba(51, 65, 85, 0.5);
+  --navbar-hover: rgba(255, 192, 192, 0.1);
+
+  /* Theme variables */
+  --bg-color: #ffffff;
+  --panel-bg: #f8fafc;
+  --border-color: #e5e7eb;
+  --secondary-text: #6b7280;
+  --accent-color: #3b82f6;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --toggle-btn-bg: #ffffff;
+  --toggle-btn-text: #374151;
+  --toggle-btn-hover-bg: #f3f4f6;
 }
 
-.dark {
-  --background-color: #0f172a; /* Deep navy blue */
-  --text-color: #f1f5f9; /* Soft white */
-  --input-bg: #374151; /* Dark mode input background */
-  --input-text: #ffffff; /* Dark mode input text */
-  --input-border: #4b5563; /* Dark mode input border */
-  --card-bg: #1e293b; /* Dark mode card background */
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* Removed prefers-color-scheme to prevLearnPath
-ent system dark mode interference */
-
-.panels {
-  background-color: #ffffff; /* Clean white for panels */
-  border: 1px solid #e2e8f0; /* Soft border instead of text color */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* Modern shadow */
-  transition: all 0.3s ease;
-}
-
+/* Dark mode variables */
 body.dark {
-  --background-color: #0f172a; /* Deep navy blue */
-  --text-color: #f1f5f9; /* Soft white */
-  --input-bg: #374151; /* Dark mode input background */
-  --input-text: #ffffff; /* Dark mode input text */
-  --input-border: #4b5563; /* Dark mode input border */
-  --card-bg: #1e293b; /* Dark mode card background */
-  transition: all 0.3s ease;
+  --background-color: #0f172a;
+  --text-color: #f1f5f9;
+  --input-bg: #374151;
+  --input-text: #ffffff;
+  --input-border: #4b5563;
+  --card-bg: #1e293b;
+  
+  /* Dark mode Secondary Button */
+  --btn-secondary-bg: #1f2937; /* gray-800 */
+  --btn-secondary-text: #ffffff; /* white */
+  --btn-secondary-hover-bg: #374151; /* gray-700 */
+  --btn-secondary-border: #4b5563; /* gray-600 */
+  
+  /* Dark mode Close Button */
+  --btn-close-text: #9ca3af; /* gray-400 */
+  --btn-close-hover-text: #e5e7eb; /* gray-200 */
+  --btn-close-hover-bg: #374151; /* gray-700 */
+  
+  /* Dark mode List Item */
+  --list-item-hover-bg: #374151; /* gray-700 */
+  
+  /* Dark mode Badge */
+  --badge-bg: #374151; /* gray-700 */
+  --badge-border: #4b5563; /* gray-600 */
+  
+  /* Dark mode Text Button */
+  --text-btn-color: #60a5fa; /* blue-400 */
+  
+  /* Dark mode Theme variables */
+  --bg-color: #0f172a;
+  --panel-bg: #1e293b;
+  --border-color: #334155;
+  --secondary-text: #94a3b8;
+  --accent-color: #60a5fa;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --error-color: #f87171;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --toggle-btn-bg: #1f2937;
+  --toggle-btn-text: #d1d5db;
+  --toggle-btn-hover-bg: #374151;
 }
 
-body.dark .panels {
-  background-color: #1e293b; /* Dark slate for panels */
-  color: #f1f5f9;
-  border-color: #334155; /* Subtle border */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
+/* ===== BASE STYLES ===== */
 body {
   background-color: var(--background-color);
   color: var(--text-color);
@@ -67,40 +108,10 @@ body {
   transition: all 0.3s ease;
 }
 
-h1, h3, h4, h5, h6, p, span:not(.navbar-greeting):not(.navbar-title) {
+/* Global text color inheritance - exclude navbar elements */
+h1, h2:not(.navbar-title), h3, h4, h5, h6, p, label,
+span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([class*="navbar-"]) {
   color: var(--text-color);
-}
-
-/* Allow h2 to be overridden by Tailwind classes for navbar */
-h2:not(.navbar-title) {
-  color: var(--text-color);
-}
-
-/* Clean Navbar Styling */
-.navbar-custom {
-  background-color: var(--navbar-bg);
-  border-bottom-color: var(--navbar-border);
-}
-
-.navbar-title-custom {
-  color: var(--navbar-text) !important;
-  -webkit-text-fill-color: var(--navbar-text) !important;
-}
-
-.navbar-text-custom {
-  color: var(--navbar-text-secondary);
-}
-
-.navbar-button-custom {
-  color: var(--navbar-text-secondary);
-}
-
-.navbar-button-custom:hover {
-  background-color: var(--navbar-hover);
-}
-
-.navbar-hamburger-custom {
-  color: var(--navbar-text);
 }
 
 /* RTL Support */
@@ -108,7 +119,198 @@ h2:not(.navbar-title) {
   text-align: right;
 }
 
-/* Modern animations for notifications */
+/* ===== COMPONENT STYLES ===== */
+
+/* Panels component */
+.panels {
+  background-color: var(--card-bg);
+  border: 1px solid var(--input-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border-radius: 0.75rem; /* rounded-xl */
+  font-weight: 500; /* font-medium */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow */
+  transition: all 0.2s ease; /* duration-200 */
+  border: 1px solid var(--btn-secondary-border);
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: var(--btn-secondary-hover-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Close Button */
+.btn-close {
+  color: var(--btn-close-text);
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.5rem; /* rounded-lg */
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700; /* font-bold */
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+}
+
+.btn-close:hover {
+  color: var(--btn-close-hover-text);
+  background-color: var(--btn-close-hover-bg);
+  transform: scale(1.1);
+}
+
+.btn-close:active {
+  transform: scale(0.95);
+}
+
+/* List Item */
+.list-item:hover {
+  background-color: var(--list-item-hover-bg);
+}
+
+/* Badge */
+.badge {
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+  border: 1px solid var(--badge-border);
+  font-size: 0.75rem; /* text-xs */
+  padding: 0.25rem 0.5rem; /* px-2 py-1 */
+  border-radius: 9999px; /* rounded-full */
+}
+
+/* Text Button */
+.text-button {
+  color: var(--text-btn-color);
+  font-size: 0.875rem; /* text-sm */
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.text-button:hover {
+  text-decoration: underline;
+  opacity: 0.75;
+}
+
+
+
+body.dark .panels {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-color: #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Navbar styles */
+.navbar-custom {
+  background-color: var(--navbar-bg);
+  border-bottom-color: var(--navbar-border);
+}
+
+.navbar-title-custom {
+  color: var(--navbar-text);
+  -webkit-text-fill-color: var(--navbar-text);
+}
+
+/* Clean navbar styling - unified approach */
+.navbar-text-custom,
+.navbar-text-custom *,
+.navbar-button-custom,
+.navbar-button-custom *,
+.navbar-button-custom span,
+button.navbar-button-custom span {
+  color: var(--navbar-text-secondary) !important;
+}
+
+.navbar-button-custom:hover,
+.navbar-button-custom:hover * {
+  background-color: var(--navbar-hover);
+  color: var(--navbar-text);
+}
+
+.navbar-hamburger-custom {
+  color: var(--navbar-text);
+}
+
+/* ===== FORM INPUTS ===== */
+/* Light mode inputs */
+input,
+select,
+textarea {
+  background-color: #f9fafb;
+  color: var(--input-text);
+  border-color: var(--input-border);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  background-color: #ffffff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background-color: #ffffff;
+}
+
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: #6b7280;
+}
+
+/* Dark mode inputs */
+body.dark input,
+body.dark select,
+body.dark textarea {
+  background-color: #374151;
+  color: var(--input-text);
+  border-color: var(--input-border);
+}
+
+body.dark input:hover,
+body.dark select:hover,
+body.dark textarea:hover {
+  background-color: #4b5563;
+}
+
+body.dark input:focus,
+body.dark select:focus,
+body.dark textarea:focus {
+  background-color: #4b5563;
+}
+
+body.dark input::placeholder,
+body.dark select::placeholder,
+body.dark textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* ===== ANIMATIONS ===== */
+
+/* Notification animations */
 @keyframes slide-in-left {
   from {
     transform: translateX(-100%);
@@ -139,7 +341,23 @@ h2:not(.navbar-title) {
   animation: slide-out-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Modern scrollbar design */
+/* Pulse animation */
+@keyframes pulse-modern {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-green {
+  animation: pulse-modern 2s infinite;
+}
+
+/* ===== SCROLLBAR STYLING ===== */
 .chat-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -159,50 +377,62 @@ h2:not(.navbar-title) {
   background: #94a3b8;
 }
 
-/* Enhanced pulse animation */
-@keyframes pulse-modern {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
+/* List toggle button */
+.list-toggle-button {
+  background-color: var(--toggle-btn-bg);
+  color: var(--toggle-btn-text);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.animate-pulse-green {
-  animation: pulse-modern 2s infinite;
+.list-toggle-button:hover {
+  background-color: var(--toggle-btn-hover-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Student card - slightly darker than main container */
-.student-card {
-  background-color: #f8fafc; /* Light gray - darker than white container */
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+/* Footer specific overrides */
+.footer-custom {
+  background-color: white !important;
 }
 
-body.dark .student-card {
-  background-color: #0f172a; /* Darker navy - darker than main dark container */
-  color: #f1f5f9;
-  border-color: #334155;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+.dark .footer-custom {
+  background-color: #0f172a !important;
 }
 
-/* Input placeholder styling for dark mode */
-body.dark input::placeholder,
-body.dark select::placeholder,
-body.dark textarea::placeholder {
+.footer-custom h3,
+.footer-custom h4 {
+  color: #1f2937 !important;
+}
+
+.dark .footer-custom h3,
+.dark .footer-custom h4 {
+  color: #e5e7eb !important;
+}
+
+.footer-custom p,
+.footer-custom a {
+  color: #4b5563 !important;
+}
+
+.dark .footer-custom p,
+.dark .footer-custom a {
   color: #9ca3af !important;
 }
 
-/* Input styling for dark mode */
-body.dark input,
-body.dark select,
-body.dark textarea {
-  background-color: var(--input-bg) !important;
-  color: var(--input-text) !important;
-  border-color: var(--input-border) !important;
+/* Copyright text specific styling */
+.footer-custom p.opacity-75 {
+  color: #6b7280 !important;
+}
+
+.dark .footer-custom p.opacity-75 {
+  color: #9ca3af !important;
 }
 

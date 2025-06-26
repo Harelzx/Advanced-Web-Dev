@@ -8,7 +8,7 @@ import Link from 'next/link';
 import LoadingWheel from '../components/LoadingWheel';
 import Button from '../components/Button';
 import Input from '../components/Input';
-import BackArrow from '../components/BackArrow'; 
+import BackButton from '../components/about/BackButton'; 
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -91,7 +91,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--background-color)' }}>
       <div className="panels p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
-        <BackArrow href="/" ariaLabel="חזרה לעמוד הראשי" />
+        <BackButton href="/" variant="arrow" ariaLabel="חזרה לעמוד הראשי" />
         <h1 className="text-2xl mb-5 text-right font-bold" style={{ color: 'var(--text-color)' }}>התחברות</h1>
         <Input
           type="email"

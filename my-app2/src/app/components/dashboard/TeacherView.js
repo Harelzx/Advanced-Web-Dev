@@ -52,8 +52,8 @@ const TeacherView = ({
       </div>
 
       {/* Communication Section */}
-      <div className="panels p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-color)' }}>מרכז התקשורת</h3>
+              <div className="panels p-4 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">מרכז התקשורת</h3>
         <p className="text-slate-600 dark:text-slate-400 mb-4">שלח הודעות והתעדכן עם הורי התלמידים</p>
         
         {/* Chat Statistics */}
@@ -124,10 +124,10 @@ const TeacherView = ({
         {/* Students List */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold" style={{ color: 'var(--text-color)' }}>רשימת תלמידים</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">רשימת תלמידים</h3>
               <button
             onClick={() => setIsStudentsListExpanded(!isStudentsListExpanded)}
-            className="list-toggle-button flex items-center gap-2 px-3 py-1 text-sm hover:bg-gray-100 rounded-lg transition-colors"
+            className="list-toggle-button"
               >
             <span>{isStudentsListExpanded ? 'סגור רשימה' : 'הצג רשימה'}</span>
             <span className="transform transition-transform duration-200" style={{
@@ -140,8 +140,8 @@ const TeacherView = ({
         {isStudentsListExpanded && (
           studentsData.length === 0 ? (
             <div className="panels p-6 rounded-lg shadow text-center">
-              <p className="text-gray-600 mb-4">עדיין לא נוספו תלמידים לכיתה שלך</p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">עדיין לא נוספו תלמידים לכיתה שלך</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
                 כדי להתחיל לעקוב אחר התקדמות התלמידים שלך, לחץ על הכפתור למטה להוספת תלמיד/ה
               </p>
               <Button onClick={onAddStudent} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg">

@@ -26,7 +26,7 @@ export default function Navbar({
                     {isDashboard ? (
                         /* Dashboard actions */
                         <div className="flex items-center gap-4">
-                            <span className="navbar-text-custom font-medium">
+                            <span className="navbar-text-custom">
                                 ברוך שובך, {userName}!
                             </span>
                             
@@ -35,7 +35,7 @@ export default function Navbar({
                                 onClick={onOpenChat}
                                 className="navbar-button-custom relative rounded-lg px-4 py-2 transition-all duration-200 font-medium"
                             >
-                                <span>צ&apos;אט</span>
+                                צ&apos;אט
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                         {unreadCount > 9 ? '9+' : unreadCount}
@@ -48,7 +48,7 @@ export default function Navbar({
                                 onClick={userRole === 'teacher' ? onAddStudent : onAddChild}
                                 className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium"
                             >
-                                <span>הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}</span>
+                                הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}
                             </button>
                         </div>
                     ) : (
@@ -73,7 +73,7 @@ export default function Navbar({
                     )}
 
                     {/* Left-side logout */}
-                    <Link href="/" className="text-indigo-400 navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
+                    <Link href="/" className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
                         התנתקות
                     </Link>
                 </div>
@@ -106,7 +106,7 @@ export default function Navbar({
                                     onClick={() => { onOpenChat(); setOpen(false); }}
                                     className="navbar-button-custom w-full relative py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium text-lg"
                                 >
-                                    <span>צ&apos;אט</span>
+                                    צ&apos;אט
                                     {unreadCount > 0 && (
                                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                             {unreadCount > 9 ? '9+' : unreadCount}
@@ -121,7 +121,7 @@ export default function Navbar({
                                     onClick={() => { (userRole === 'teacher' ? onAddStudent : onAddChild)(); setOpen(false); }}
                                     className="navbar-button-custom w-full py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium text-lg"
                                 >
-                                    <span>הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}</span>
+                                    הוסף {userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}
                                 </button>
                             </li>
                         </>
@@ -148,7 +148,7 @@ export default function Navbar({
                     
                     {/* Left-aligned logout */}
                     <li className="mt-3 border-t pt-3" style={{ borderTopColor: 'var(--navbar-border)' }}>
-                        <Link href="/" className="block py-3 px-4 text-indigo-400 navbar-button-custom rounded-lg text-right font-medium transition-all duration-200" onClick={() => setOpen(false)}>
+                        <Link href="/" className="block py-3 px-4 navbar-button-custom rounded-lg text-right font-medium transition-all duration-200" onClick={() => setOpen(false)}>
                             התנתקות
                         </Link>
                     </li>
