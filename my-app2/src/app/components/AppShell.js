@@ -21,7 +21,7 @@ export default function AppShell({ children }) {
   const shouldHideUI = hideOnPages.some(p => pathname === p);
   
   // Pages where Footer should be hidden
-  const hideFooterOnPages = ['/dashboard', '/PersonalizedPath', '/InterStudy', '/Main_Page'];
+  const hideFooterOnPages = ['/dashboard', '/PersonalizedPath', '/InterStudy', '/Main_Page', '/FirstQuiz', '/login', '/sign-up'];
   const shouldHideFooter = hideFooterOnPages.some(p => pathname.startsWith(p));
 
   return (
