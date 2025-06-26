@@ -24,17 +24,17 @@ export default function Footer() {
             </h4>
             <ul className="space-y-1">
               <li>
-                <a href="/about" className="text-sm transition-colors duration-200 hover:text-indigo-600 dark:hover:text-indigo-400">
+                <a href="/about" className="text-sm hover:text-indigo-600 dark:hover:text-indigo-400">
                   עלינו
                 </a>
               </li>
               <li>
-                <a href="/privacy" className="text-sm transition-colors duration-200 hover:text-indigo-600 dark:hover:text-indigo-400">
+                <a href="/privacy" className="text-sm hover:text-indigo-600 dark:hover:text-indigo-400">
                   מדיניות פרטיות
                 </a>
               </li>
               <li>
-                <a href="/terms" className="text-sm transition-colors duration-200 hover:text-indigo-600 dark:hover:text-indigo-400">
+                <a href="/terms" className="text-sm hover:text-indigo-600 dark:hover:text-indigo-400">
                   תנאי שימוש
                 </a>
               </li>
