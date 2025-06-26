@@ -490,27 +490,29 @@ export default function InterStudyPage() {
   }
 
   if (sessionCompleted && lastSessionResults) {
-    // Use unlocking logic to determine the next available session
-    const completed = (trainingProgress.completedSessions || []).map(Number);
-    const available = getAvailableSessions(completed);
-    // const nextAvailable = available
-    //   .filter(s => !completed.includes(s))
-    //   .sort((a, b) => a - b)[0];
-    // Check if all sessions are completed
-    const allSessions = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const isComplete = allSessions.every((s) => completed.includes(s));
+    // Find the next available session (the lowest-numbered available session not yet completed)
+    const nextAvailable = availableSessions
+      .filter((s) => !(trainingProgress.completedSessions || []).includes(s))
+      .sort((a, b) => a - b)[0];
+    
     return (
       <SessionSummaryScreen
         results={lastSessionResults}
         completedSessions={selectedSession}
-        nextSessionNumber={null}
-        onContinue={() => {}}
+        nextSessionNumber={nextAvailable}
+        onContinue={() => {
+          if (nextAvailable) {
+            setSessionCompleted(false);
+            setSessionStarted(false);
+            setSelectedSession(nextAvailable);
+          }
+        }}
         onBackToSessions={() => {
           setSessionCompleted(false);
           setSessionStarted(false);
           setSelectedSession(null);
         }}
-        isComplete={isComplete}
+        isComplete={!nextAvailable}
         onRedoSession={() => {
           setSessionCompleted(false);
           setSessionStarted(false);
