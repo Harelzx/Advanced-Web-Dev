@@ -5,10 +5,10 @@ import StudyResults from "./StudyResults";
 
 function LoadingDisplay() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
+    <div className="min-h-screen panels flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin text-6xl mb-4">🧠</div>
-        <p className="text-xl text-gray-600">מכין עבורך אימון מותאם אישית...</p>
+        <p className="text-xl">מכין עבורך אימון מותאם אישית...</p>
       </div>
     </div>
   );
@@ -71,10 +71,9 @@ export default function Study({
   const diffConfig = getDifficultyConfig(difficulty);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="max-w-4xl w-full">
-          <div className="panels/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="max-w-4xl w-full">
+        <div className="panels backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden">
             <StudyHeader
               currentQuestion={currentQuestion}
               totalQuestions={totalQuestions}
@@ -94,7 +93,7 @@ export default function Study({
                 <div className="mt-6 flex justify-center w-full pb-6">
                   <button
                     onClick={nextQuestion}
-                    className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg"
+                    className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 hover:scale-105 shadow-lg"
                   >
                     {currentQuestion === totalQuestions - 1
                       ? "סיים תרגול"
@@ -102,7 +101,6 @@ export default function Study({
                   </button>
                 </div>
               )}
-          </div>
         </div>
       </div>
     </div>

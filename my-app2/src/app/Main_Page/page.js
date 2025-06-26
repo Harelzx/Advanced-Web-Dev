@@ -93,7 +93,7 @@ export default function MainPage() {
       >
         <div className="space-y-4" dir="rtl">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <span role="img" aria-label="quiz">📊</span>
               תוצאות בחינה ראשונה
             </h3>
@@ -109,9 +109,9 @@ export default function MainPage() {
                     <span className={`font-bold ${grade >= 90 ? "text-green-600" : grade >= 75 ? "text-yellow-600" : grade >= 50 ? "text-blue-600" : "text-red-600"}`}>
                       {grade}%
                     </span>
-                    <span className="font-medium text-gray-700">{subject}</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{subject}</span>
                   </div>
-                  <div className="w-full bg-gray-300 rounded-full h-3">
+                  <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-3">
                     <div
                       className={`${barColor} h-3 rounded-full transition-all`}
                       style={{ width: `${grade}%` }}
@@ -129,11 +129,13 @@ export default function MainPage() {
               <OverallProgress completedSessions={trainingProgress?.completedSessions || 0} />
             </div>
           </div>
+          
+          {/* Badge Case */}
+          <div className="mt-6">
+            <BadgeCase earnedBadges={earnedBadges} fullName={user.fullName} school={user.school} />
+          </div>
         </div>
       </MainPageLayout>
-      <div className="panels p-4 border rounded-lg shadow-lg" style={{ minHeight: '500px', maxWidth: 'calc(100% - 15px)', margin: '20px auto' }}>
-        <BadgeCase earnedBadges={earnedBadges} fullName={user.fullName} school={user.school} />
-      </div>
       <BadgeNotificationModal
         show={showBadgeModal}
         onClose={() => {

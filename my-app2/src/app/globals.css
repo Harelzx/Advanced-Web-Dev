@@ -3,7 +3,7 @@
 /* ===== CSS VARIABLES ===== */
 :root {
   /* Light mode colors */
-  --background-color: #f8fafc;
+  --background-color: #ffffff;
   --text-color: #1e293b;
   --input-bg: #ffffff;
   --input-text: #1e293b;
@@ -102,7 +102,6 @@ body.dark {
 
 /* ===== BASE STYLES ===== */
 body {
-  background-color: var(--background-color);
   color: var(--text-color);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   transition: all 0.3s ease;

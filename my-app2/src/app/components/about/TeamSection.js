@@ -50,10 +50,7 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
     <section className="py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {showTitle && (
-          <h2 
-            className="text-3xl font-bold text-center mb-6" 
-            style={{ color: 'var(--text-color)' }}
-          >
+          <h2 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
             הצוות המפתח
           </h2>
         )}
@@ -62,11 +59,7 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
           {teamMembers.map((member, index) => (
             <div 
               key={index} 
-              className="rounded-xl p-5 shadow-md border text-center hover:shadow-lg transition-shadow duration-300" 
-              style={{ 
-                backgroundColor: 'var(--card-bg)',
-                borderColor: 'var(--input-border)'
-              }}
+              className="panels rounded-xl p-5 shadow-md border text-center hover:shadow-lg transition-shadow duration-300 border-gray-200 dark:border-gray-700"
             >
               
               {/* Profile Image */}
@@ -90,10 +83,7 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
               </div>
 
               {/* Name and Role */}
-              <h3 
-                className="text-lg font-semibold mb-2" 
-                style={{ color: 'var(--text-color)' }}
-              >
+              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 {member.name}
               </h3>
               <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-4 leading-relaxed">

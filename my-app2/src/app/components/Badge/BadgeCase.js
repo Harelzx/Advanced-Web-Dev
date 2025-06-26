@@ -62,9 +62,9 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
 
   return (
     <div className="panels p-4 rounded-lg shadow" dir="rtl">
-      <div className="mb-6 text-center text-stone-700">
+      <div className="mb-6 text-center">
       </div>
-      <h3 className="text-xl font-bold mb-6 text-stone-800 dark:text-stone-200 text-center">תגים שהושגו</h3>
+      <h3 className="text-xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">תגים שהושגו</h3>
       <div className="grid grid-cols-3 gap-6 p-4">
         {allBadges.map((badge) => {
           const earnedBadge = earnedBadges.find(b => b.label === badge.label);
@@ -82,7 +82,7 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
                   <FaLock className="w-15 h-12 text-2xl text-gray-800 dark:text-gray-300" />
                 )}
               </div>
-              <span className="text-center text-sm font-semibold text-gray-800 dark:text-gray-200">
+              <span className="text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
                 {badge.label}
               </span>
               {earned && dateEarned && (
@@ -90,7 +90,7 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
                   הושג ב: {formatDate(dateEarned)}
                 </span>
               )}
-              <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-300 bottom-full mb-2 w-40 p-2 bg-black text-white text-xs rounded-lg shadow-lg text-center z-10">
+              <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-300 bottom-full mb-2 w-40 p-2 bg-gray-900 dark:bg-gray-800 text-white dark:text-gray-100 text-xs rounded-lg shadow-lg text-center z-10">
                 {badge.description}
               </div>
             </div>

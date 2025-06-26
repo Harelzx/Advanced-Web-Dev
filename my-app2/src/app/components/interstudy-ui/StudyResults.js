@@ -26,9 +26,9 @@ export default function QuizResults({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4">
+          <div className="min-h-screen panels flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
-        <div className="panels/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+        <div className="panels backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
           <div className="text-center">
             <div className="text-8xl mb-6 animate-bounce">
               {getScoreEmoji()}
@@ -50,6 +50,7 @@ export default function QuizResults({
                   fill="none"
                   stroke="#e5e7eb"
                   strokeWidth="5"
+                  className="dark:stroke-slate-600"
                 />
                 <circle
                   cx="50"
@@ -75,19 +76,19 @@ export default function QuizResults({
                   </linearGradient>
                 </defs>
               </svg>
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-gray-800">
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-slate-800 dark:text-slate-200">
                 {percentage}%
               </span>
             </div>
 
             {/* Score Section */}
             <div className="text-center mb-6">
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-slate-600 dark:text-slate-400">
                 הציון שלך:{" "}
-                <span className="font-bold text-indigo-600">{score}</span> מתוך{" "}
-                <span className="font-bold">{totalQuestions}</span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">{score}</span> מתוך{" "}
+                <span className="font-bold text-slate-800 dark:text-slate-200">{totalQuestions}</span>
               </p>
-              <p className="text-lg text-gray-600 mt-2">{getScoreMessage()}</p>
+              <p className="text-lg text-slate-600 dark:text-slate-400 mt-2">{getScoreMessage()}</p>
             </div>
 
             {/* Buttons Section */}
@@ -101,7 +102,7 @@ export default function QuizResults({
               </button>
               <button
                 onClick={onHome}
-                className="group bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center space-x-2"
+                className="group bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 dark:from-slate-600 dark:to-slate-700 dark:hover:from-slate-700 dark:hover:to-slate-800 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center space-x-2"
               >
                 <FaHome className="group-hover:animate-pulse" />
                 <span>חזור לדף הבית</span>

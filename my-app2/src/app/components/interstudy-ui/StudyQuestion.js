@@ -38,14 +38,14 @@ export default function StudyQuestion({
   if (question && question.sections && Array.isArray(question.sections)) {
     if (!section) {
       return (
-        <div className="p-8">
-          <div className="text-center bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="text-red-600 text-xl mb-2">⚠️ שגיאה בשאלה</div>
-            <div className="text-red-500 text-sm">
-              התרגול לא מכיל סעיפים תקינים
-            </div>
+              <div className="p-8">
+        <div className="text-center bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
+          <div className="text-red-600 dark:text-red-400 text-xl mb-2">⚠️ שגיאה בשאלה</div>
+          <div className="text-red-500 dark:text-red-400 text-sm">
+            התרגול לא מכיל סעיפים תקינים
           </div>
         </div>
+      </div>
       );
     }
 
@@ -84,7 +84,7 @@ export default function StudyQuestion({
 
         {/* Section Progress */}
         <div className="mb-6 text-center">
-          <span className="text-lg font-semibold text-gray-700">
+          <span className="text-lg font-semibold">
             סעיף {currentSection + 1} מתוך {question.sections.length}
           </span>
         </div>
@@ -98,17 +98,17 @@ export default function StudyQuestion({
             if (sectionAnswered) {
               if (ans === section.correct_answer) {
                 buttonClass +=
-                  "bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-400 text-emerald-800 shadow-lg scale-[1.02]";
+                  "bg-gradient-to-r from-green-100 to-emerald-100 dark:from-emerald-900/50 dark:to-green-900/50 border-green-300 dark:border-emerald-500 text-green-700 dark:text-emerald-200 shadow-lg scale-[1.02]";
               } else if (ans === selectedSectionAnswer) {
                 buttonClass +=
-                  "bg-gradient-to-r from-red-50 to-rose-50 border-red-400 text-red-800 shadow-lg";
+                  "bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/50 dark:to-rose-900/50 border-red-400 dark:border-red-500 text-red-800 dark:text-red-200 shadow-lg";
               } else {
                 buttonClass +=
-                  "bg-gray-50 border-gray-200 text-gray-500 opacity-60";
+                  "panels border-gray-200 dark:border-gray-700 opacity-60";
               }
             } else {
               buttonClass +=
-                "panels border-gray-200 hover:border-indigo-400 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-lg text-gray-700 hover:text-indigo-700";
+                "panels border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 hover:shadow-lg hover:text-indigo-700 dark:hover:text-indigo-400";
             }
 
             return (
@@ -144,10 +144,10 @@ export default function StudyQuestion({
 
         {/* Next Section Button */}
         {sectionAnswered && (
-          <div className="mt-6 flex justify-center w-full pb-6">
+          <div className="mt-6 flex justify-center w-full">
             <button
               onClick={handleNextSection}
-              className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg"
+              className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 hover:scale-105 shadow-lg"
             >
               {currentSection < question.sections.length - 1
                 ? "המשך לסעיף הבא"
@@ -168,9 +168,9 @@ export default function StudyQuestion({
   ) {
     return (
       <div className="p-8">
-        <div className="text-center bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="text-red-600 text-xl mb-2">⚠️ שגיאה בשאלה</div>
-          <div className="text-red-500 text-sm">
+        <div className="text-center bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
+          <div className="text-red-600 dark:text-red-400 text-xl mb-2">⚠️ שגיאה בשאלה</div>
+          <div className="text-red-500 dark:text-red-400 text-sm">
             השאלה לא מכילה אפשרויות תקינות
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function StudyQuestion({
     <div className="p-8">
       {/* Question */}
       <div className="mb-8">
-        <h3 className="text-2xl font-bold mb-6 leading-relaxed whitespace-pre-line text-right text-gray-800 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text">
+        <h3 className="text-2xl font-bold mb-6 leading-relaxed whitespace-pre-line text-right">
           {question.question || "שאלה ללא טקסט"}
         </h3>
 
@@ -195,17 +195,17 @@ export default function StudyQuestion({
             if (isAnswered) {
               if (index === question.correct) {
                 buttonClass +=
-                  "bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-400 text-emerald-800 shadow-lg scale-[1.02]";
+                  "bg-gradient-to-r from-green-100 to-emerald-100 dark:from-emerald-900/50 dark:to-green-900/50 border-green-300 dark:border-emerald-500 text-green-700 dark:text-emerald-200 shadow-lg scale-[1.02]";
               } else if (index === userAnswer) {
                 buttonClass +=
-                  "bg-gradient-to-r from-red-50 to-rose-50 border-red-400 text-red-800 shadow-lg";
+                  "bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/50 dark:to-rose-900/50 border-red-400 dark:border-red-500 text-red-800 dark:text-red-200 shadow-lg";
               } else {
                 buttonClass +=
-                  "bg-gray-50 border-gray-200 text-gray-500 opacity-60";
+                  "panels border-gray-200 dark:border-gray-700 opacity-60";
               }
             } else {
               buttonClass +=
-                "panels border-gray-200 hover:border-indigo-400 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-lg text-gray-700 hover:text-indigo-700";
+                "panels border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 hover:shadow-lg hover:text-indigo-700 dark:hover:text-indigo-400";
             }
 
             return (

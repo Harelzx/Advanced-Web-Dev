@@ -5,14 +5,14 @@ import TeamSection from "./components/about/TeamSection";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen panels">
       <Header />
       
       <main className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* How it works section */}
           <section className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-8" style={{ color: 'var(--text-color)' }}>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">
               ?איך זה עובד
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
@@ -21,7 +21,7 @@ export default function HomePage() {
                 <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">👤</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--text-color)' }}>
+                <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
                   הרשמה פשוטה
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -33,7 +33,7 @@ export default function HomePage() {
                 <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🎯</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--text-color)' }}>
+                <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
                   מסלול אישי
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -45,7 +45,7 @@ export default function HomePage() {
                 <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">📈</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--text-color)' }}>
+                <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
                   מעקב והתקדמות
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">

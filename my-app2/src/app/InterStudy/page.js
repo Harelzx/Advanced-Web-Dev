@@ -84,31 +84,33 @@ const SessionSelection = ({ availableSessions, onSelectSession }) => {
   });
 
   return (
-    <div className="container mx-auto p-4" dir="rtl">
-      <h2 className="text-2xl font-bold mb-6 text-center">בחר סשן תרגול</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.entries(SESSION_CONFIG).map(([sessionNum, config]) => {
-          const isAvailable = availableSessions.includes(Number(sessionNum));
-          return (
-            <button
-              key={sessionNum}
-              onClick={() => isAvailable && onSelectSession(Number(sessionNum))}
-              className={`p-6 rounded-lg shadow-md transition-all ${
-                isAvailable
-                  ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              <h3 className="text-xl font-semibold mb-2">
-                {sessionTitles[sessionNum]}
-              </h3>
-              <p className="text-sm">רמת קושי: {config.name}</p>
-              {!isAvailable && (
-                <p className="text-xs mt-2">השלם תרגולים קודמים כדי לפתוח</p>
-              )}
-            </button>
-          );
-        })}
+    <div className="min-h-screen panels p-4 pt-20" dir="rtl">
+      <div className="container mx-auto">
+        <h2 className="text-2xl font-bold mb-6 text-center">בחר סשן תרגול</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(SESSION_CONFIG).map(([sessionNum, config]) => {
+            const isAvailable = availableSessions.includes(Number(sessionNum));
+            return (
+              <button
+                key={sessionNum}
+                onClick={() => isAvailable && onSelectSession(Number(sessionNum))}
+                className={`panels p-6 rounded-lg shadow-md transition-all ${
+                  isAvailable
+                    ? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transform hover:scale-105"
+                    : "opacity-60 cursor-not-allowed"
+                }`}
+              >
+                <h3 className={`text-xl font-semibold mb-2 ${isAvailable ? 'text-white' : ''}`}>
+                  {sessionTitles[sessionNum]}
+                </h3>
+                <p className={`text-sm ${isAvailable ? 'text-blue-100' : ''}`}>רמת קושי: {config.name}</p>
+                {!isAvailable && (
+                                      <p className="text-xs mt-2 opacity-60">השלם תרגולים קודמים כדי לפתוח</p>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -398,7 +400,7 @@ export default function InterStudyPage() {
 
   if (isLoading || authLoading) {
     return (
-      <div className="flex justify-center items-center h-screen" dir="rtl">
+      <div className="flex justify-center items-center h-screen pt-16" dir="rtl">
         <div className="loader"></div>
         <p className="mr-4">טוען...</p>
       </div>
@@ -408,7 +410,7 @@ export default function InterStudyPage() {
   if (error) {
     return (
       <div
-        className="flex justify-center items-center h-screen text-red-500 bg-red-50 p-4 rounded-lg"
+        className="flex justify-center items-center h-screen text-red-500 bg-red-50 p-4 rounded-lg pt-16"
         dir="rtl"
       >
         <p>{error}</p>
@@ -419,7 +421,7 @@ export default function InterStudyPage() {
   if (!user) {
     return (
       <div
-        className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-800 p-4"
+        className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-800 p-4 pt-20"
         dir="rtl"
       >
         <p className="text-lg">עליך להתחבר כדי לגשת לתרגול.</p>
@@ -435,7 +437,7 @@ export default function InterStudyPage() {
 
   if (!trainingProgress) {
     return (
-      <div className="flex justify-center items-center h-screen" dir="rtl">
+      <div className="flex justify-center items-center h-screen pt-16" dir="rtl">
         <div className="loader"></div>
         <p className="mr-4">טוען נתוני אימון...</p>
       </div>
@@ -446,7 +448,7 @@ export default function InterStudyPage() {
   if (trainingProgress.status === "completed") {
     return (
       <div
-        className="flex flex-col items-center justify-center min-h-screen bg-green-50 text-green-800 p-4"
+        className="flex flex-col items-center justify-center min-h-screen bg-green-50 text-green-800 p-4 pt-20"
         dir="rtl"
       >
         <h2 className="text-3xl font-bold mb-4">כל הכבוד!</h2>
@@ -539,7 +541,7 @@ export default function InterStudyPage() {
 
   // Default case: The session is active, show the main study UI.
   return (
-    <div className="container mx-auto p-4" dir="rtl">
+    <div className="min-h-screen panels pt-16" dir="rtl">
       <StudyController
         practiceSets={practiceSets}
         onQuizComplete={handleQuizComplete}

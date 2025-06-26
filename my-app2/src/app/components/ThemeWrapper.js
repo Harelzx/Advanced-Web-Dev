@@ -5,10 +5,7 @@ export default function ThemeWrapper({ children }) {
   const { theme } = useTheme();
 
   return (
-    <div className={`min-h-screen ${theme === "dark" ? "dark" : ""}`} style={{
-      backgroundColor: 'var(--background-color)',
-      color: 'var(--text-color)'
-    }}>
+    <div className={`${theme === "dark" ? "dark" : ""}`}>
       {children}
     </div>
   );

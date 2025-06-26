@@ -25,7 +25,7 @@ export default function AppShell({ children }) {
   const shouldHideFooter = hideFooterOnPages.some(p => pathname.startsWith(p));
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       {!shouldHideUI && <Navbar />}
       <div className="flex flex-1">
         <main className="flex-grow">{children}</main>

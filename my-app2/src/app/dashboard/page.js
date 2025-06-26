@@ -136,7 +136,7 @@ const Dashboard = () => {
 
   // --- Main Render ---
   return (
-    <>
+    <div className="min-h-screen panels">
       <Navbar 
         isDashboard={true}
         userRole={userRole} 
@@ -146,7 +146,7 @@ const Dashboard = () => {
         onAddChild={() => setShowAddModal(true)}
         unreadCount={unreadCount}
       />
-      <main className="p-4 space-y-6 mt-16" dir="rtl">
+      <main className="p-4 space-y-6 pt-20" dir="rtl">
       
       <div className="panels p-6 rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
@@ -219,7 +219,7 @@ const Dashboard = () => {
         notifications={notifications}
         onRemove={removeNotification}
       />
-    </>
+    </div>
   );
 };
 
