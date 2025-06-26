@@ -1,6 +1,6 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
+"use client";
+import { useState } from "react";
+import Link from "next/link";
 
 export default function Navbar({ 
     isDashboard = false, 
@@ -55,7 +55,7 @@ export default function Navbar({
                         /* Regular nav links */
                         <ul className="navbar-text-custom flex flex-row-reverse space-x-reverse">
                             <li>
-                                <Link href="/InterStudy" className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
+                                <Link href="/InterStudy?reset=1" className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium">
                                     תרגולים
                                 </Link>
                             </li>
@@ -139,7 +139,7 @@ export default function Navbar({
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/InterStudy" className="navbar-button-custom block py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
+                                <Link href="/InterStudy?reset=1" className="navbar-button-custom block py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium" onClick={() => setOpen(false)}>
                                     תרגולים
                                 </Link>
                             </li>

@@ -1,6 +1,6 @@
 "use client";
 import { FaCheck, FaTimes } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from 'next/image';
 
 export default function StudyQuestion({
@@ -13,15 +13,29 @@ export default function StudyQuestion({
   const [currentSection, setCurrentSection] = useState(0);
   const [sectionAnswered, setSectionAnswered] = useState(false);
   const [selectedSectionAnswer, setSelectedSectionAnswer] = useState(null);
+  const [sectionResults, setSectionResults] = useState([]);
+
+  // Always define section and allAnswers to keep hooks order consistent
+  const section =
+    question && question.sections && Array.isArray(question.sections)
+      ? question.sections[currentSection]
+      : null;
+
+  const allAnswers = useMemo(() => {
+    if (!section) return [];
+    return [section.correct_answer, ...(section.incorrect_answers || [])].sort(
+      () => Math.random() - 0.5
+    );
+  }, [section]);
 
   useEffect(() => {
     setCurrentSection(0);
     setSectionAnswered(false);
     setSelectedSectionAnswer(null);
+    setSectionResults([]);
   }, [question]);
 
   if (question && question.sections && Array.isArray(question.sections)) {
-    const section = question.sections[currentSection];
     if (!section) {
       return (
         <div className="p-8">
@@ -34,14 +48,14 @@ export default function StudyQuestion({
         </div>
       );
     }
-    const allAnswers = [
-      section.correct_answer,
-      ...(section.incorrect_answers || []),
-    ].sort(() => Math.random() - 0.5);
 
     function handleSectionAnswer(ans) {
       setSelectedSectionAnswer(ans);
       setSectionAnswered(true);
+      setSectionResults((results) => [
+        ...results,
+        ans === section.correct_answer,
+      ]);
     }
     function handleNextSection() {
       setSectionAnswered(false);
@@ -50,61 +64,96 @@ export default function StudyQuestion({
         setCurrentSection(currentSection + 1);
       } else {
         // All sections done, call onAnswer to move to next question
-        if (onAnswer) onAnswer(null); // or pass a value if needed
+        if (onAnswer) onAnswer(sectionResults);
       }
     }
 
     return (
       <div className="p-8">
         {question.imageUrl && (
-          <div className="mb-4 flex justify-center">
+          <div className="mb-6 flex justify-center">
             <Image
               src={question.imageUrl}
               alt="bagrut"
               width={800}
               height={600}
-              className="max-w-full max-h-96 rounded-lg shadow object-contain"
+              className="max-w-full max-h-96 rounded-lg shadow-lg object-contain"
             />
           </div>
         )}
-        <div className="mb-2 font-bold">
-          סעיף {currentSection + 1} מתוך {question.sections.length}
+
+        {/* Section Progress */}
+        <div className="mb-6 text-center">
+          <span className="text-lg font-semibold text-gray-700">
+            סעיף {currentSection + 1} מתוך {question.sections.length}
+          </span>
         </div>
-        {/* If you have section text, display it here */}
-        <div className="mb-4">
-          {allAnswers.map((ans, idx) => (
+
+        {/* Answer Options */}
+        <div className="grid gap-4">
+          {allAnswers.map((ans, idx) => {
+            let buttonClass =
+              "group w-full p-5 text-right rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] ";
+
+            if (sectionAnswered) {
+              if (ans === section.correct_answer) {
+                buttonClass +=
+                  "bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-400 text-emerald-800 shadow-lg scale-[1.02]";
+              } else if (ans === selectedSectionAnswer) {
+                buttonClass +=
+                  "bg-gradient-to-r from-red-50 to-rose-50 border-red-400 text-red-800 shadow-lg";
+              } else {
+                buttonClass +=
+                  "bg-gray-50 border-gray-200 text-gray-500 opacity-60";
+              }
+            } else {
+              buttonClass +=
+                "panels border-gray-200 hover:border-indigo-400 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-lg text-gray-700 hover:text-indigo-700";
+            }
+
+            return (
+              <button
+                key={idx}
+                onClick={() => handleSectionAnswer(ans)}
+                disabled={sectionAnswered}
+                className={buttonClass}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {sectionAnswered && ans === section.correct_answer && (
+                      <div className="bg-emerald-500 text-white rounded-full p-2 ml-3 animate-bounce">
+                        <FaCheck size={16} />
+                      </div>
+                    )}
+                    {sectionAnswered &&
+                      ans === selectedSectionAnswer &&
+                      ans !== section.correct_answer && (
+                        <div className="bg-red-500 text-white rounded-full p-2 ml-3 animate-pulse">
+                          <FaTimes size={16} />
+                        </div>
+                      )}
+                  </div>
+                  <span className="text-lg font-medium group-hover:font-semibold transition-all duration-200">
+                    {ans}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Next Section Button */}
+        {sectionAnswered && (
+          <div className="mt-6 flex justify-center w-full pb-6">
             <button
-              key={idx}
-              className={`block w-full my-2 p-2 rounded border ${
-                selectedSectionAnswer === ans ? "bg-blue-200" : "bg-white"
-              }`}
-              onClick={() => handleSectionAnswer(ans)}
-              disabled={sectionAnswered}
+              onClick={handleNextSection}
+              className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 hover:scale-105 shadow-lg"
             >
-              {ans}
+              {currentSection < question.sections.length - 1
+                ? "המשך לסעיף הבא"
+                : "השאלה הבאה"}
             </button>
-          ))}
-        </div>
-        {sectionAnswered && (
-          <div className="mb-4">
-            {selectedSectionAnswer === section.correct_answer ? (
-              <span className="text-green-600 font-bold">נכון!</span>
-            ) : (
-              <span className="text-red-600 font-bold">
-                לא נכון. התשובה הנכונה: {section.correct_answer}
-              </span>
-            )}
           </div>
-        )}
-        {sectionAnswered && (
-          <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
-            onClick={handleNextSection}
-          >
-            {currentSection < question.sections.length - 1
-              ? "המשך לסעיף הבא"
-              : "המשך לשאלה הבאה"}
-          </button>
         )}
       </div>
     );

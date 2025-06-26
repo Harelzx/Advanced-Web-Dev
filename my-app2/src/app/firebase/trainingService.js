@@ -91,7 +91,8 @@ export function buildPracticeSession(
   trainingProgress,
   firstQuizScores,
   allQuestions,
-  difficultyNumber
+  difficultyNumber,
+  usedHardQuestionIds = []
 ) {
 
 
@@ -111,7 +112,7 @@ export function buildPracticeSession(
     const selectedQuestions = [];
     subjects.forEach((subject) => {
       const subjectQuestions = questionsOfDifficulty.filter(
-        (q) => q.subject === subject
+        (q) => q.subject === subject && !usedHardQuestionIds.includes(q.id)
       );
       if (subjectQuestions.length > 0) {
         // Pick one at random
