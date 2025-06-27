@@ -38,14 +38,14 @@ export default function StudyQuestion({
   if (question && question.sections && Array.isArray(question.sections)) {
     if (!section) {
       return (
-              <div className="p-8">
-        <div className="text-center bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
-          <div className="text-red-600 dark:text-red-400 text-xl mb-2">⚠️ שגיאה בשאלה</div>
-          <div className="text-red-500 dark:text-red-400 text-sm">
-            התרגול לא מכיל סעיפים תקינים
+        <div className="p-4">
+          <div className="text-center bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
+            <div className="text-red-600 dark:text-red-400 text-xl mb-2">⚠️ שגיאה בשאלה</div>
+            <div className="text-red-500 dark:text-red-400 text-sm">
+              התרגול לא מכיל סעיפים תקינים
+            </div>
           </div>
         </div>
-      </div>
       );
     }
 
@@ -69,7 +69,7 @@ export default function StudyQuestion({
     }
 
     return (
-      <div className="p-8">
+      <div className="p-4">
         {question.imageUrl && (
           <div className="mb-6 flex justify-center">
             <Image
@@ -144,7 +144,7 @@ export default function StudyQuestion({
 
         {/* Next Section Button */}
         {sectionAnswered && (
-          <div className="mt-6 flex justify-center w-full">
+          <div className="mt-4 flex justify-center w-full">
             <button
               onClick={handleNextSection}
               className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 hover:scale-105 shadow-lg"
@@ -166,23 +166,23 @@ export default function StudyQuestion({
     !Array.isArray(question.options) ||
     question.options.length === 0
   ) {
-    return (
-      <div className="p-8">
-        <div className="text-center bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
-          <div className="text-red-600 dark:text-red-400 text-xl mb-2">⚠️ שגיאה בשאלה</div>
-          <div className="text-red-500 dark:text-red-400 text-sm">
-            השאלה לא מכילה אפשרויות תקינות
-          </div>
+      return (
+    <div className="p-4">
+      <div className="text-center bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
+        <div className="text-red-600 dark:text-red-400 text-xl mb-2">⚠️ שגיאה בשאלה</div>
+        <div className="text-red-500 dark:text-red-400 text-sm">
+          השאלה לא מכילה אפשרויות תקינות
         </div>
       </div>
-    );
+    </div>
+  );
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4">
       {/* Question */}
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold mb-6 leading-relaxed whitespace-pre-line text-right">
+      <div className="mb-4">
+        <h3 className="text-2xl font-bold mb-4 leading-relaxed whitespace-pre-line text-right">
           {question.question || "שאלה ללא טקסט"}
         </h3>
 

@@ -16,21 +16,21 @@ export default function Header() {
           
           {/* Logo and brand */}
           <div className="mb-8">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-4 tracking-tight">
+            <h1 className="header-title text-5xl lg:text-7xl font-bold text-white mb-4 tracking-tight">
               LearnPath
             </h1>
             <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full"></div>
           </div>
 
           {/* Main headline */}
-          <h2 className="text-2xl lg:text-4xl font-semibold text-white mb-6 leading-tight">
+          <h2 className="header-subtitle text-2xl lg:text-4xl font-semibold text-white mb-6 leading-tight">
             פלטפורמת הלמידה החכמה
             <br />
-            <span className="text-yellow-300">לתלמידים, הורים ומורים</span>
+            <span className="header-span text-yellow-300">לתלמידים, הורים ומורים</span>
           </h2>
 
           {/* Subtitle */}
-          <p className="text-lg lg:text-xl text-blue-100 mb-10 max-w-3xl mx-auto leading-relaxed" style={{ textAlign: 'center', direction: 'rtl' }}>
+          <p className="header-text text-xl lg:text-2xl text-white mb-10 max-w-2xl mx-auto leading-relaxed" style={{ textAlign: 'center', direction: 'rtl' }}>
             מסלולי למידה מותאמים אישית, מעקב התקדמות בזמן אמת, ותקשורת יעילה 
             בין כל הגורמים החינוכיים. הכל במקום אחד.
           </p>
@@ -41,7 +41,7 @@ export default function Header() {
               href="/sign-up" 
               className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              🚀 התחל עכשיו - חינם
+              !הירשם עכשיו
             </Link>
             
             <Link 
@@ -53,32 +53,32 @@ export default function Header() {
           </div>
 
           {/* Features highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto" dir="rtl">
             
-            {/* Feature 1 */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            {/* Feature 1 - now diagnostic test */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center">
+              <div className="text-4xl mb-4">🌟</div>
+              <h3 className="header-feature-title text-xl font-bold text-white mb-3">מבחן אבחון ומסלול אישי</h3>
+              <p className="header-text text-white text-lg leading-relaxed">
+                הרשמה פשוטה + מבחן חכם שמזהה חוזקות וחולשות ויוצר מסלול למידה מדויק במתמטיקה
+              </p>
+            </div>
+
+            {/* Feature 2 - stays in middle */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center">
               <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-xl font-semibold text-white mb-2">למידה מותאמת</h3>
-              <p className="text-blue-100 text-sm">
-                מסלולי למידה המותאמים לקצב ולסגנון הלמידה של כל תלמיד בשילוב בינה מלאכותית
+              <h3 className="header-feature-title text-xl font-bold text-white mb-3">תרגולים מתקדמים עם AI</h3>
+              <p className="header-text text-white text-lg leading-relaxed">
+                9 שלבי אימון מדורגים, שאלות בגרות אמיתיות, ומורה בינה מלאכותית שעוזר בכל שאלה
               </p>
             </div>
 
-            {/* Feature 2 */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            {/* Feature 3 - now tracking */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center">
               <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-xl font-semibold text-white mb-2">מעקב בזמן אמת</h3>
-              <p className="text-blue-100 text-sm">
-                דוחות התקדמות מפורטים והתראות חכמות להורים ומורים
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">📝</div>
-              <h3 className="text-xl font-semibold text-white mb-2">תרגילים מותאמים</h3>
-              <p className="text-blue-100 text-sm">
-                תרגילים מבוססי סילבוס הקורס ושאלות בגרות להכנה מיטבית
+              <h3 className="header-feature-title text-xl font-bold text-white mb-3">מעקב ותקשורת מתקדמים</h3>
+              <p className="header-text text-white text-lg leading-relaxed">
+                תלמידים מתרגלים, הורים ומורים עוקבים - הכל במקום אחד עם תקשורת ישירה
               </p>
             </div>
 

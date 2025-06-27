@@ -31,7 +31,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
+    <div className="min-h-screen flex items-center justify-center panels">
       <div className="panels p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
         <Link
           href="/login"

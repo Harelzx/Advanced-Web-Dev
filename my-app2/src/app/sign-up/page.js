@@ -58,7 +58,7 @@ const SignUp = () => {
   }, [user, error, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bdb4c0">
+    <div className="min-h-screen flex items-center justify-center panels">
       <div className="panels p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
         <BackButton href="/" variant="arrow" ariaLabel="חזרה לעמוד הראשי" />
         <h1 className="text-black text-2xl mb-5 text-right">הרשמה</h1>

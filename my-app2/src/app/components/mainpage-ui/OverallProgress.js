@@ -32,7 +32,7 @@ export default function OverallProgress({ completedSessions = 0, totalSessions =
         <div className="flex items-center justify-between mb-2 text-gray-600">
           <span className="font-semibold">{status.text}</span>
           <span className="font-bold text-lg text-indigo-600">
-            {totalSessions} / {validCompletedSessions}
+          {totalSessions} / {validCompletedSessions}
           </span>
         </div>
 

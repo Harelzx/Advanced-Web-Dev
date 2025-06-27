@@ -11,6 +11,42 @@ import MainPageLayout from '../components/mainpage-ui/MainPageLayout';
 import NextPracticeCard from '../components/mainpage-ui/NextPracticeCard'; 
 import OverallProgress from '../components/mainpage-ui/OverallProgress'; 
 
+// Helper function to determine available sessions based on completed sessions
+const getAvailableSessions = (completedSessions) => {
+  // Ensure completedSessions is an array
+  const completed = Array.isArray(completedSessions) ? completedSessions : [];
+  const available = new Set();
+
+  // Always available
+  available.add(1); // session 1 easy
+
+  // Unlocking logic
+  if (completed.includes(1)) {
+    available.add(2); // session 2 easy
+    available.add(4); // session 1 medium
+  }
+  if (completed.includes(2)) {
+    available.add(3); // session 3 easy
+    available.add(5); // session 2 medium
+  }
+  if (completed.includes(4)) {
+    available.add(5); // session 2 medium
+    available.add(7); // session 1 hard
+  }
+  if (completed.includes(5)) {
+    available.add(6); // session 3 medium
+    available.add(8); // session 2 hard
+  }
+  if (completed.includes(7)) {
+    available.add(8); // session 2 hard
+  }
+  if (completed.includes(8)) {
+    available.add(9); // session 3 hard
+  }
+
+  return Array.from(available);
+};
+
 export default function MainPage() {
   const [user, setUser] = useState({ fullName: 'טוען...', school: 'Braude' });
   const [grades, setGrades] = useState({});
@@ -123,10 +159,17 @@ export default function MainPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
-              <NextPracticeCard sessionNumber={trainingProgress?.currentSession || 1} />
+              <NextPracticeCard sessionNumber={(() => {
+                if (!trainingProgress?.completedSessions) return 1;
+                const availableSessions = getAvailableSessions(trainingProgress.completedSessions);
+                const nextSession = availableSessions
+                  .filter(s => !trainingProgress.completedSessions.includes(s))
+                  .sort((a, b) => a - b)[0];
+                return nextSession || 10; // 10 means all sessions completed
+              })()} />
             </div>
             <div>
-              <OverallProgress completedSessions={trainingProgress?.completedSessions || 0} />
+              <OverallProgress completedSessions={trainingProgress?.completedSessions?.length || 0} />
             </div>
           </div>
           

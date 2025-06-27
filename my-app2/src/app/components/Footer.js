@@ -7,13 +7,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           
           {/* Company information */}
-          <div className="text-center md:text-right">
+          <div className="text-center md:text-right" dir="rtl">
             <h3 className="text-lg font-bold mb-2">
               LearnPath
             </h3>
             <p className="text-sm leading-relaxed">
               פלטפורמת למידה חכמה המותאמת אישית לתלמידים, הורים ומורים.
-              מסלולי למידה מותאמים, ומעקב התקדמות יעיל
+              מסלולי למידה מותאמים, ומעקב התקדמות יעיל.
             </p>
           </div>
 

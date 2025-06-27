@@ -107,9 +107,10 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Global text color inheritance - exclude navbar elements */
-h1, h2:not(.navbar-title), h3, h4, h5, h6, p, label,
-span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([class*="navbar-"]) {
+/* Global text color inheritance - exclude navbar and header elements */
+h1:not(.header-title), h2:not(.navbar-title):not(.header-subtitle), h3:not(.header-feature-title), h4, h5, h6, 
+p:not(.header-text), label,
+span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([class*="navbar-"]):not(.header-span) {
   color: var(--text-color);
 }
 

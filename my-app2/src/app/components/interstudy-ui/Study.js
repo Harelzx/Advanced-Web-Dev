@@ -90,7 +90,7 @@ export default function Study({
 
             {isAnswered &&
               !(question.sections && Array.isArray(question.sections)) && (
-                <div className="mt-6 flex justify-center w-full pb-6">
+                <div className="mt-4 flex justify-center w-full pb-4">
                   <button
                     onClick={nextQuestion}
                     className="px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 transform bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 hover:scale-105 shadow-lg"
