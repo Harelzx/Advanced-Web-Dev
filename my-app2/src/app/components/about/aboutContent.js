@@ -43,7 +43,6 @@ export const aboutContent = {
         features: [
           "Next.js 14 - React Framework",
           "Tailwind CSS - עיצוב מודרני",
-          "CSS Variables - ערכות נושא",
           "Responsive Design - נגיש מכל מכשיר"
         ]
       },

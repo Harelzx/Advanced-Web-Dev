@@ -8,7 +8,7 @@ export default function HomePage() {
     <div className="min-h-screen panels">
       <Header />
       
-      <main className="py-8">
+      <main className="py-2 md:py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Team Section */}
           <TeamSection />

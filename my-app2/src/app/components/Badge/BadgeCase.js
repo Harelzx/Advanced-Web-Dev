@@ -65,7 +65,7 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
       <div className="mb-6 text-center">
       </div>
       <h3 className="text-xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">תגים שהושגו</h3>
-      <div className="grid grid-cols-3 gap-6 p-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 p-4">
         {allBadges.map((badge) => {
           const earnedBadge = earnedBadges.find(b => b.label === badge.label);
           const earned = !!earnedBadge;
@@ -75,14 +75,14 @@ export default function BadgeDisplay({ earnedBadges = [], fullName, school }) {
               key={badge.label}
               className="relative group flex flex-col items-center justify-center"
             >
-              <div className="mb-1 w-30 h-30 flex items-center justify-center">
+              <div className={`mb-2 w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-full ${!earned ? 'bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600' : ''}`}>
                 {earned ? (
                   <Lottie animationData={badge.anim} loop={true} />
                 ) : (
-                  <FaLock className="w-15 h-12 text-2xl text-gray-800 dark:text-gray-300" />
+                  <FaLock className="w-8 h-8 md:w-10 md:h-10 text-gray-600 dark:text-gray-300" />
                 )}
               </div>
-              <span className="text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
+              <span className={`text-center text-xs md:text-sm font-semibold leading-tight ${earned ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
                 {badge.label}
               </span>
               {earned && dateEarned && (

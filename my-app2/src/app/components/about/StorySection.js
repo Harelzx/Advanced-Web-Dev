@@ -11,8 +11,8 @@ export default function StorySection() {
   const { story } = aboutContent;
 
   return (
-    <section className="py-4 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <section className="py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
         <StoryCard 
           title={story.title}
           paragraphs={story.paragraphs}

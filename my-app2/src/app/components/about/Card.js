@@ -9,7 +9,7 @@ export default function Card({
 }) {
   return (
     <div 
-      className={`rounded-2xl p-6 shadow-lg border ${className}`}
+      className={`rounded-2xl p-4 sm:p-6 shadow-lg border ${className}`}
       style={{ 
         backgroundColor: 'var(--card-bg)',
         borderColor: 'var(--input-border)',
@@ -28,22 +28,22 @@ export default function Card({
  * - title: Card title
  * - features: Array of feature strings
  */
-export function ArchitectureCard({ icon, title, features }) {
+export function ArchitectureCard({ icon, title, features, className = '' }) {
   return (
-    <Card>
-      <div className="text-4xl mb-4 text-center">{icon}</div>
+    <Card className={className}>
+      <div className="text-3xl sm:text-4xl mb-3 sm:mb-4 text-center">{icon}</div>
       <h3 
-        className="text-xl font-semibold mb-3 text-center" 
+        className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-center" 
         style={{ color: 'var(--text-color)' }}
       >
         {title}
       </h3>
       <ul 
-        className="space-y-2 text-center opacity-70" 
+        className="space-y-1 sm:space-y-2 text-sm sm:text-base text-center opacity-70" 
         style={{ color: 'var(--text-color)' }}
       >
         {features.map((feature, index) => (
-          <li key={index}>{feature}</li>
+          <li key={index} className="leading-relaxed">{feature}</li>
         ))}
       </ul>
     </Card>
@@ -58,15 +58,15 @@ export function ArchitectureCard({ icon, title, features }) {
  */
 export function StoryCard({ title, paragraphs }) {
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 sm:mb-6">
       <h2 
-        className="text-3xl font-bold mb-6 text-center" 
+        className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-center px-2" 
         style={{ color: 'var(--text-color)' }}
       >
         {title}
       </h2>
       <div 
-        className="max-w-4xl mx-auto" 
+        className="max-w-4xl mx-auto px-2 sm:px-4" 
         style={{ 
           color: 'var(--text-color)', 
           direction: 'rtl'
@@ -75,8 +75,7 @@ export function StoryCard({ title, paragraphs }) {
         {paragraphs.map((paragraph, index) => (
           <p 
             key={index}
-            className={`text-lg leading-relaxed text-justify ${index < paragraphs.length - 1 ? 'mb-4' : ''}`}
-            style={{ lineHeight: '1.8' }}
+            className={`text-base sm:text-lg leading-relaxed text-justify ${index < paragraphs.length - 1 ? 'mb-2 sm:mb-3' : ''}`}
           >
             {paragraph}
           </p>

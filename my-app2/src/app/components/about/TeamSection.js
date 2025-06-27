@@ -47,23 +47,23 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
   ];
 
   return (
-    <section className="py-6 px-4 sm:px-6 lg:px-8">
+    <section className="pt-2 pb-4 md:pt-2 md:pb-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {showTitle && (
-          <h2 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-gray-900 dark:text-gray-100">
             הצוות המפתח
           </h2>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {teamMembers.map((member, index) => (
             <div 
               key={index} 
-              className="panels rounded-xl p-5 shadow-md border text-center hover:shadow-lg transition-shadow duration-300 border-gray-200 dark:border-gray-700"
+              className="panels rounded-xl p-3 md:p-5 shadow-md border text-center hover:shadow-lg transition-shadow duration-300 border-gray-200 dark:border-gray-700"
             >
               
               {/* Profile Image */}
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 md:mb-4 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                 {member.image ? (
                   <Image 
                     src={member.image} 
@@ -83,10 +83,10 @@ export default function TeamSection({ showTitle = true, showSubtitle = true }) {
               </div>
 
               {/* Name and Role */}
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
+              <h3 className="text-base md:text-lg font-semibold mb-1 md:mb-2 text-gray-900 dark:text-gray-100">
                 {member.name}
               </h3>
-              <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-4 leading-relaxed">
+              <p className="text-xs md:text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-3 md:mb-4 leading-relaxed">
                 {member.role}
               </p>
 

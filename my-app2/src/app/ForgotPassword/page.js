@@ -5,7 +5,8 @@ import { auth } from '@/app/firebase/config';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../components/Button';
-import Input from '../components/Input'; 
+import Input from '../components/Input';
+import BackButton from '../components/about/BackButton'; 
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -33,13 +34,7 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center panels">
       <div className="panels p-10 rounded-lg shadow-xl w-96 relative" dir="rtl">
-        <Link
-          href="/login"
-          className="absolute right-4 top-4 text-black text-2xl hover:text-indigo-400"
-          aria-label="חזרה להתחברות"
-        >
-          →
-        </Link>
+        <BackButton href="/login" variant="arrow" ariaLabel="חזרה להתחברות" />
         <h1 className="text-black text-2xl mb-5 text-right">איפוס סיסמא</h1>
         <form onSubmit={handleResetPassword}>
           <Input
