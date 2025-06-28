@@ -147,7 +147,7 @@ export default function MainPage() {
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">{subject}</span>
                   </div>
-                  <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                     <div
                       className={`${barColor} h-3 rounded-full transition-all`}
                       style={{ width: `${grade}%` }}
@@ -158,7 +158,7 @@ export default function MainPage() {
             })}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
+            <div className="order-2 md:order-1">
               <NextPracticeCard sessionNumber={(() => {
                 if (!trainingProgress?.completedSessions) return 1;
                 const availableSessions = getAvailableSessions(trainingProgress.completedSessions);
@@ -168,7 +168,7 @@ export default function MainPage() {
                 return nextSession || 10; // 10 means all sessions completed
               })()} />
             </div>
-            <div>
+            <div className="order-1 md:order-2">
               <OverallProgress completedSessions={trainingProgress?.completedSessions?.length || 0} />
             </div>
           </div>

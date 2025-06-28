@@ -5,10 +5,21 @@
   /* Light mode colors */
   --background-color: #ffffff;
   --text-color: #1e293b;
+  --text-color-secondary: #6b7280;
+  --text-color-muted: #9ca3af;
   --input-bg: #ffffff;
   --input-text: #1e293b;
   --input-border: #cbd5e1;
   --card-bg: #ffffff;
+  --border-color-light: #e5e7eb;
+  --border-color-gray: #d1d5db;
+  
+  /* Progress and Status Colors */
+  --progress-bg: #e5e7eb; /* gray-200 */
+  --success-text: #059669; /* green-600 */
+  --warning-text: #d97706; /* yellow-600 */
+  --error-text: #dc2626; /* red-600 */
+  --info-text: #2563eb; /* blue-600 */
   
   /* Secondary Button Colors */
   --btn-secondary-bg: #ffffff; /* white */
@@ -59,10 +70,21 @@
 body.dark {
   --background-color: #0f172a;
   --text-color: #f1f5f9;
+  --text-color-secondary: #9ca3af;
+  --text-color-muted: #6b7280;
   --input-bg: #374151;
   --input-text: #ffffff;
   --input-border: #4b5563;
   --card-bg: #1e293b;
+  --border-color-light: #334155;
+  --border-color-gray: #4b5563;
+  
+  /* Dark mode Progress and Status Colors */
+  --progress-bg: #374151; /* gray-700 */
+  --success-text: #34d399; /* green-400 */
+  --warning-text: #fbbf24; /* yellow-400 */
+  --error-text: #f87171; /* red-400 */
+  --info-text: #60a5fa; /* blue-400 */
   
   /* Dark mode Secondary Button */
   --btn-secondary-bg: #1f2937; /* gray-800 */
@@ -127,6 +149,50 @@ span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([clas
   border: 1px solid var(--input-border);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+}
+
+/* Text utility classes */
+.text-primary {
+  color: var(--text-color);
+}
+
+.text-secondary {
+  color: var(--text-color-secondary);
+}
+
+.text-muted {
+  color: var(--text-color-muted);
+}
+
+/* Border utility classes */
+.border-light {
+  border-color: var(--border-color-light);
+}
+
+.border-gray {
+  border-color: var(--border-color-gray);
+}
+
+/* Progress utility classes */
+.progress-bg {
+  background-color: var(--progress-bg);
+}
+
+/* Status text utility classes */
+.text-success {
+  color: var(--success-text);
+}
+
+.text-warning {
+  color: var(--warning-text);
+}
+
+.text-error {
+  color: var(--error-text);
+}
+
+.text-info {
+  color: var(--info-text);
 }
 
 /* Secondary Button */

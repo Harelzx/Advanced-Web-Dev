@@ -43,7 +43,6 @@ export default function RemoveStudentModal({
       // Close modal
       onClose();
     } catch (error) {
-      console.error('Error removing student:', error);
       setErrorMessage(`נכשל בהסרת ה${userRole === 'teacher' ? 'תלמיד/ה' : 'ילד/ה'}. אנא נסה/י שוב.`);
     } finally {
       setRemoving(false);

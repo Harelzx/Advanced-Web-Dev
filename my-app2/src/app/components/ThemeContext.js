@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 const ThemeContext = createContext();
 
@@ -7,39 +7,24 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    // Get stored theme or default to light
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') || 'light';
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") || "light";
     }
-    return 'light';
+    return "light";
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', theme);
-      // Apply theme class to html element for Tailwind dark mode
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      } else {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", theme);  
     }
-    document.body.className = theme; // Keep for CSS variables
+    document.body.className = theme;          // body.light / body.dark → CSS-vars
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
-
-  const value = {
-    theme,
-    toggleTheme,
-  };
+  const toggleTheme = () =>
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
