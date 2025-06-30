@@ -1,90 +1,23 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { db } from '../firebase/config';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { fetchBadges, hasBadge, saveBadge, recordPageVisit, checkExplorerBadge } from '../components/Badge/BadgeSystem';
+import DashboardLayout from '../components/dashboard/DashboardLayout';
+import NextPracticeCard from '../components/mainpage-ui/NextPracticeCard';
+import OverallProgress from '../components/mainpage-ui/OverallProgress';
+import BadgeCase from '@/app/components/Badge/BadgeCase';
 import BadgeNotificationModal from '../components/Badge/BadgeNotificationModal';
-import BadgeCase from '@/app/components/Badge/BadgeCase'; 
-import DashboardLayout from '../components/dashboard/DashboardLayout'; 
-import NextPracticeCard from '../components/mainpage-ui/NextPracticeCard'; 
-import OverallProgress from '../components/mainpage-ui/OverallProgress'; 
+import { useMainPageLogic } from '@/app/hooks/useMainPageLogic';
 
 export default function MainPage() {
-  const [user, setUser] = useState({ fullName: 'טוען...', school: 'Braude' });
-  const [grades, setGrades] = useState({});
-  const [earnedBadges, setEarnedBadges] = useState([]);
-  const [showBadgeModal, setShowBadgeModal] = useState(false);
-  const [newBadgeLabel, setNewBadgeLabel] = useState(null);
-  const [trainingProgress, setTrainingProgress] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userId = sessionStorage.getItem('uid');
-        if (!userId) {
-          router.push('/login');
-          return;
-        }
-
-        const userDocRef = doc(db, 'users', userId);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setUser({ fullName: userDocSnap.data().fullName || 'משתמש' });
-        } else {
-          sessionStorage.removeItem('uid');
-          router.push('/login');
-          return;
-        }
-
-        const progressRef = doc(db, 'users', userId, 'training_progress', 'plan_1');
-        const progressSnap = await getDoc(progressRef);
-        if (progressSnap.exists()) {
-          setTrainingProgress(progressSnap.data());
-        } else {
-          setTrainingProgress({ currentSession: 1, completedSessions: 0 });
-        }
-
-        const resultsRef = collection(db, `users/${userId}/results`);
-        const querySnapshot = await getDocs(resultsRef);
-        const subjectGrades = {};
-        querySnapshot.forEach((doc) => {
-          subjectGrades[doc.id] = doc.data().grade || 0;
-        });
-        setGrades(subjectGrades);
-
-        // Record visit to Main_Page
-        await recordPageVisit(userId, "Main_Page");
-
-        // Check for First Login badge
-        const hasFirstLogin = await hasBadge(userId, "התחברות ראשונה");
-        if (!hasFirstLogin) {
-          const today = new Date().toISOString().split("T")[0];
-          await saveBadge(userId, "התחברות ראשונה", today);
-          setNewBadgeLabel("התחברות ראשונה");
-          setShowBadgeModal(true);
-        }
-
-        // Check for Explorer badge
-        const hasExplorerBadge = await hasBadge(userId, "חוקר");
-        if (!hasExplorerBadge) {
-          const earnedExplorer = await checkExplorerBadge(userId);
-          if (earnedExplorer) {
-            setNewBadgeLabel("חוקר");
-            setShowBadgeModal(true);
-          }
-        }
-
-        const badges = await fetchBadges(userId);
-        setEarnedBadges(badges);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-  }, []);
+  const {
+    user,
+    grades,
+    earnedBadges,
+    showBadgeModal,
+    newBadgeLabel,
+    trainingProgress,
+    setShowBadgeModal,
+    setNewBadgeLabel
+  } = useMainPageLogic();
 
   return (
     <>
