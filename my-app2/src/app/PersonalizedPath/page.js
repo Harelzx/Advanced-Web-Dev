@@ -11,16 +11,19 @@ import LearningItem from '../components/PersonalizedPath/LearningItem';
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 export default function PersonalizedPath() {
-  const [learningPath, setLearningPath] = useState(null); // null = not fetched yet
-  const [loading, setLoading] = useState(false); // loading state
-  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [learningPath, setLearningPath] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [completedSteps, setCompletedSteps] = useState(new Set());
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleOpenIndex = (index) => {
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
 
   const fetchLearningPath = useCallback(async () => {
     const userId = typeof window !== 'undefined' ? sessionStorage.getItem('uid') : null;
-
     if (!userId) {
-      setLearningPath([]); // no UID
+      setLearningPath([]);
       return;
     }
 
@@ -68,7 +71,6 @@ export default function PersonalizedPath() {
       const data = await result.json();
       if (data.success && Array.isArray(data.results)) {
         setLearningPath(data.results);
-
         await Promise.all(
           data.results.map((item, index) =>
             setDoc(doc(pathRef, String(index)), { ...item, createdAt: new Date() })
@@ -79,14 +81,14 @@ export default function PersonalizedPath() {
       }
     } catch (err) {
       console.error("Error fetching learning path:", err);
-      setLearningPath([]); // treat as failed
+      setLearningPath([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchLearningPath(); // first load
+    fetchLearningPath();
   }, [fetchLearningPath]);
 
   useEffect(() => {
@@ -108,10 +110,6 @@ export default function PersonalizedPath() {
     else newCompletedSteps.add(stepIndex);
     setCompletedSteps(newCompletedSteps);
     saveProgress(newCompletedSteps);
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const progressPercentage = learningPath
@@ -140,7 +138,6 @@ export default function PersonalizedPath() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">מבוסס על תוצאות האבחון שלך</p>
         </div>
 
-        {/* Learning path exists and has data */}
         {learningPath && learningPath.length > 0 ? (
           <div className="space-y-8">
             <ProgressSection
@@ -157,6 +154,8 @@ export default function PersonalizedPath() {
                 isCompleted={completedSteps.has(index)}
                 toggleStepCompletion={toggleStepCompletion}
                 totalItems={learningPath.length}
+                isOpen={openIndex === index}
+                onToggle={() => toggleOpenIndex(index)}
               />
             ))}
 
@@ -185,16 +184,6 @@ export default function PersonalizedPath() {
           </div>
         )}
       </main>
-
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 left-8 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center"
-          aria-label="חזור למעלה"
-        >
-          ↑
-        </button>
-      )}
     </div>
   );
 }

@@ -14,7 +14,7 @@ export default function Navbar({
     const [open, setOpen] = useState(false);
 
     return (
-        <nav className="navbar-custom w-full backdrop-blur-md shadow-lg border-b z-10 fixed top-0 left-0">
+        <nav className="navbar-custom w-full backdrop-blur-md shadow-lg border-b z-[30] fixed top-0 left-0">
             <div className="mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16" dir="rtl">
                 {/* Title */}
                 <h2 className="navbar-title-custom text-xl font-bold drop-shadow-md">
