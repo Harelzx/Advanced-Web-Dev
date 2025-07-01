@@ -17,7 +17,7 @@ export default function StudyHeader({
           <div className="flex items-center space-x-2">
             <span className="text-2xl">{difficultyConfig.icon}</span>
             <div>
-              <div className="text-lg font-bold text-gray-800">
+              <div className="text-lg font-bold">
                 שאלה {currentQuestion + 1} מתוך {totalQuestions}
               </div>
               {sessionNumber && (
@@ -44,7 +44,7 @@ export default function StudyHeader({
             <div className="absolute inset-0 panels/30 animate-pulse"></div>
           </div>
         </div>
-        <div className="text-xs text-gray-600 mt-1 text-center">
+        <div className="text-xs mt-1 text-center">
           התקדמות: {Math.round(((currentQuestion + 1) / totalQuestions) * 100)}%
         </div>
       </div>

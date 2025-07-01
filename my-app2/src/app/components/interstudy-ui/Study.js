@@ -71,7 +71,7 @@ export default function Study({
   const diffConfig = getDifficultyConfig(difficulty);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
+    <div className="min-h-screen bg-gradient-to-br">
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="max-w-4xl w-full">
           <div className="panels/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">

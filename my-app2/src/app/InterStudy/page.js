@@ -104,7 +104,7 @@ const SessionSelection = ({ availableSessions, onSelectSession }) => {
               </h3>
               <p className="text-sm">רמת קושי: {config.name}</p>
               {!isAvailable && (
-                <p className="text-xs mt-2">השלם תרגולים קודמים כדי לפתוח</p>
+                <p className="text-xs mt-2 ">השלם תרגולים קודמים כדי לפתוח</p>
               )}
             </button>
           );

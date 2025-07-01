@@ -12,9 +12,9 @@ export default function Navbar() {
         dir="rtl"
       >
         {/* Title */}
-        <h2 className="text-xl font-bold text-green-600 dark:text-green-100">
+        <div className="text-xl font-bold text-white dark:text-green-100">
           LearnPath
-        </h2>
+        </div>
 
         {/* Desktop menu */}
         <div className="hidden md:flex items-center justify-between w-full">

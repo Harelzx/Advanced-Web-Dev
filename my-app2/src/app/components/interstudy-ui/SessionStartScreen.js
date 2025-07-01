@@ -7,7 +7,7 @@ export default function SessionStartScreen({
 }) {
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center p-4 panels"
       dir="rtl"
     >
       <div className="max-w-2xl w-full panels/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 text-center">

@@ -20,7 +20,7 @@ export default function AppShell({ children }) {
   const shouldHideUI = hideOnPages.some(p => pathname.startsWith(p));
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex pt-16">
       {!shouldHideUI && <Navbar />}
       <main className="flex-grow">{children}</main>
       {!shouldHideUI && <ChatbotSidebar />}
