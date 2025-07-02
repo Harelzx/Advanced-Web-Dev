@@ -11,8 +11,7 @@
   --input-text: #1e293b;
   --input-border: #cbd5e1;
   --card-bg: #ffffff;
-  --border-color-light: #e5e7eb;
-  --border-color-gray: #d1d5db;
+  --border-color: #e5e7eb;
   
   /* Progress and Status Colors */
   --progress-bg: #e5e7eb; /* gray-200 */
@@ -37,12 +36,11 @@
   
   /* Badge Colors */
   --badge-bg: #f8fafc; /* gray-50 */
+  --badge-text: #374151; /* gray-700 */
   --badge-border: #e2e8f0; /* gray-200 */
   
   /* Text Button Colors */
   --text-btn-color: #2563eb; /* blue-600 */
-  
-
   
   /* Navbar colors (always dark) */
   --navbar-bg: rgba(15, 23, 42, 0.95);
@@ -54,8 +52,6 @@
   /* Theme variables */
   --bg-color: #ffffff;
   --panel-bg: #f8fafc;
-  --border-color: #e5e7eb;
-  --secondary-text: #6b7280;
   --accent-color: #3b82f6;
   --success-color: #10b981;
   --warning-color: #f59e0b;
@@ -76,8 +72,7 @@ body.dark {
   --input-text: #ffffff;
   --input-border: #4b5563;
   --card-bg: #1e293b;
-  --border-color-light: #334155;
-  --border-color-gray: #4b5563;
+  --border-color: #334155;
   
   /* Dark mode Progress and Status Colors */
   --progress-bg: #374151; /* gray-700 */
@@ -102,6 +97,7 @@ body.dark {
   
   /* Dark mode Badge */
   --badge-bg: #374151; /* gray-700 */
+  --badge-text: #e5e7eb; /* gray-200 */
   --badge-border: #4b5563; /* gray-600 */
   
   /* Dark mode Text Button */
@@ -110,8 +106,6 @@ body.dark {
   /* Dark mode Theme variables */
   --bg-color: #0f172a;
   --panel-bg: #1e293b;
-  --border-color: #334155;
-  --secondary-text: #94a3b8;
   --accent-color: #60a5fa;
   --success-color: #34d399;
   --warning-color: #fbbf24;
@@ -149,6 +143,12 @@ span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([clas
   border: 1px solid var(--input-border);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  color: var(--text-color);
+}
+
+body.dark .panels {
+  border-color: #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 /* Text utility classes */
@@ -166,11 +166,7 @@ span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([clas
 
 /* Border utility classes */
 .border-light {
-  border-color: var(--border-color-light);
-}
-
-.border-gray {
-  border-color: var(--border-color-gray);
+  border-color: var(--border-color);
 }
 
 /* Progress utility classes */
@@ -277,15 +273,6 @@ span:not(.navbar-greeting):not(.navbar-title):not(.navbar-text-custom):not([clas
 .text-button:hover {
   text-decoration: underline;
   opacity: 0.75;
-}
-
-
-
-body.dark .panels {
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  border-color: #334155;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 /* Navbar styles */

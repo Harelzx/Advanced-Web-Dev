@@ -119,12 +119,12 @@ export default function PersonalizedPath() {
   if (loading) {
     return (
       <div className="min-h-screen panels flex flex-col items-center justify-center p-6" dir="rtl">
-        <div className="bg-gray-50 rounded-3xl shadow-lg p-8 text-center max-w-md w-full">
+        <div className="panels rounded-3xl shadow-lg p-8 text-center max-w-md w-full">
           <div className="w-32 h-32 mb-6 mx-auto">
             <Lottie animationData={loadingAnimation} loop={true} autoplay={true} />
           </div>
-          <h2 className="text-xl font-bold mb-2">טוען מסלול אישי...</h2>
-          <p className="text-gray-600">אנא המתן מספר שניות</p>
+          <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">טוען מסלול אישי...</h2>
+          <p className="text-gray-600 dark:text-gray-400">אנא המתן מספר שניות</p>
         </div>
       </div>
     );
@@ -134,8 +134,8 @@ export default function PersonalizedPath() {
     <div className="min-h-screen panels" dir="rtl">
       <main className="max-w-6xl mx-auto p-6 space-y-8">
         <div className="text-center py-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-green-600 mb-4">מסלול הלמידה האישי שלך</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">מבוסס על תוצאות האבחון שלך</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-green-600 dark:text-green-400 mb-4">מסלול הלמידה האישי שלך</h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">מבוסס על תוצאות האבחון שלך</p>
         </div>
 
         {learningPath && learningPath.length > 0 ? (
@@ -169,14 +169,14 @@ export default function PersonalizedPath() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <div className="bg-white rounded-2xl shadow-xl p-12 max-w-md mx-auto">
+            <div className="panels rounded-2xl shadow-xl p-12 max-w-md mx-auto">
               <div className="text-6xl mb-6">🔍</div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">לא נמצא מסלול למידה</h3>
-              <p className="text-gray-600 mb-6">יכול להיות שקרתה שגיאה או שאין תוצאות אבחון</p>
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">לא נמצא מסלול למידה</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">יכול להיות שקרתה שגיאה או שאין תוצאות אבחון</p>
 
               <button
                 onClick={fetchLearningPath}
-                className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                className="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition"
               >
                 נסה שוב ליצור מסלול
               </button>

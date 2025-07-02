@@ -25,7 +25,7 @@ export default function FirstQuiz() {
   }
 
   return (
-    <div className="min-h-screen panels-900 flex items-center justify-center p-2 md:p-6">
+    <div className="min-h-screen panels flex items-center justify-center p-2 md:p-6">
       <div className="flex flex-col lg:flex-row w-full max-w-6xl gap-4">
         {/* Question Navigation Grid - Hidden on mobile, visible on large screens */}
         <div className="hidden lg:block lg:w-1/4 panels p-4 rounded-xl">
