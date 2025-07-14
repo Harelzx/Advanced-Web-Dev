@@ -93,19 +93,29 @@ const SessionSelection = ({ availableSessions, onSelectSession }) => {
             return (
               <button
                 key={sessionNum}
-                onClick={() => isAvailable && onSelectSession(Number(sessionNum))}
+                onClick={() =>
+                  isAvailable && onSelectSession(Number(sessionNum))
+                }
                 className={`panels p-6 rounded-lg shadow-md transition-all ${
                   isAvailable
                     ? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transform hover:scale-105"
                     : "opacity-60 cursor-not-allowed"
                 }`}
               >
-                <h3 className={`text-xl font-semibold mb-2 ${isAvailable ? 'text-white' : ''}`}>
+                <h3
+                  className={`text-xl font-semibold mb-2 ${
+                    isAvailable ? "text-white" : ""
+                  }`}
+                >
                   {sessionTitles[sessionNum]}
                 </h3>
-                <p className={`text-sm ${isAvailable ? 'text-blue-100' : ''}`}>רמת קושי: {config.name}</p>
+                <p className={`text-sm ${isAvailable ? "text-blue-100" : ""}`}>
+                  רמת קושי: {config.name}
+                </p>
                 {!isAvailable && (
-                                      <p className="text-xs mt-2 opacity-60">השלם תרגולים קודמים כדי לפתוח</p>
+                  <p className="text-xs mt-2 opacity-60">
+                    השלם תרגולים קודמים כדי לפתוח
+                  </p>
                 )}
               </button>
             );
@@ -144,6 +154,7 @@ export default function InterStudyPage() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionCompleted, setSessionCompleted] = useState(false);
   const [lastSessionResults, setLastSessionResults] = useState(null);
+  const [showInitialExplanation, setShowInitialExplanation] = useState(false);
 
   /**
    * Loads all necessary data for the training session from Firestore.
@@ -284,6 +295,7 @@ export default function InterStudyPage() {
           });
         }
         setSelectedSession(sessionNumber);
+        setSessionStarted(true);
         setIsLoading(false);
       } catch (e) {
         console.error("Error preparing session:", e);
@@ -376,8 +388,19 @@ export default function InterStudyPage() {
   useEffect(() => {
     if (user) {
       loadTrainingData(user.uid);
+      // Show explanation only if coming from navbar (reset=1 parameter)
+      const fromNavbar = searchParams.get("reset") === "1";
+      if (fromNavbar) {
+        setShowInitialExplanation(true);
+        // Remove the reset param from the URL after handling
+        if (typeof window !== "undefined" && window.history) {
+          const url = new URL(window.location);
+          url.searchParams.delete("reset");
+          window.history.replaceState({}, "", url.pathname + url.search);
+        }
+      }
     }
-  }, [user, authLoading, loadTrainingData]);
+  }, [user, authLoading, loadTrainingData, searchParams]);
 
   useEffect(() => {
     if (searchParams.get("reset") === "1") {
@@ -400,7 +423,10 @@ export default function InterStudyPage() {
 
   if (isLoading || authLoading) {
     return (
-      <div className="flex justify-center items-center h-screen pt-16" dir="rtl">
+      <div
+        className="flex justify-center items-center h-screen pt-16"
+        dir="rtl"
+      >
         <div className="loader"></div>
         <p className="mr-4">טוען...</p>
       </div>
@@ -437,7 +463,10 @@ export default function InterStudyPage() {
 
   if (!trainingProgress) {
     return (
-      <div className="flex justify-center items-center h-screen pt-16" dir="rtl">
+      <div
+        className="flex justify-center items-center h-screen pt-16"
+        dir="rtl"
+      >
         <div className="loader"></div>
         <p className="mr-4">טוען נתוני אימון...</p>
       </div>
@@ -473,6 +502,7 @@ export default function InterStudyPage() {
             setSessionCompleted(false);
             setSessionStarted(false);
             setSelectedSession(null);
+            setShowInitialExplanation(false);
             setTrainingProgress((prev) => ({
               ...prev,
               status: "in_progress",
@@ -494,7 +524,7 @@ export default function InterStudyPage() {
     const nextAvailable = availableSessions
       .filter((s) => !(trainingProgress.completedSessions || []).includes(s))
       .sort((a, b) => a - b)[0];
-    
+
     return (
       <SessionSummaryScreen
         results={lastSessionResults}
@@ -505,19 +535,31 @@ export default function InterStudyPage() {
             setSessionCompleted(false);
             setSessionStarted(false);
             setSelectedSession(nextAvailable);
+            setShowInitialExplanation(false);
           }
         }}
         onBackToSessions={() => {
           setSessionCompleted(false);
           setSessionStarted(false);
           setSelectedSession(null);
+          setShowInitialExplanation(false);
         }}
         isComplete={!nextAvailable}
         onRedoSession={() => {
           setSessionCompleted(false);
           setSessionStarted(false);
           setSelectedSession(selectedSession);
+          setShowInitialExplanation(false);
         }}
+      />
+    );
+  }
+
+  if (showInitialExplanation) {
+    return (
+      <SessionStartScreen
+        isGeneralExplanation={true}
+        onStart={() => setShowInitialExplanation(false)}
       />
     );
   }
@@ -527,16 +569,6 @@ export default function InterStudyPage() {
       <SessionSelection
         availableSessions={availableSessions}
         onSelectSession={handleSessionSelect}
-      />
-    );
-  }
-
-  if (!sessionStarted) {
-    return (
-      <SessionStartScreen
-        sessionNumber={selectedSession}
-        difficulty={SESSION_CONFIG[selectedSession]?.name || "מתחילים"}
-        onStart={() => setSessionStarted(true)}
       />
     );
   }
@@ -551,6 +583,7 @@ export default function InterStudyPage() {
         onHome={() => {
           setSessionStarted(false);
           setSelectedSession(null);
+          setShowInitialExplanation(false);
         }}
       />
     </div>

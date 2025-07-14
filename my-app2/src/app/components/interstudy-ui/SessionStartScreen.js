@@ -4,6 +4,7 @@ export default function SessionStartScreen({
   sessionNumber,
   difficulty,
   onStart,
+  isGeneralExplanation = false,
 }) {
   return (
     <div
@@ -12,13 +13,21 @@ export default function SessionStartScreen({
     >
       <div className="max-w-2xl w-full panels backdrop-blur-xl rounded-3xl shadow-2xl p-8 text-center">
         <div className="text-5xl mb-4">🚀</div>
-        <h1 className="text-4xl font-bold mb-2">
-          תרגול מספר {sessionNumber}
-        </h1>
-        <p className="text-xl mb-6">
-          רמת קושי:{" "}
-          <span className="font-semibold text-indigo-600 dark:text-indigo-400">{difficulty}</span>
-        </p>
+        {!isGeneralExplanation ? (
+          <>
+            <h1 className="text-4xl font-bold mb-2">
+              תרגול מספר {sessionNumber}
+            </h1>
+            <p className="text-xl mb-6">
+              רמת קושי:{" "}
+              <span className="font-semibold text-indigo-600 dark:text-indigo-400">{difficulty}</span>
+            </p>
+          </>
+        ) : (
+          <h1 className="text-4xl font-bold mb-2">
+            תרגולים אינטראקטיביים
+          </h1>
+        )}
 
         <p className="mb-8 max-w-lg mx-auto opacity-80">
           תוכנית האימונים בנויה מ-9 תרגולים ברמות קושי עולות: 3 תרגולים ראשונים
@@ -56,7 +65,7 @@ export default function SessionStartScreen({
           onClick={onStart}
           className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-2xl hover:shadow-xl transition-all duration-300 text-xl shadow-lg transform hover:scale-105"
         >
-          בואו נתחיל!
+          {isGeneralExplanation ? "בואו נתחיל!" : "בואו נתחיל!"}
         </button>
       </div>
     </div>
