@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
-import { SESSION_CONFIG } from "@/utils/constants";
+import { SESSION_CONFIG } from "@/app/InterStudy/sessionConfig";
 import Button from "../Button";
 
 /**
@@ -40,7 +40,7 @@ export default function NextPracticeCard({ sessionNumber }) {
         קושי: <span className="font-bold">{difficultyName}</span>
       </p>
 
-      <Link href="/InterStudy" className="flex justify-center">
+      <Link href="/InterStudy?reset=1" className="flex justify-center">
         <Button className="font-bold transition-transform transform hover:scale-105 duration-300 gap-2 min-w-[160px]">
           <span>להתחלת התרגול</span>
           <FaArrowLeft />

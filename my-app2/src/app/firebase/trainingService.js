@@ -94,8 +94,6 @@ export function buildPracticeSession(
   difficultyNumber,
   usedHardQuestionIds = []
 ) {
-
-
   // First, filter all questions by the required difficulty number.
   const questionsOfDifficulty = allQuestions.filter(
     (q) => q.difficulty === difficultyNumber
@@ -107,19 +105,24 @@ export function buildPracticeSession(
 
   // Special logic for hard sessions (bagrut)
   if (difficultyNumber === 3) {
-    // Subjects to cover
-    const subjects = ["algebra", "calculus", "geometry", "prob&stat", "trig"];
+    // Filter out already used questions
+    const availableQuestions = questionsOfDifficulty.filter(
+      (q) => !usedHardQuestionIds.includes(q.id)
+    );
+    
+    // If no unused questions, allow reusing all questions for bagrut sessions
+    const questionsToUse = availableQuestions.length > 0 ? availableQuestions : questionsOfDifficulty;
+    
+    // Pick up to 5 random questions
     const selectedQuestions = [];
-    subjects.forEach((subject) => {
-      const subjectQuestions = questionsOfDifficulty.filter(
-        (q) => q.subject === subject && !usedHardQuestionIds.includes(q.id)
-      );
-      if (subjectQuestions.length > 0) {
-        // Pick one at random
-        const randomIdx = Math.floor(Math.random() * subjectQuestions.length);
-        selectedQuestions.push(subjectQuestions[randomIdx]);
-      }
-    });
+    const questionsToSelect = Math.min(5, questionsToUse.length);
+    
+    for (let i = 0; i < questionsToSelect; i++) {
+      const randomIdx = Math.floor(Math.random() * questionsToUse.length);
+      const selectedQuestion = questionsToUse.splice(randomIdx, 1)[0];
+      selectedQuestions.push(selectedQuestion);
+    }
+    
     return selectedQuestions;
   }
 
@@ -174,31 +177,48 @@ export async function saveSessionResults(
   practiceSets
 ) {
   const difficulty = results.difficulty;
-  const subjectBreakdown = {};
+  let subjectBreakdown = {};
   const mistakes = [];
 
-  // Analyze the user's answers to build a summary.
-  results.answers.forEach((answer) => {
-    const question = practiceSets[difficulty].find(
-      (q) => q.id === answer.questionId
-    );
-    if (!question) return;
+  // Skip subject breakdown for bagrut (hard) questions as they are multi-section
+  // and the subject categorization doesn't apply the same way
+  if (difficulty === 'hard' || currentSession === 9) {
+    // No subject breakdown for bagrut questions
+    subjectBreakdown = null;
+    
+    // Track mistakes for bagrut questions
+    results.answers.forEach((answer) => {
+      if (!answer.isCorrect) {
+        mistakes.push({
+          questionId: answer.questionId,
+          userAnswer: answer.userAnswer,
+        });
+      }
+    });
+  } else {
+    // Regular subject breakdown for easy/medium questions
+    results.answers.forEach((answer) => {
+      const question = practiceSets[difficulty].find(
+        (q) => q.id === answer.questionId
+      );
+      if (!question) return;
 
-    const subject = question.subject;
-    if (!subjectBreakdown[subject]) {
-      subjectBreakdown[subject] = { questions: 0, correct: 0 };
-    }
-    subjectBreakdown[subject].questions++;
+      const subject = question.subject;
+      if (!subjectBreakdown[subject]) {
+        subjectBreakdown[subject] = { questions: 0, correct: 0 };
+      }
+      subjectBreakdown[subject].questions++;
 
-    if (answer.isCorrect) {
-      subjectBreakdown[subject].correct++;
-    } else {
-      mistakes.push({
-        questionId: answer.questionId,
-        userAnswer: answer.userAnswer,
-      });
-    }
-  });
+      if (answer.isCorrect) {
+        subjectBreakdown[subject].correct++;
+      } else {
+        mistakes.push({
+          questionId: answer.questionId,
+          userAnswer: answer.userAnswer,
+        });
+      }
+    });
+  }
 
   // Prepare the data object for the session document.
   const sessionData = {
@@ -218,16 +238,30 @@ export async function saveSessionResults(
   );
   await setDoc(practiceDocRef, sessionData);
 
-  // Prepare the progress update.
+  // Get the current training progress to properly update the completedSessions array
+  const progressRef = doc(db, "users", userId, "training_progress", "plan_1");
+  const progressSnap = await getDoc(progressRef);
+  const currentProgress = progressSnap.data() || { completedSessions: [] };
+  
+  // Ensure completedSessions is an array and add the current session
+  const existingCompleted = Array.isArray(currentProgress.completedSessions) 
+    ? currentProgress.completedSessions 
+    : [];
+  
+  // Create updated completed sessions array (ensure uniqueness)
+  const updatedCompletedSessions = Array.from(
+    new Set([...existingCompleted, currentSession])
+  );
+  
+  // Prepare the progress update
   const updatedProgress = {
     currentSession: currentSession + 1,
-    completedSessions: currentSession,
+    completedSessions: updatedCompletedSessions,
     status: currentSession + 1 > 9 ? "completed" : "in_progress",
     lastActivity: serverTimestamp(),
   };
 
-  // Update the user's main training progress document.
-  const progressRef = doc(db, "users", userId, "training_progress", "plan_1");
+  // Update the user's main training progress document
   await updateDoc(progressRef, updatedProgress);
 
   return updatedProgress;
@@ -254,7 +288,13 @@ export async function getBagrutQuestions() {
   const querySnapshot = await getDocs(questionsCollection);
   const questions = [];
   querySnapshot.forEach((doc) => {
-    questions.push({ id: doc.id, ...doc.data() });
+    const data = doc.data();
+    // Ensure all bagrut questions have difficulty 3
+    questions.push({ 
+      id: doc.id, 
+      ...data,
+      difficulty: 3  // Force difficulty to 3 for bagrut questions
+    });
   });
   return questions;
 }

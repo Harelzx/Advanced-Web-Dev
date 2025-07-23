@@ -145,10 +145,17 @@ export function useMainPageLogic() {
   // Calculate the next available session
   const nextSession = (() => {
     if (!trainingProgress?.completedSessions) return 1;
-    const availableSessions = getAvailableSessions(trainingProgress.completedSessions);
+    
+    // Ensure completedSessions contains numbers, not strings
+    const completedSessionNumbers = trainingProgress.completedSessions.map(s => 
+      typeof s === 'string' ? parseInt(s) : s
+    );
+    
+    const availableSessions = getAvailableSessions(completedSessionNumbers);
     const next = availableSessions
-      .filter(s => !trainingProgress.completedSessions.includes(s))
+      .filter(s => !completedSessionNumbers.includes(s))
       .sort((a, b) => a - b)[0];
+    
     return next || 10; // 10 means all sessions completed
   })();
 

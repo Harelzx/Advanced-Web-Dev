@@ -208,7 +208,7 @@ export default function ChatSidebar({
   };
 
   // Handle enter key press
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -312,11 +312,14 @@ export default function ChatSidebar({
     <>
       {/* Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-transparent z-40 pointer-events-none" />
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-30 sm:bg-transparent z-40 sm:pointer-events-none" 
+          onClick={onClose}
+        />
       )}
 
       {/* Chat Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-96 panels shadow-xl z-50 transform transition-transform duration-300 ${
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-96 panels shadow-xl z-50 transform transition-transform duration-300 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         
@@ -414,7 +417,7 @@ export default function ChatSidebar({
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               placeholder="הקלד הודעה..."
               className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
               dir="rtl"

@@ -18,10 +18,6 @@ const ChatbotSidebar = () => {
   const [user, loading] = useAuthState(auth);
   const messagesEndRef = useRef(null);
 
-  // Debug logging for auth state
-  useEffect(() => {
-    console.log('Auth state:', { user: !!user, loading, userId: user?.uid });
-  }, [user, loading]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

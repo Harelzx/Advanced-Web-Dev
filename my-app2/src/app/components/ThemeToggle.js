@@ -9,7 +9,7 @@ const FloatingThemeToggle = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed bottom-6 left-5 z-75 p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 bg-gray-800 hover:bg-gray-700 text-white dark:bg-gray-200 dark:hover:bg-gray-300 dark:text-gray-800"
+      className="fixed bottom-6 left-5 z-75 p-3 rounded-full shadow-xl transition-all duration-300 hover:scale-110 bg-gray-800 hover:bg-gray-700 text-white dark:bg-white dark:hover:bg-gray-50 dark:text-gray-900 border-2 border-gray-600 dark:border-gray-800 ring-2 ring-white/20 dark:ring-black/20"
       aria-label={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
     >
       {theme === 'light' ? (

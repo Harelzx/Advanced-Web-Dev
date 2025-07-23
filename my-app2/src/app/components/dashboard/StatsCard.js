@@ -15,12 +15,12 @@ export default function StatsCard({
   return (
     <div className={`panels p-4 rounded-lg shadow ${className}`}>
       <div className="mb-2">
-      <h3 className="text-lg font-semibold">{title}</h3>
+      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">{title}</h3>
       </div>
       
       {value !== undefined && (
         <div className="mb-2">
-          <span className={`text-2xl font-bold ${valueColor}`}>{value}</span>
+          <span className={`text-xl font-semibold ${valueColor}`}>{value}</span>
         </div>
       )}
       

@@ -56,12 +56,27 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
       const results = {
         score: score,
         totalQuestions: selectedQuestions.length,
-        answers: userAnswers.map((answer, index) => ({
-          questionId: selectedQuestions[index].id,
-          userAnswer: answer,
-          correct: selectedQuestions[index].correct,
-          isCorrect: answer === selectedQuestions[index].correct,
-        })),
+        answers: userAnswers.map((answer, index) => {
+          const question = selectedQuestions[index];
+          // For bagrut questions (sections), answer is an array of booleans
+          if (Array.isArray(answer)) {
+            const correctCount = answer.filter(Boolean).length;
+            const totalSections = answer.length;
+            return {
+              questionId: question.id,
+              userAnswer: answer,
+              correct: question.sections ? question.sections.map(s => s.correct_answer) : null,
+              isCorrect: correctCount === totalSections,
+            };
+          }
+          // For regular questions
+          return {
+            questionId: question.id,
+            userAnswer: answer,
+            correct: question.correct,
+            isCorrect: answer === question.correct,
+          };
+        }),
         difficulty: difficulty,
         timeSpent: timeSpent,
         sessionNumber: sessionNumber,
@@ -89,6 +104,11 @@ export function useStudyLogic(practiceSets, onQuizComplete, sessionNumber) {
 
     // Hard question: answerIndex is an array of booleans (sectionResults)
     if (Array.isArray(answerIndex)) {
+      // Store the section results in userAnswers
+      const newAnswers = [...userAnswers];
+      newAnswers[currentQuestion] = answerIndex;
+      setUserAnswers(newAnswers);
+      
       // Each hard question is worth 20 points
       const correctCount = answerIndex.filter(Boolean).length;
       const totalSections = answerIndex.length;

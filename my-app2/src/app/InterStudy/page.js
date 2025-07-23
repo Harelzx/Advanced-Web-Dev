@@ -18,7 +18,7 @@ import {
 } from "../firebase/trainingService";
 import SessionStartScreen from "../components/interstudy-ui/SessionStartScreen";
 import SessionSummaryScreen from "../components/interstudy-ui/SessionSummaryScreen";
-import { SESSION_CONFIG } from "@/utils/constants";
+import { SESSION_CONFIG } from "./sessionConfig";
 
 /**
  * A simple controller component that wraps the Study UI with the study logic hook.
@@ -74,7 +74,7 @@ const getAvailableSessions = (completedSessions) => {
 };
 
 // Component to display available sessions
-const SessionSelection = ({ availableSessions, onSelectSession }) => {
+const SessionSelection = ({ availableSessions, completedSessions, onSelectSession }) => {
   // Map session numbers to their index within each difficulty
   const difficultyCounters = { easy: 0, medium: 0, hard: 0 };
   const sessionTitles = {};
@@ -86,35 +86,93 @@ const SessionSelection = ({ availableSessions, onSelectSession }) => {
   return (
     <div className="min-h-screen panels p-4 pt-20" dir="rtl">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-center">בחר סשן תרגול</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">בחר סשן תרגול</h2>
+        
+        {/* Explanation about unlocking system */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-8 max-w-3xl mx-auto shadow-sm">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-3">איך פותחים תרגולים חדשים?</h3>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            המערכת בנויה מ-9 תרגולים המתקדמים בהדרגה מרמה קלה לרמת בגרות.
+          </p>
+          
+          <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">כללי הפתיחה:</h4>
+          
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <div>
+                <span className="font-semibold text-gray-800 dark:text-gray-200">השלמת תרגול קל:</span>
+                <span className="text-gray-700 dark:text-gray-300"> פותחת תרגול קל נוסף ותרגול בינוני חדש.</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <div>
+                <span className="font-semibold text-gray-800 dark:text-gray-200">השלמת תרגול בינוני:</span>
+                <span className="text-gray-700 dark:text-gray-300"> פותחת תרגול בינוני נוסף ותרגול קשה (ברמת בגרות).</span>
+              </div>
+            </div>
+            
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Object.entries(SESSION_CONFIG).map(([sessionNum, config]) => {
-            const isAvailable = availableSessions.includes(Number(sessionNum));
+            const sessionNumber = Number(sessionNum);
+            const isAvailable = availableSessions.includes(sessionNumber);
+            const isCompleted = completedSessions.includes(sessionNumber);
+            
             return (
               <button
                 key={sessionNum}
                 onClick={() =>
-                  isAvailable && onSelectSession(Number(sessionNum))
+                  isAvailable && onSelectSession(sessionNumber)
                 }
-                className={`panels p-6 rounded-lg shadow-md transition-all ${
-                  isAvailable
-                    ? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transform hover:scale-105"
-                    : "opacity-60 cursor-not-allowed"
+                className={`panels p-6 rounded-lg shadow-md transition-all relative ${
+                  isCompleted
+                    ? "bg-green-500 dark:bg-green-600 text-white hover:bg-green-600 dark:hover:bg-green-700 transform hover:scale-105 cursor-pointer"
+                    : isAvailable
+                    ? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transform hover:scale-105 cursor-pointer"
+                    : "bg-gray-300 dark:bg-gray-700 opacity-60 cursor-not-allowed"
                 }`}
               >
+                {/* Completed checkmark */}
+                {isCompleted && (
+                  <div className="absolute top-2 left-2">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+                
                 <h3
                   className={`text-xl font-semibold mb-2 ${
-                    isAvailable ? "text-white" : ""
+                    isCompleted || isAvailable ? "text-white" : "text-gray-600 dark:text-gray-400"
                   }`}
                 >
                   {sessionTitles[sessionNum]}
                 </h3>
-                <p className={`text-sm ${isAvailable ? "text-blue-100" : ""}`}>
+                <p className={`text-sm ${
+                  isCompleted ? "text-green-100" : isAvailable ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
+                }`}>
                   רמת קושי: {config.name}
                 </p>
-                {!isAvailable && (
-                  <p className="text-xs mt-2 opacity-60">
+                
+                {/* Status messages */}
+                {isCompleted ? (
+                  <div>
+                    <p className="text-xs mt-2 text-green-100 font-semibold">
+                      הושלם בהצלחה! ✓
+                    </p>
+                    <p className="text-xs mt-1 text-green-200">
+                      לחץ כדי לתרגל שוב
+                    </p>
+                  </div>
+                ) : !isAvailable ? (
+                  <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">
                     השלם תרגולים קודמים כדי לפתוח
+                  </p>
+                ) : (
+                  <p className="text-xs mt-2 text-blue-100">
+                    לחץ להתחלת התרגול
                   </p>
                 )}
               </button>
@@ -416,7 +474,7 @@ export default function InterStudyPage() {
         window.history.replaceState({}, "", url.pathname + url.search);
       }
     }
-  }, [searchParams.toString(), user]);
+  }, [searchParams, user, loadTrainingData]);
 
   // --- Render Logic ---
   // The following section determines which UI to show based on the current state.
@@ -568,6 +626,7 @@ export default function InterStudyPage() {
     return (
       <SessionSelection
         availableSessions={availableSessions}
+        completedSessions={trainingProgress?.completedSessions || []}
         onSelectSession={handleSessionSelect}
       />
     );

@@ -1,19 +1,23 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useDashboardLogic } from '../hooks/useDashboardLogic';
 import Navbar from '../components/Navbar';
 import TeacherView from '../components/dashboard/TeacherView';
 import ParentView from '../components/dashboard/ParentView';
 import AddStudentModal from '../components/dashboard/AddStudentModal';
 import RemoveStudentModal from '../components/dashboard/RemoveStudentModal';
+import EditProfileModal from '../components/dashboard/EditProfileModal';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatPartnersList from '../components/chat/ChatPartnersList';
 import useNotifications from '../hooks/useNotifications';
 import NotificationToast from '../components/notifications/NotificationToast';
 import useWebSocket from '../hooks/useWebSocket';
+import { useChatNotifications } from '../hooks/useChatNotifications';
+import { useChatHandlers } from '../hooks/useChatHandlers';
 import LoadingWheel from '../components/LoadingWheel';
 import DashboardError from '../components/dashboard/DashboardError';
+import ErrorBoundary from '../components/dashboard/ErrorBoundary';
 
 /**
  * Main Dashboard Component
@@ -26,93 +30,47 @@ const Dashboard = () => {
     userName, 
     studentsData, 
     currentUserId, 
+    currentUserData,
     loading, 
     error, 
-    refreshData 
+    refreshData,
+    updateUserName
   } = useDashboardLogic();
   
   // --- UI State Management ---
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   
   // --- Chat State Management ---
-  const [showChat, setShowChat] = useState(false);
-  const [showPartnersList, setShowPartnersList] = useState(false);
-  const [selectedPartner, setSelectedPartner] = useState(null);
+  const {
+    showChat,
+    showPartnersList,
+    selectedPartner,
+    handleOpenChat,
+    handleSelectPartner,
+    handleCloseChat,
+    handleClosePartnersList
+  } = useChatHandlers();
   const [unreadCount, setUnreadCount] = useState(0);
-  const notifiedMessagesRef = useRef(new Set());
   
   // --- Notifications ---
   const { notifications, removeNotification, showChatNotification } = useNotifications();
   
   // --- WebSocket Connection ---
-  const { connectionStatus, sendMessage, messages: webSocketMessages } = useWebSocket(currentUserId, userRole, userName);
+  const { connectionStatus, messages: webSocketMessages } = useWebSocket(currentUserId, userRole, userName);
+  
+  // --- Chat Notifications ---
+  useChatNotifications({
+    webSocketMessages,
+    showChat,
+    selectedPartner,
+    userRole,
+    showChatNotification
+  });
 
-  // --- Chat Handlers ---
-  const handleOpenChat = () => {
-    setShowPartnersList(true);
-  };
-
-  const handleSelectPartner = (partnerId, partnerName, partnerRole) => {
-    setSelectedPartner({
-      id: partnerId,
-      name: partnerName,
-      role: partnerRole
-    });
-    setShowPartnersList(false);
-    setShowChat(true);
-  };
-
-  const handleCloseChat = () => {
-    setShowChat(false);
-    setSelectedPartner(null);
-  };
-
-  const handleClosePartnersList = () => {
-    setShowPartnersList(false);
-  };
-
-  // --- Chat Notifications Logic ---
-  useEffect(() => {
-    if (webSocketMessages.length > 0) {
-      const lastMessage = webSocketMessages[webSocketMessages.length - 1];
-      
-      const messageId = `${lastMessage.timestamp}-${lastMessage.text}-${lastMessage.sender}`;
-      
-      if (notifiedMessagesRef.current.has(messageId)) {
-        return;
-      }
-      
-      const isFromOtherUser = lastMessage.sender !== userRole;
-      
-      let isFromCurrentChatPartner = false;
-      if (showChat && selectedPartner) {
-        if (userRole === 'teacher' && lastMessage.sender === 'parent') {
-          isFromCurrentChatPartner = lastMessage.parentId === selectedPartner.id;
-        }
-        else if (userRole === 'parent' && lastMessage.sender === 'teacher') {
-          isFromCurrentChatPartner = lastMessage.teacherId === selectedPartner.id;
-        }
-      }
-      
-      if (isFromOtherUser) {
-        notifiedMessagesRef.current.add(messageId);
-        
-        if (notifiedMessagesRef.current.size > 100) {
-          const sortedArray = Array.from(notifiedMessagesRef.current);
-          notifiedMessagesRef.current = new Set(sortedArray.slice(-100));
-        }
-        
-        if (!isFromCurrentChatPartner) {
-          const senderRole = lastMessage.sender;
-          const senderName = senderRole === 'teacher' ? 'מורה' : 'הורה';
-          showChatNotification(senderName, lastMessage.text, senderRole);
-        }
-      }
-    }
-  }, [webSocketMessages, showChat, selectedPartner, userRole, showChatNotification]);
-
+  
   // --- Modal Handlers ---
   const openRemoveModal = (student) => {
     setStudentToRemove(student);
@@ -122,6 +80,21 @@ const Dashboard = () => {
   const closeRemoveModal = () => {
     setStudentToRemove(null);
     setShowRemoveModal(false);
+  };
+
+  const handleEditProfile = () => {
+    setShowEditProfileModal(true);
+  };
+
+  const closeEditProfileModal = () => {
+    setShowEditProfileModal(false);
+  };
+
+  const handleProfileUpdated = (updatedUserData) => {
+    // Update the userName in the navbar immediately
+    updateUserName(updatedUserData.fullName);
+    // Refresh dashboard data to update currentUserData in the hook
+    refreshData();
   };
 
   // --- Render Loading State ---
@@ -136,17 +109,19 @@ const Dashboard = () => {
 
   // --- Main Render ---
   return (
-    <div className="min-h-screen panels">
-      <Navbar 
-        isDashboard={true}
-        userRole={userRole} 
-        userName={userName}
-        onOpenChat={handleOpenChat}
-        onAddStudent={() => setShowAddModal(true)}
-        onAddChild={() => setShowAddModal(true)}
-        unreadCount={unreadCount}
-      />
-      <main className="p-4 space-y-6 pt-20" dir="rtl">
+    <ErrorBoundary>
+      <div className="min-h-screen panels">
+        <Navbar 
+          isDashboard={true}
+          userRole={userRole} 
+          userName={userName}
+          onOpenChat={handleOpenChat}
+          onAddStudent={() => setShowAddModal(true)}
+          onAddChild={() => setShowAddModal(true)}
+          onEditProfile={handleEditProfile}
+          unreadCount={unreadCount}
+        />
+        <main className="p-4 space-y-6 pt-20" dir="rtl">
       
       <div className="panels p-6 rounded-lg shadow-lg">
         {userRole === 'teacher' ? (
@@ -190,6 +165,12 @@ const Dashboard = () => {
         userId={currentUserId}
         onStudentRemoved={refreshData}
       />
+      <EditProfileModal
+        isOpen={showEditProfileModal}
+        onClose={closeEditProfileModal}
+        currentUser={currentUserData}
+        onProfileUpdated={handleProfileUpdated}
+      />
 
         {/* Chat Partners List Modal */}
         {showPartnersList && (
@@ -219,7 +200,8 @@ const Dashboard = () => {
         notifications={notifications}
         onRemove={removeNotification}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

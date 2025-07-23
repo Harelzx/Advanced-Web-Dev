@@ -9,6 +9,7 @@ export default function Navbar({
   onOpenChat = null,
   onAddStudent = null,
   onAddChild = null,
+  onEditProfile = null,
   unreadCount = 0,
 }) {
   const [open, setOpen] = useState(false);
@@ -54,6 +55,15 @@ export default function Navbar({
                 className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium"
               >
                 הוסף {userRole === "teacher" ? "תלמיד/ה" : "ילד/ה"}
+              </button>
+
+              {/* Edit Profile Button */}
+              <button
+                onClick={onEditProfile}
+                className="navbar-button-custom rounded-lg px-4 py-2 transition-all duration-200 font-medium"
+                title="עריכת פרופיל"
+              >
+                פרופיל
               </button>
             </div>
           ) : (
@@ -148,6 +158,19 @@ export default function Navbar({
                   className="navbar-button-custom w-full py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium text-lg"
                 >
                   הוסף {userRole === "teacher" ? "תלמיד/ה" : "ילד/ה"}
+                </button>
+              </li>
+
+              {/* Edit Profile Button */}
+              <li>
+                <button
+                  onClick={() => {
+                    if (onEditProfile) onEditProfile();
+                    setOpen(false);
+                  }}
+                  className="navbar-button-custom w-full py-3 px-4 rounded-lg text-right transition-all duration-200 font-medium text-lg"
+                >
+                  עריכת פרופיל
                 </button>
               </li>
             </>
