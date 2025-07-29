@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+PROJECT_PRESENTATION_GUIDE.md
+WEBSOCKET_SETUP.md
+תקציר_פרויקט.md
